@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Outfit:wght@300;600&display=swap');
+
+.welcome-wrapper {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* --- VIDEO STYLING --- */
+.bg-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  z-index: -2;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45); /* Tint to make the white card pop */
+  z-index: -1;
+}
+
+/* --- GLASS CARD (Same dimensions as before) --- */
+.glass-card {
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 40px;
+  padding: 50px 30px;
+  max-width: 800px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+  animation: cardFadeIn 1.2s ease-out;
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- LARGE TYPOGRAPHY --- */
+.welcome-header h1 {
+  font-family: 'Outfit', sans-serif;
+  color: #1e293b; 
+  font-size: clamp(2.5rem, 8vw, 4rem); /* Large font size restored */
+  margin-bottom: 20px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.intro-text {
+  color: #334155;
+  font-size: 1.4rem; /* Restored larger readability */
+  line-height: 1.6;
+  margin-bottom: 40px;
+  font-weight: 400;
+}
+
+/* ... Keep Video & Overlay styling from previous responses ... */
+
+.options-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 15px;
+}
+
+/* 1. Mobile First: Stacked layout */
+.top-options {
+  display: flex;
+  flex-direction: column; 
+  gap: 15px;
+  width: 100%;
+}
+
+.option-btn {
+  width: 100%; /* Occupies full width of container */
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+  text-align: center;
+}
+
+/* OR Divider */
+.or-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 5px 0;
+  color: #1e293b;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.or-divider::before, .or-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(30, 41, 59, 0.2);
+  margin: 0 15px;
+}
+
+/* Colors */
+.tour-btn { background: white; color: #ff7e5f; border: 2px solid #ff7e5f; }
+.shop-btn { background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); color: white; border: none; }
+.catering-btn { background: #1e293b; color: white; border: none; }
+
+.option-btn:hover {
+  transform: translateY(-5px);
+  filter: brightness(1.1);
+}
+
+/* 2. Tablet & Desktop: Side-by-Side adjustment */
+@media (min-width: 768px) {
+  .top-options {
+    flex-direction: row; /* Switch to side-by-side */
+    justify-content: space-between;
+  }
+
+  .top-options .option-btn {
+    width: calc(50% - 7.5px); /* Half width minus half of the gap */
+  }
+
+  .catering-btn {
+    /* To make the catering button the same width as the top ones 
+       on big screens, we give it 50% width as well */
+    width: calc(50% - 7.5px);
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-header h1 { font-size: 2rem; }
+  .intro-text { font-size: 1rem; }
+  .option-btn { height: 60px; font-size: 1rem; }
+}
