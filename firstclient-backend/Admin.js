@@ -2,16 +2,24 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("./config");
 
 const Admin = sequelize.define("Admin", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
   username: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: "admin",
-    unique: true // PostgreSQL likes this as a separate constraint
+    unique: true 
   },
   password: {
     type: DataTypes.STRING,
     allowNull: false
   }
+}, {
+  // This helps Sequelize manage the table name "Admins" properly
+  tableName: 'Admins',
+  timestamps: true
 });
 
 module.exports = Admin;
