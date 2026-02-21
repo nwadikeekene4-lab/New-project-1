@@ -210,25 +210,32 @@ router.post("/admin/emergency-reset", async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: "Update failed" }); }
 });
 
-// 🛡️ 8. FINAL FIX: PAYMENT VERIFICATION ROUTE
+// 🛡️ 8. FINAL FIX: PAYMENT VERIFICATION ROUTE (INTEGRATED ITEMS FIX)
 router.post("/orders/verify", async (req, res) => {
   try {
-    const { reference } = req.body;
+    const { reference, customerDetails } = req.body;
     
-    // Check with Paystack using the secret key we defined in Section 1
+    // Check with Paystack
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
     });
 
     if (response.data.data.status === 'success') {
-      // Save order to DB
+      // 🛒 FETCH CURRENT CART ITEMS (To satisfy the "items cannot be null" DB rule)
+      const cartItems = await CartItem.findAll({ 
+        include: [{ model: Product, as: "product" }] 
+      });
+
+      // 📝 SAVE ORDER TO DB
       const newOrder = await Order.create({
         reference: reference,
         amount: response.data.data.amount / 100,
-        status: 'Paid'
+        status: 'Paid',
+        items: JSON.stringify(cartItems), // Save items as JSON string
+        customerDetails: JSON.stringify(customerDetails)
       });
 
-      // Clear the cart on success
+      // 🧹 CLEAR CART ON SUCCESS
       await CartItem.destroy({ where: {} });
 
       return res.json({ success: true, message: "Payment verified!", order: newOrder });
