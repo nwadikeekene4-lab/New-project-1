@@ -33,14 +33,15 @@ export function SuccessPage({ setCart }) {
         });
       }
 
-      API.post("/payment/verify", { 
+      // ✅ FIXED: Changed /payment/verify to /orders/verify to match backend
+      API.post("/orders/verify", { 
         reference: ref, 
         customerDetails 
       })
       .then((res) => {
         if (res.data.success) {
           setStatus('success');
-          setCart([]); 
+          setCart([]); // Clear the visual cart
           localStorage.removeItem("pendingCustomerDetails"); 
         } else {
           setStatus('error');
@@ -90,7 +91,6 @@ export function SuccessPage({ setCart }) {
         </p>
         
         <div className="order-summary-box">
-          {/* NEW PRICE BREAKDOWN SECTION */}
           <div className="summary-item">
             <span>Items Total:</span>
             <strong>₦{prices.subtotal.toLocaleString()}</strong>
