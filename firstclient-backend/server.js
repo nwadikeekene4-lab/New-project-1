@@ -7,7 +7,7 @@ require("dotenv").config();
 
 const Product = require("./models");
 const Order = require("./order");
-const Admin = require("./Admin"); // 👈 Added
+const Admin = require("./Admin"); 
 const { CartItem } = require("./cart");
 const { DeliveryOption = { sync: () => Promise.resolve() } } = require("./deliveryoptions");
 const routes = require("./routes"); 
@@ -24,7 +24,8 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      connectSrc: ["'self'", "https://api.paystack.co", "https://my-website-69a6.onrender.com"],
+      // UPDATED connectSrc to include your new frontend URL
+      connectSrc: ["'self'", "https://api.paystack.co", "https://firstclient-frontend.onrender.com"],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
     },
   },
@@ -40,8 +41,9 @@ const limiter = rateLimit({
 app.use(limiter); 
 
 // --- 1. DYNAMIC CORS ---
+// UPDATED with your actual frontend URL
 const allowedOrigins = [
-  "https://my-website-69a6.onrender.com", 
+  "https://firstclient-frontend.onrender.com", // Your new frontend
   "http://localhost:3000",
   "http://localhost:5173", 
   "http://localhost:5000"
@@ -62,7 +64,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// --- Manual Chrome Preflight Handler (KEPT) ---
+// --- Manual Chrome Preflight Handler ---
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     const origin = req.headers.origin;
@@ -81,7 +83,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 async function startServer() {
   try {
     await Product.sync({ alter: true }); 
-    await Admin.sync({alter: true }); // 👈 Added
+    await Admin.sync({alter: true }); 
     if (DeliveryOption.sync) await DeliveryOption.sync();
     await CartItem.sync({ alter: true });
     await Order.sync({ alter: true }); 
