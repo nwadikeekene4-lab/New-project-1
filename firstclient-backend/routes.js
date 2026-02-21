@@ -18,7 +18,7 @@ const DOMPurify = createDOMPurify(window);
 const Product = require("./models");
 const { CartItem } = require("./cart");
 const Order = require("./order");
-const Admin = require("./Admin"); // 👈 Added for Auto-Update
+const Admin = require("./Admin"); 
 
 // 🛡️ SECURITY UTILITY
 const sanitizeInput = (data) => {
@@ -208,6 +208,37 @@ router.post("/admin/emergency-reset", async (req, res) => {
     }
     res.json({ success: true, message: "Password updated successfully in database!" });
   } catch (err) { res.status(500).json({ success: false, message: "Update failed" }); }
+});
+
+// 🛡️ 8. FINAL FIX: PAYMENT VERIFICATION ROUTE
+router.post("/orders/verify", async (req, res) => {
+  try {
+    const { reference } = req.body;
+    
+    // Check with Paystack using the secret key we defined in Section 1
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
+    });
+
+    if (response.data.data.status === 'success') {
+      // Save order to DB
+      const newOrder = await Order.create({
+        reference: reference,
+        amount: response.data.data.amount / 100,
+        status: 'Paid'
+      });
+
+      // Clear the cart on success
+      await CartItem.destroy({ where: {} });
+
+      return res.json({ success: true, message: "Payment verified!", order: newOrder });
+    }
+    
+    res.status(400).json({ success: false, message: "Verification failed at Paystack" });
+  } catch (err) {
+    console.error("❌ Verify Error:", err.message);
+    res.status(500).json({ error: "Server Error during verification" });
+  }
 });
 
 module.exports = router;
