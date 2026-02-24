@@ -5,29 +5,25 @@
   min-height: 100vh;
 }
 
-/* 1. FIXED: Minimized the gaps around the container */
 .home-page-container {
-  /* Increased from 1200px to 1450px to use more screen real estate */
   max-width: 1450px; 
   margin: 0 auto;
-  
-  /* Reduced side padding to 10px so products are closer to screen edges */
   padding: 0 10px; 
-  
-  /* Reduced top padding from 100px to 75px to pull products up toward header */
-  padding-top: 75px; 
+  /* ADJUSTED: Standard Desktop top padding 
+     Increased to 100px to ensure clearance for the header 
+  */
+  padding-top: 100px; 
   padding-bottom: 40px;
 }
 
-/* 2. FIXED: Tighter grid for more products per row */
+/* GRID LOGIC */
 .products-grid {
   display: grid;
-  /* Mobile: 2 columns, tiny 6px gap */
   grid-template-columns: repeat(2, 1fr);
   gap: 6px; 
+  grid-auto-rows: max-content;
 }
 
-/* Tablet: 4 columns */
 @media (min-width: 768px) {
   .products-grid { 
     grid-template-columns: repeat(4, 1fr); 
@@ -35,7 +31,6 @@
   }
 }
 
-/* Desktop: 6 columns is the "Konga Sweet Spot" for fitting everything */
 @media (min-width: 1024px) {
   .products-grid { 
     grid-template-columns: repeat(6, 1fr); 
@@ -43,17 +38,16 @@
   }
 }
 
-/* Extra Large Screens: 7 or 8 columns to fill the space */
 @media (min-width: 1600px) {
   .products-grid { 
     grid-template-columns: repeat(8, 1fr); 
   }
 }
 
-/* THE PRODUCT CARD - Minimalist & Compact */
+/* THE PRODUCT CARD */
 .product-card {
   background: #ffffff;
-  border-radius: 2px; /* Very slight rounding for professional look */
+  border-radius: 2px;
   border: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
@@ -82,18 +76,18 @@
 }
 
 .product-details {
-  padding: 8px; /* Tightest padding possible while remaining readable */
+  padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
 .product-title {
-  font-size: 12px; /* Standard retail size */
+  font-size: 12px;
   font-weight: 400;
   color: #333;
   margin: 0;
-  height: 32px; /* Keeps two lines of text aligned */
+  height: 32px;
   line-height: 1.3;
   overflow: hidden;
   display: -webkit-box;
@@ -133,34 +127,19 @@
   text-transform: uppercase;
 }
 
-.status-badge {
-  font-size: 10px;
-  color: #228b22;
-  font-weight: bold;
-}
-
-/* Refined Mobile-Specific Logic */
-
+/* MOBILE REFINEMENTS */
 @media (max-width: 600px) {
   .home-page-container {
-    /* Less top padding on mobile since headers are usually shorter */
-    padding-top: 65px; 
+    /* CRITICAL CHANGE: 
+       Increased to 125px because the mobile header is 2 rows. 
+       If 125px is too much space, you can dial it back to 115px.
+    */
+    padding-top: 125px; 
     padding-left: 5px;
     padding-right: 5px;
   }
 
-  .products-grid {
-    /* Strictly 2 columns: prevents products from being too tiny or too huge */
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-  }
-
-  .product-details {
-    padding: 8px;
-  }
-
   .product-title {
-    /* Slightly larger font on mobile for readability */
     font-size: 13px;
     height: 34px;
   }
@@ -168,21 +147,4 @@
   .product-price {
     font-size: 15px;
   }
-
-  .qty-selector {
-    /* Hide selector on mobile if it feels too crowded, or keep it small */
-    width: 40px;
-    font-size: 10px;
-  }
-
-  .buy-btn {
-    font-size: 10px;
-    padding: 10px 5px;
-  }
-}
-
-/* Logic for adding 100+ products */
-.products-grid {
-  /* This ensures that rows grow automatically without breaking the layout */
-  grid-auto-rows: max-content;
 }
