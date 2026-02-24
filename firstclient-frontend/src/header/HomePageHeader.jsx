@@ -49,49 +49,54 @@ export function HomePageHeader({ cart = [], onSearch }) {
 
       {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
 
-      <div className={`homepageheader-container ${isSearchFocused ? 'search-active' : ''}`}>
-        {/* LEFT SECTION: Branding */}
-        <div className="left-section">
-          <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>
-            ☰
-          </button>
-          <Link to="/" className="header-brand-group">
-            <span className="company-name">Heritage Hub</span>
-            <span className="logo-placeholder">YOUR LOGO</span>
-          </Link>
-        </div>
+      {/* HEADER CONTAINER */}
+      <header className={`homepageheader-container ${isSearchFocused ? 'search-active' : ''}`}>
+        <div className="header-top-row">
+          {/* LEFT SECTION: Hamburger + Brand */}
+          <div className="left-section">
+            <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>
+              ☰
+            </button>
+            <Link to="/" className="header-brand-group">
+              <span className="company-name">Heritage Hub</span>
+              <span className="logo-placeholder">LOGO</span>
+            </Link>
+          </div>
 
-        {/* MIDDLE SECTION: Search Bar */}
-        <div className="middle-section">
-          <input 
-            className="input" 
-            type="text" 
-            placeholder="Search Product" 
-            value={inputText} 
-            onChange={(e) => setInputText(e.target.value)} 
-            onKeyPress={handleKeyPress}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-          />
-          <button className="enter" onClick={handleButtonClick}>
-            <img className="search-icon" src="images/search-icon.png" alt="search" />
-          </button>
-        </div>
-
-        {/* RIGHT SECTION: Expression + Cart */}
-        <div className="right-section">
-          <span className="header-expression">We sell good products</span>
-          
-          <Link to="/checkout" className="headercart-link">
-            <div className="cart-container">
-              <img className="cart-icon" src="images/cart-image.png" alt="cart" />
-              <div className={`item-quantity ${isBouncing ? 'cart-bounce' : ''}`}>
-                {totalQuantity}
+          {/* RIGHT SECTION: Cart only on mobile (Expression hidden on mobile) */}
+          <div className="right-section">
+            <span className="header-expression">We sell good products</span>
+            
+            <Link to="/checkout" className="headercart-link">
+              <div className="cart-container">
+                <img className="cart-icon" src="images/cart-image.png" alt="cart" />
+                <div className={`item-quantity ${isBouncing ? 'cart-bounce' : ''}`}>
+                  {totalQuantity}
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
         </div>
-      </div>
+
+        {/* MIDDLE SECTION: Search Bar (Becomes full width on mobile) */}
+        <div className="middle-section">
+          <div className="search-bar-wrapper">
+            <input 
+              className="input" 
+              type="text" 
+              placeholder="Search products, brands and categories" 
+              value={inputText} 
+              onChange={(e) => setInputText(e.target.value)} 
+              onKeyPress={handleKeyPress}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+            />
+            <button className="enter" onClick={handleButtonClick}>
+              <img className="search-icon" src="images/search-icon.png" alt="search" />
+            </button>
+          </div>
+        </div>
+      </header>
     </>
   );
 }

@@ -1,25 +1,29 @@
-/* --- MAIN HEADER CONTAINER --- */
+/* homepageheader.css */
+
 .homepageheader-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #131921;
-  padding: 0 20px;
-  gap: 15px;
-  position: sticky;
+  background-color: #1a1a1a; /* Professional Dark Konga Header */
+  position: fixed;
   top: 0;
+  width: 100%;
   z-index: 1000;
-  color: white;
-  height: 65px;
-  transition: gap 0.3s ease;
+  display: flex;
+  flex-direction: column; /* Stack rows on mobile */
+  padding: 10px 15px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-/* --- LEFT SECTION: Locks branding in place --- */
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* BRANDING */
 .left-section {
   display: flex;
   align-items: center;
-  flex-shrink: 0; 
-  transition: opacity 0.3s ease;
+  gap: 12px;
 }
 
 .hamburger-menu {
@@ -27,172 +31,157 @@
   border: none;
   color: white;
   font-size: 24px;
-  margin-right: 15px;
   cursor: pointer;
 }
 
 .header-brand-group {
+  text-decoration: none;
   display: flex;
   align-items: center;
-  text-decoration: none;
-  gap: 10px;
+  gap: 8px;
 }
 
 .company-name {
-  font-size: 1.3rem;
   color: white;
   font-weight: 800;
-  white-space: nowrap;
+  font-size: 18px;
+  letter-spacing: -0.5px;
 }
 
 .logo-placeholder {
-  font-size: 0.7rem;
-  color: #5d8500ff;
-  border: 1px solid #5d8500ff;
-  padding: 2px 5px;
-  font-weight: bold;
+  background: #ff9800; /* Heritage Orange */
+  color: black;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-/* --- MIDDLE SECTION: Flexible search bar --- */
+/* SEARCH BAR */
 .middle-section {
-  flex: 1;
+  width: 100%;
+  margin-top: 10px; /* Space below the top row on mobile */
+}
+
+.search-bar-wrapper {
   display: flex;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
   height: 38px;
-  max-width: 500px;
-  transition: all 0.3s ease;
 }
 
 .input {
-  flex: 1;
-  height: 100%;
-  padding: 0 15px;
+  flex-grow: 1;
   border: none;
-  border-radius: 4px 0 0 4px;
+  padding: 0 12px;
+  font-size: 14px;
   outline: none;
-  font-size: 15px;
 }
 
 .enter {
-  background-color: #febd69;
+  background: #ff9800;
   border: none;
   width: 45px;
-  height: 100%;
-  cursor: pointer;
-  border-radius: 0 4px 4px 0;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  cursor: pointer;
 }
 
-.search-icon { height: 20px; }
+.search-icon {
+  width: 20px;
+  filter: brightness(0); /* Make icon black */
+}
 
-/* --- RIGHT SECTION: Locks expression in place --- */
+/* CART AND EXPRESSION */
 .right-section {
   display: flex;
   align-items: center;
-  gap: 20px;
-  flex-shrink: 0;
+  gap: 15px;
 }
 
 .header-expression {
-  font-size: 0.9rem;
-  color: #cccccc;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: opacity 0.3s ease;
+  color: #ccc;
+  font-size: 12px;
+  display: none; /* Hidden on mobile */
 }
 
-.cart-container { position: relative; display: flex; align-items: center; }
-.cart-icon { height: 35px; width: auto; }
-.item-quantity {
-  position: absolute; top: -5px; left: 18px;
-  background-color: #f08804; color: #131921;
-  border-radius: 50%; min-width: 20px; height: 20px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: bold;
+.headercart-link {
+  text-decoration: none;
 }
 
-/* --- SIDEBAR DRAWER --- */
-.sidebar-container {
-  position: fixed;
-  top: 0; 
-  left: -280px;
-  width: 280px; 
-  height: 100%;
-  background-color: white;
-  z-index: 2001;
-  transition: transform 0.3s ease-out;
+.cart-container {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  box-shadow: 4px 0 10px rgba(0,0,0,0.3);
-}
-
-.sidebar-container.open { transform: translateX(280px); }
-
-.sidebar-header {
-  background-color: #232f3e;
-  color: white; 
-  padding: 20px;
-  display: flex; 
-  justify-content: space-between; 
   align-items: center;
 }
 
-.close-btn { background: none; border: none; color: white; font-size: 30px; cursor: pointer; }
-
-.sidebar-links { display: flex; flex-direction: column; }
-.sidebar-links a {
-  padding: 15px 25px; 
-  text-decoration: none; 
-  color: #111;
-  font-size: 1.1rem; 
-  border-bottom: 1px solid #eee;
+.cart-icon {
+  width: 28px;
 }
+
+.item-quantity {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #228b22;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #1a1a1a;
+}
+
+/* DESKTOP VIEW - SWITCH TO SINGLE ROW */
+@media (min-width: 850px) {
+  .homepageheader-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+    padding: 0 5%;
+  }
+
+  .header-top-row {
+    width: auto;
+  }
+
+  .middle-section {
+    max-width: 500px;
+    margin-top: 0;
+    margin: 0 20px;
+  }
+
+  .header-expression {
+    display: inline;
+  }
+}
+
+/* SIDEBAR LOGIC */
+.sidebar-container {
+  position: fixed;
+  left: -280px;
+  top: 0;
+  width: 280px;
+  height: 100%;
+  background: white;
+  z-index: 2000;
+  transition: 0.3s;
+  box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+}
+
+.sidebar-container.open { left: 0; }
 
 .sidebar-overlay {
-  position: fixed; 
-  top: 0; 
-  left: 0; 
-  width: 100%; 
-  height: 100%;
-  background: rgba(0,0,0,0.5); 
-  z-index: 2000;
-}
-
-/* --- MOBILE SEARCH FOCUS --- */
-@media (max-width: 650px) {
-  .search-active .header-expression {
-    opacity: 0;
-    pointer-events: none;
-    width: 0;
-  }
-  
-  .search-active .left-section {
-    opacity: 0.2; 
-  }
-
-  .search-active .middle-section {
-    max-width: none;
-    flex: 5;
-  }
-}
-
-/* --- RESPONSIVE ADJUSTMENTS --- */
-@media (max-width: 850px) {
-  .header-expression { font-size: 0.8rem; }
-  .company-name { font-size: 1.1rem; }
-}
-
-@media (max-width: 480px) {
-  .company-name { font-size: 1rem; }
-  .logo-placeholder { display: none; }
-  .homepageheader-container { padding: 0 10px; gap: 8px; }
-  .header-expression { font-size: 0.7rem; }
-}
-
-/* --- ANIMATIONS --- */
-.cart-bounce { animation: bounceEffect 0.4s ease; }
-@keyframes bounceEffect {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.4); }
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1500;
 }
