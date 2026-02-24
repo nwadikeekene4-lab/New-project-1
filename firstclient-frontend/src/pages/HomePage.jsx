@@ -10,17 +10,12 @@ export function HomePage({ cart, setCart, allProducts, globalLoading }) {
   const [highlightId, setHighlightId] = useState(null);
   const [addedItemId, setAddedItemId] = useState(null);
 
-  // --- PROGRESSIVE RENDERING LOGIC ---
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
-      // Step 1: Show the first 12 products immediately
       setVisibleProducts(allProducts.slice(0, 12));
-
-      // Step 2: Show the rest after a tiny delay so the browser doesn't freeze
       const timer = setTimeout(() => {
         setVisibleProducts(allProducts);
       }, 150);
-
       return () => clearTimeout(timer);
     }
   }, [allProducts]);
@@ -62,10 +57,10 @@ export function HomePage({ cart, setCart, allProducts, globalLoading }) {
   };
 
   return (
-    <>
+    <div className="shop-layout">
       <HomePageHeader cart={cart} onSearch={handleSearch} />
 
-      <div className="home-page">
+      <main className="home-page-container">
         {globalLoading && visibleProducts.length === 0 ? (
           <div className="loading-state">
              <div className="spinner"></div>
@@ -89,55 +84,53 @@ export function HomePage({ cart, setCart, allProducts, globalLoading }) {
                 <div
                   key={product.id}
                   id={`product-${product.id}`}
-                  className={`product-container ${highlightId === product.id ? 'highlight-product' : ''}`}
+                  className={`product-card ${highlightId === product.id ? 'highlight-item' : ''}`}
                 >
-                  <div className="product-image-container">
+                  <div className="product-image-wrapper">
                     <img 
-                      className="product-image" 
+                      className="product-img" 
                       src={displayImage} 
                       alt={product.name}
                       loading="lazy"
                     />
                   </div>
 
-                  <div className="product-name">{product.name}</div>
-                  <div className="product-price">₦{Number(product.price || 0).toLocaleString()}</div>
+                  <div className="product-details">
+                    <h3 className="product-title">{product.name}</h3>
+                    <div className="product-price">₦{Number(product.price || 0).toLocaleString()}</div>
 
-                  <div className="product-quantity-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <select
-                      className="selector"
-                      value={quantities[product.id] || 1}
-                      onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                    >
-                      {[...Array(10).keys()].map((n) => (
-                        <option key={n + 1} value={n + 1}>{n + 1}</option>
-                      ))}
-                    </select>
+                    <div className="product-action-row">
+                      <select
+                        className="qty-selector"
+                        value={quantities[product.id] || 1}
+                        onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                      >
+                        {[...Array(10).keys()].map((n) => (
+                          <option key={n + 1} value={n + 1}>{n + 1}</option>
+                        ))}
+                      </select>
+                      
+                      <button
+                        className="buy-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleAddToCart(product);
+                        }}
+                      >
+                        Add
+                      </button>
+                    </div>
 
                     {addedItemId === product.id && (
-                      <div className="added-checkmark">
-                        <span style={{ marginLeft: '10px', color: '#008000', fontWeight: 'bold' }}>✅ Added</span>
-                      </div>
+                      <div className="status-badge">✅ Added</div>
                     )}
                   </div>
-
-                  <div className="product-spacer"></div>
-
-                  <button
-                    className="add-to-cart-button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleAddToCart(product);
-                    }}
-                  >
-                    Add to cart
-                  </button>
                 </div>
               );
             })}
           </div>
         )}
-      </div>
-    </>
+      </main>
+    </div>
   );
 }

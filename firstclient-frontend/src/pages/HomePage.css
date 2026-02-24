@@ -1,203 +1,188 @@
-/* Container & Layout */
-.home-page {
+/* HomePage.css - Compact Marketplace Layout */
+
+.shop-layout {
+  background-color: #f4f4f4; 
   min-height: 100vh;
-  padding: 20px;
-  background-color: #f3f3f3;
-  margin-top: 10px; /* Slight buffer for the sticky header */
 }
 
-/* Category Title Styling */
-.category-page-title {
-  text-align: left;
-  font-family: 'Poppins', sans-serif;
-  color: #0F1111;
-  font-size: 24px;
-  font-weight: 700;
-  margin: 10px 0 20px 5%;
+/* 1. FIXED: Minimized the gaps around the container */
+.home-page-container {
+  /* Increased from 1200px to 1450px to use more screen real estate */
+  max-width: 1450px; 
+  margin: 0 auto;
+  
+  /* Reduced side padding to 10px so products are closer to screen edges */
+  padding: 0 10px; 
+  
+  /* Reduced top padding from 100px to 75px to pull products up toward header */
+  padding-top: 75px; 
+  padding-bottom: 40px;
 }
 
-/* Responsive Grid System */
+/* 2. FIXED: Tighter grid for more products per row */
 .products-grid {
-  width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
+  /* Mobile: 2 columns, tiny 6px gap */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px; 
 }
 
-/* Product Card */
-.product-container {
-  width: 100%;
-  background-color: white;
-  border: 1px solid #d5d9d9;
-  border-radius: 8px;
-  padding-bottom: 15px;
-  font-size: 16px;
+/* Tablet: 4 columns */
+@media (min-width: 768px) {
+  .products-grid { 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 8px; 
+  }
+}
+
+/* Desktop: 6 columns is the "Konga Sweet Spot" for fitting everything */
+@media (min-width: 1024px) {
+  .products-grid { 
+    grid-template-columns: repeat(6, 1fr); 
+    gap: 10px;
+  }
+}
+
+/* Extra Large Screens: 7 or 8 columns to fill the space */
+@media (min-width: 1600px) {
+  .products-grid { 
+    grid-template-columns: repeat(8, 1fr); 
+  }
+}
+
+/* THE PRODUCT CARD - Minimalist & Compact */
+.product-card {
+  background: #ffffff;
+  border-radius: 2px; /* Very slight rounding for professional look */
+  border: 1px solid #e0e0e0;
   display: flex;
-  flex-direction: column; /* Changed to flex for better height handling */
-  align-items: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  min-height: 400px;
+  flex-direction: column;
+  transition: box-shadow 0.2s;
 }
 
-.product-container:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.product-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  z-index: 2;
 }
 
-.highlight-product {
-  border: 2px solid #febd69;
-  background-color: #fffaf0;
-}
-
-/* Image Handling */
-.product-image-container {
+.product-image-wrapper {
   width: 100%;
-  height: 180px;
+  aspect-ratio: 1 / 1;
+  background: #fff;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding-top: 10px;
+  align-items: center;
+  border-bottom: 1px solid #f5f5f5;
 }
 
-.product-image {
-  max-width: 90%;
-  max-height: 100%;
+.product-img {
+  width: 90%;
+  height: 90%;
   object-fit: contain;
 }
 
-/* Typography & Details */
-.product-name {
-  padding: 0 10px;
-  height: 2.6em;
+.product-details {
+  padding: 8px; /* Tightest padding possible while remaining readable */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-title {
+  font-size: 12px; /* Standard retail size */
+  font-weight: 400;
+  color: #333;
+  margin: 0;
+  height: 32px; /* Keeps two lines of text aligned */
   line-height: 1.3;
   overflow: hidden;
-  font-size: 18px;
-  font-weight: 500;
-  text-overflow: ellipsis;
-  color: #0F1111;
-  width: 100%;
-  text-align: left;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .product-price {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 700;
-  padding-left: 12px;
-  margin-top: 5px;
-  width: 100%;
-  text-align: left;
+  color: #1a1a1a;
 }
 
-/* Quantity & Notification */
-.product-quantity-container {
-  margin-top: 8px;
-  padding-left: 12px;
-  min-height: 35px;
+.product-action-row {
   display: flex;
-  align-items: center;
-  width: 100%;
+  gap: 4px;
+  margin-top: 4px;
 }
 
-.selector {
-  height: 30px;
-  font-size: 14px;
-  background-color: #F0F2F2;
-  border: 1px solid #D5D9D9;
-  border-radius: 7px;
-  box-shadow: 0 2px 5px rgba(213,217,217,.5);
+.qty-selector {
+  width: 45px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 11px;
 }
 
-.added-checkmark {
-  display: flex;
-  align-items: center;
-  animation: fadeIn 0.3s ease-in-out;
-  white-space: nowrap;
-}
-
-/* Buttons */
-.product-spacer {
+.buy-btn {
   flex-grow: 1;
-}
-
-.add-to-cart-button {
-  width: 90%;
-  margin: 10px 5% 0 5%;
-  border-radius: 20px;
-  background-color: #FFD814;
-  border: 1px solid #FCD200;
-  height: 35px;
-  font-size: 14px;
+  background-color: #228b22;
+  color: white;
+  border: none;
+  border-radius: 2px;
+  font-weight: 700;
+  font-size: 11px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  text-transform: uppercase;
 }
 
-.add-to-cart-button:hover {
-  background-color: #F7CA00;
+.status-badge {
+  font-size: 10px;
+  color: #228b22;
+  font-weight: bold;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateX(-5px); }
-  to { opacity: 1; transform: translateX(0); }
-}
+/* Refined Mobile-Specific Logic */
 
-/* ========== MOBILE RESPONSIVE FIXES ========== */
 @media (max-width: 600px) {
-  .home-page {
-    padding: 10px;
+  .home-page-container {
+    /* Less top padding on mobile since headers are usually shorter */
+    padding-top: 65px; 
+    padding-left: 5px;
+    padding-right: 5px;
   }
 
   .products-grid {
-    grid-template-columns: repeat(2, 1fr); /* FORCES 2 COLUMNS ON MOBILE */
-    gap: 12px;
+    /* Strictly 2 columns: prevents products from being too tiny or too huge */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
   }
 
-  .product-image-container {
-    height: 130px;
+  .product-details {
+    padding: 8px;
   }
 
-  .product-name {
-    font-size: 14px;
+  .product-title {
+    /* Slightly larger font on mobile for readability */
+    font-size: 13px;
+    height: 34px;
   }
 
   .product-price {
-    font-size: 16px;
+    font-size: 15px;
+  }
+
+  .qty-selector {
+    /* Hide selector on mobile if it feels too crowded, or keep it small */
+    width: 40px;
+    font-size: 10px;
+  }
+
+  .buy-btn {
+    font-size: 10px;
+    padding: 10px 5px;
   }
 }
 
-/* Loading State */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  width: 100%;
-  text-align: center;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(0, 0, 0, 0.1);
-  border-top: 5px solid #232f3e;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-state p {
-  font-family: 'Poppins', sans-serif;
-  color: #555;
-  font-size: 1.1rem;
-  margin-top: 15px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+/* Logic for adding 100+ products */
+.products-grid {
+  /* This ensures that rows grow automatically without breaking the layout */
+  grid-auto-rows: max-content;
 }

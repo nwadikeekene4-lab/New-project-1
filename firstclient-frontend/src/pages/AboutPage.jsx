@@ -9,17 +9,20 @@ const AboutPage = () => {
     <div className="about-wrapper">
       <div className="about-container">
         
-        {/* NEW: Dedicated Navigation Container */}
+        {/* Konga Standard Navigation Bar */}
         <div className="nav-section">
           <button className="nav-back-btn" onClick={() => navigate('/hub')}>
             <span className="arrow-icon">←</span> Back to Hub
           </button>
         </div>
 
-        {/* Separate Main Content Container */}
+        {/* Professional Content Card */}
         <section className="about-content">
-          <h1 className="about-title">The Heritage Hub</h1>
-          <p className="about-subtitle">Traditional Quality • Modern Convenience • Community Heart</p>
+          <header className="about-header-area">
+            <h1 className="about-title">The Heritage Hub</h1>
+            <p className="about-subtitle">Traditional Quality • Modern Convenience • Community Heart</p>
+            <div className="about-divider"></div>
+          </header>
 
           <div className="info-grid">
             <div className="info-card">

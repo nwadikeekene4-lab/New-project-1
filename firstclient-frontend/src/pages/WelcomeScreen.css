@@ -1,18 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Outfit:wght@300;600&display=swap');
+/* WelcomeScreen.css */
 
 .welcome-wrapper {
-  margin: 0;
-  width: 100vw;
+  position: relative;
+  width: 100%;
   height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-family: 'Poppins', sans-serif;
-  position: relative;
+  align-items: center;
   overflow: hidden;
+  font-family: 'Segoe UI', Roboto, sans-serif;
 }
 
-/* --- VIDEO STYLING --- */
 .bg-video {
   position: absolute;
   top: 50%;
@@ -21,143 +19,125 @@
   min-height: 100%;
   width: auto;
   height: auto;
-  z-index: -2;
   transform: translate(-50%, -50%);
   object-fit: cover;
+  z-index: -2;
 }
 
 .video-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.45); /* Tint to make the white card pop */
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.7);
   z-index: -1;
 }
 
-/* --- GLASS CARD (Same dimensions as before) --- */
-.glass-card {
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 40px;
-  padding: 50px 30px;
-  max-width: 800px;
+/* ANTI-ZOOM CARD */
+.welcome-card {
+  background: #ffffff;
+  padding: 45px 35px;
+  border-radius: 12px;
   width: 90%;
+  max-width: 550px;
   text-align: center;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
-  animation: cardFadeIn 1.2s ease-out;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
 }
 
-@keyframes cardFadeIn {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+.welcome-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 5px;
+  text-transform: uppercase;
 }
 
-/* --- LARGE TYPOGRAPHY --- */
-.welcome-header h1 {
-  font-family: 'Outfit', sans-serif;
-  color: #1e293b; 
-  font-size: clamp(2.5rem, 8vw, 4rem); /* Large font size restored */
-  margin-bottom: 20px;
+.welcome-subtitle {
+  color: #228b22;
   font-weight: 700;
-  letter-spacing: -1px;
+  font-size: 13px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.welcome-divider {
+  width: 40px;
+  height: 3px;
+  background: #ffeb3b;
+  margin: 0 auto 20px;
 }
 
 .intro-text {
-  color: #334155;
-  font-size: 1.4rem; /* Restored larger readability */
+  font-size: 14px;
+  color: #555;
   line-height: 1.6;
-  margin-bottom: 40px;
-  font-weight: 400;
+  margin-bottom: 30px;
 }
 
-/* ... Keep Video & Overlay styling from previous responses ... */
-
-.options-container {
+/* ACTIONS GRID */
+.welcome-actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 15px;
+  gap: 12px;
 }
 
-/* 1. Mobile First: Stacked layout */
-.top-options {
-  display: flex;
-  flex-direction: column; 
-  gap: 15px;
-  width: 100%;
+.top-grid-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .option-btn {
-  width: 100%; /* Occupies full width of container */
-  height: 65px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 20px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: 0.3s ease-in-out;
-  text-align: center;
-}
-
-/* OR Divider */
-.or-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin: 5px 0;
-  color: #1e293b;
+  padding: 15px 10px;
+  border-radius: 6px;
   font-weight: 700;
-  font-style: italic;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
-.or-divider::before, .or-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: rgba(30, 41, 59, 0.2);
-  margin: 0 15px;
+/* GRID BUTTONS: Dark Grey + Orange Border */
+.grid-btn {
+  background-color: #2c3e50; /* Dark Grey/Navy */
+  color: white;
+  border: 2px solid #ff9800; /* Orange Border */
 }
 
-/* Colors */
-.tour-btn { background: white; color: #ff7e5f; border: 2px solid #ff7e5f; }
-.shop-btn { background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); color: white; border: none; }
-.catering-btn { background: #1e293b; color: white; border: none; }
+/* CATERING BUTTON: Solid Black */
+.catering-btn {
+  background-color: #1a1a1a;
+  color: white;
+  border: 2px solid #1a1a1a;
+  width: 100%;
+}
 
+/* UNIVERSAL GREEN HOVER */
 .option-btn:hover {
-  transform: translateY(-5px);
-  filter: brightness(1.1);
+  background-color: #228b22 !important; /* Heritage Green */
+  border-color: #228b22 !important;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(34, 139, 34, 0.3);
 }
 
-/* 2. Tablet & Desktop: Side-by-Side adjustment */
-@media (min-width: 768px) {
-  .top-options {
-    flex-direction: row; /* Switch to side-by-side */
-    justify-content: space-between;
-  }
-
-  .top-options .option-btn {
-    width: calc(50% - 7.5px); /* Half width minus half of the gap */
-  }
-
-  .catering-btn {
-    /* To make the catering button the same width as the top ones 
-       on big screens, we give it 50% width as well */
-    width: calc(50% - 7.5px);
-  }
+.or-divider {
+  margin: 5px 0;
+  color: #257c6683;
+  font-size: 11px;
+  font-weight: 1000;
+  text-transform: uppercase;
 }
 
-@media (max-width: 480px) {
-  .welcome-header h1 { font-size: 2rem; }
-  .intro-text { font-size: 1rem; }
-  .option-btn { height: 60px; font-size: 1rem; }
+/* MOBILE VIEW - STACKED */
+@media (max-width: 600px) {
+  .top-grid-actions {
+    grid-template-columns: 1fr;
+  }
+  .welcome-card {
+    padding: 30px 20px;
+  }
 }
