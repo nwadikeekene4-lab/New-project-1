@@ -7,51 +7,36 @@ const SocialMediaPage = () => {
   const navigate = useNavigate();
 
   const socialLinks = [
-    { 
-      platform: 'Instagram', 
-      handle: '@HeritageHub_NG', 
-      link: 'https://instagram.com', 
-      icon: <FaInstagram />,
-      color: '#E1306C' 
-    },
-    { 
-      platform: 'Facebook', 
-      handle: 'Heritage Hub Provisions', 
-      link: 'https://facebook.com', 
-      icon: <FaFacebookF />,
-      color: '#1877F2' 
-    },
-    { 
-      platform: 'Twitter / X', 
-      handle: '@HeritageHub', 
-      link: 'https://twitter.com', 
-      icon: <FaTwitter />,
-      color: '#1DA1F2' 
-    }
+    { platform: 'Instagram', handle: '@HeritageHub_NG', link: 'https://instagram.com', icon: <FaInstagram />, color: '#E1306C' },
+    { platform: 'Facebook', handle: 'Heritage Hub Provisions', link: 'https://facebook.com', icon: <FaFacebookF />, color: '#1877F2' },
+    { platform: 'Twitter / X', handle: '@HeritageHub', link: 'https://twitter.com', icon: <FaTwitter />, color: '#1DA1F2' }
   ];
 
   const customerCare = [
     { number: '09123456789', icon: <FaWhatsapp />, color: '#25D366', action: 'https://wa.me/2349123456789' },
     { number: '09123475678', icon: <FaWhatsapp />, color: '#25D366', action: 'https://wa.me/2349123475678' },
-    { number: '08065432123', icon: <FaPhoneAlt />, color: '#ffffff', action: 'tel:08065432123' }
+    { number: '08065432123', icon: <FaPhoneAlt />, color: '#16a74d', action: 'tel:08065432123' }
   ];
 
   return (
     <div className="social-wrapper">
       <div className="social-container">
-        {/* --- NAVIGATION BUTTONS --- */}
-        <div className="top-nav-group">
-          <button className="back-btn" onClick={() => navigate('/hub')}>
-            ← Back to Hub
+        
+        {/* SEPARATE NAVIGATION SECTION */}
+        <div className="nav-section-split">
+          <button className="nav-back-btn" onClick={() => navigate('/hub')}>
+            <span className="arrow-icon">←</span> Back to Hub
           </button>
-
-          <button className="right-button" onClick={() => navigate('/shop')}>
+          <button className="nav-shop-btn" onClick={() => navigate('/shop')}>
             Back to shop →
           </button>
         </div>
 
-        <section className="social-content">
-          <h1 className="social-title">Connect With Us</h1>
+        <section className="social-content-card">
+          <header className="social-header-area">
+            <h1 className="social-title">Connect With Us</h1>
+            <p className="social-subtitle">Join the Heritage community online</p>
+          </header>
           
           <div className="care-section">
             <h2 className="section-label">Customer Care</h2>
@@ -72,7 +57,7 @@ const SocialMediaPage = () => {
             <div className="social-grid">
               {socialLinks.map((social, index) => (
                 <a href={social.link} key={index} target="_blank" rel="noopener noreferrer" className="social-card">
-                  <span className="social-icon" style={{ backgroundColor: social.color }}>
+                  <span className="social-icon-circle" style={{ backgroundColor: social.color }}>
                     {social.icon}
                   </span>
                   <div className="social-info">

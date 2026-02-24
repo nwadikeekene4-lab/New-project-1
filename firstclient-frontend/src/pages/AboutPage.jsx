@@ -7,13 +7,16 @@ const AboutPage = () => {
 
   return (
     <div className="about-wrapper">
-      
       <div className="about-container">
-        {/* Fixed: Now navigates to /hub and text updated */}
-        <button className="back-btn" onClick={() => navigate('/hub')}>
-          ← Back to Hub
-        </button>
+        
+        {/* NEW: Dedicated Navigation Container */}
+        <div className="nav-section">
+          <button className="nav-back-btn" onClick={() => navigate('/hub')}>
+            <span className="arrow-icon">←</span> Back to Hub
+          </button>
+        </div>
 
+        {/* Separate Main Content Container */}
         <section className="about-content">
           <h1 className="about-title">The Heritage Hub</h1>
           <p className="about-subtitle">Traditional Quality • Modern Convenience • Community Heart</p>
@@ -57,7 +60,7 @@ const AboutPage = () => {
               Browse the Shop
             </button>
             <button className="action-btn outline" onClick={() => navigate('/catering')}>
-              Event Pasteries
+              Event Pastries
             </button>
           </div>
         </section>
