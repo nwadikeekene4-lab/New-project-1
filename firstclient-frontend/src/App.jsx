@@ -20,11 +20,46 @@ import { SuccessPage } from './pages/SuccessPage';
 
 function App () {
   const [cart, setCart] = useState([]);
-  const [allProducts, setAllProducts] = useState([]); // Shared across app
+  const [allProducts, setAllProducts] = useState([]); 
   const [globalLoading, setGlobalLoading] = useState(true);
 
+  // --- 1. REMOVE LOGIC ---
+  const removeFromCart = (cartItemId) => {
+    setCart((prev) => prev.filter(item => item.id !== cartItemId));
+
+    API.delete(`/cart/${cartItemId}`)
+      .catch(err => {
+        console.error("Delete failed, rolling back:", err);
+        API.get('/cart').then(res => setCart(res.data));
+      });
+  };
+
+  // --- 2. INTEGRATED: QUANTITY UPDATE LOGIC ---
+  const updateCartQuantity = (cartItemId, newQuantity) => {
+    if (newQuantity < 1) return; // Prevent 0 or negative quantities
+
+    // Find the item to get the productId for the API call
+    const itemToUpdate = cart.find(i => i.id === cartItemId);
+    if (!itemToUpdate) return;
+
+    // Instant UI update for a snappy feel
+    setCart((prev) => 
+      prev.map(item => item.id === cartItemId ? { ...item, quantity: newQuantity } : item)
+    );
+
+    // Background Sync with your backend
+    // We send quantity: 0 but include a custom 'override' or simply the new total
+    API.post('/cart/add', { 
+      productId: itemToUpdate.productId, 
+      quantity: 0, 
+      overrideQuantity: newQuantity 
+    }).catch(err => {
+        console.error("Quantity sync failed:", err);
+        // Optional: rollback if sync is critical
+      });
+  };
+
   useEffect(() => {
-    // 1. PRE-WARM: Start fetching products the second the app loads
     API.get('/products')
       .then((response) => {
         setAllProducts(response.data);
@@ -35,11 +70,8 @@ function App () {
         setGlobalLoading(false);
       });
 
-    // 2. Fetch Initial Cart
     API.get('/cart')
-      .then((response) => {
-        setCart(response.data);
-      })
+      .then((response) => setCart(response.data))
       .catch(err => console.error("Initial cart fetch error:", err));
   }, []);
     
@@ -52,7 +84,6 @@ function App () {
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/socials" element={<SocialMediaPage />} />
         
-        {/* Pass global state to HomePage */}
         <Route path="/shop" element={
           <HomePage 
             cart={cart} 
@@ -62,10 +93,18 @@ function App () {
           />
         }/>
         
-        <Route path="/checkout" element={<Checkout cart={cart} setCart={setCart} />}/>
+        {/* INTEGRATED: Passing both removeFromCart and updateCartQuantity */}
+        <Route path="/checkout" element={
+          <Checkout 
+            cart={cart} 
+            setCart={setCart} 
+            removeFromCart={removeFromCart} 
+            updateCartQuantity={updateCartQuantity}
+          />
+        }/>
+
         <Route path="/success" element={<SuccessPage setCart={setCart} />} />
         <Route path="/admin/login" element={<AdminLogin />} />
-
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/emergency-reset" element={<EmergencyReset />} />
         <Route path="/admin/products" element={<ProtectedRoute><AdminProducts /></ProtectedRoute>} />

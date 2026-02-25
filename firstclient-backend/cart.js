@@ -1,7 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("./config");
 const Product = require("./models");
-const { DeliveryOption } = require("./deliveryoptions.js");
 
 const CartItem = sequelize.define("CartItem", {
   productId: {
@@ -17,13 +16,11 @@ const CartItem = sequelize.define("CartItem", {
     allowNull: false,
     defaultValue: 1
   },
+  // 🛠️ FIX: Changed to a plain STRING to store "Monday, February 25"
+  // Removed the 'references' link to DeliveryOption to avoid ID mismatch errors
   deliveryOptionId: {
     type: DataTypes.STRING,
-    allowNull: true,
-    references: {
-      model: DeliveryOption,
-      key: "id"
-    }
+    allowNull: true
   },
   createdAt: {
     type: DataTypes.DATE(3),
@@ -37,8 +34,6 @@ const CartItem = sequelize.define("CartItem", {
 
 // Associations
 CartItem.belongsTo(Product, { foreignKey: "productId", as: "product" });
-Product.hasMany(CartItem, { foreignKey: "productId" }); // Essential link
-
-CartItem.belongsTo(DeliveryOption, { foreignKey: "deliveryOptionId", as: "deliveryOption" });
+Product.hasMany(CartItem, { foreignKey: "productId" });
 
 module.exports = { CartItem };

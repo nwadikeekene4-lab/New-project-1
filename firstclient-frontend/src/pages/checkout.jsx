@@ -4,7 +4,8 @@ import dayjs from 'dayjs';
 import API from '../api'; 
 import './checkout.css';
 
-export function Checkout({ cart = [], setCart }) {
+// Added updateCartQuantity to props
+export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantity }) {
   const getWorkDay = (daysToAdd) => {
     let targetDate = dayjs().add(daysToAdd, 'day');
     if (targetDate.day() === 0) targetDate = targetDate.add(1, 'day');
@@ -29,11 +30,12 @@ export function Checkout({ cart = [], setCart }) {
     setCustomerDetails({ ...customerDetails, [e.target.name]: e.target.value });
   };
 
-  const handleDelete = (cartItemId) => {
-    API.delete(`/cart/${cartItemId}`)
-      .then(() => API.get('/cart'))
-      .then((response) => setCart(response.data))
-      .catch(err => console.error(err));
+  const handleDateSelection = (dateString) => {
+    setSelectedDate(dateString);
+    cart.forEach(item => {
+      API.post(`/cart/update-date`, { cartItemId: item.id, deliveryDate: dateString })
+        .catch(err => console.error("Date persistence error:", err));
+    });
   };
 
   const handleClearCart = () => {
@@ -42,6 +44,7 @@ export function Checkout({ cart = [], setCart }) {
     }
   };
 
+  // --- INTEGRATED: CALCULATE TOTALS ---
   const itemsTotal = cart.reduce((sum, item) => sum + (item.product?.price || 0) * (item.quantity || 0), 0);
   
   const getShippingFee = (loc) => {
@@ -85,56 +88,67 @@ export function Checkout({ cart = [], setCart }) {
 
   return (
     <div className="checkout-page-wrapper">
-      {/* HEADER SECTION */}
       <div className="checkout-minimal-header">
         <div className="header-inner">
           <Link to="/" className="checkout-logo">Heritage Hub</Link>
           <div className="checkout-step-label">Secure Checkout</div>
-          <Link to="/hub" className="back-link">Continue Shopping</Link>
+          {/* FIXED: Pointing to /shop (where your products live) */}
+          <Link to="/shop" className="back-link">Continue Shopping</Link>
         </div>
       </div>
 
       <div className="checkout-main-content">
         <div className="checkout-layout-grid">
-          
-          {/* LEFT SIDE: ITEMS & FORM */}
           <div className="checkout-left-column">
-            
-            {/* 1. REVIEW ITEMS */}
             <div className="checkout-section-card">
               <div className="section-header">
                 <h3>1. Review Your Order ({cart.length} Items)</h3>
                 {cart.length > 0 && <button className="text-btn" onClick={handleClearCart}>Clear All</button>}
               </div>
-              
               <div className="checkout-items-list">
                 {cart.map(cartItem => (
                   <div key={cartItem.id} className="checkout-product-row">
                     <img className="checkout-item-img" src={getImageUrl(cartItem.product?.image)} alt="" />
                     <div className="checkout-item-info">
                       <div className="item-title">{cartItem.product?.name}</div>
-                      <div className="item-meta">Qty: {cartItem.quantity} • ₦{Number(cartItem.product?.price).toLocaleString()}</div>
-                      <button className="delete-btn" onClick={() => handleDelete(cartItem.id)}>Remove</button>
+                      <div className="item-meta">
+                        {/* INTEGRATED: Editable Quantity Input */}
+                        <div className="qty-edit-wrapper">
+                          <span>Qty: </span>
+                          <input 
+                            type="number" 
+                            min="1" 
+                            className="qty-input-small"
+                            value={cartItem.quantity} 
+                            onChange={(e) => updateCartQuantity(cartItem.id, parseInt(e.target.value) || 1)}
+                          />
+                          <span> • ₦{Number(cartItem.product?.price).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <button className="delete-btn" onClick={() => removeFromCart(cartItem.id)}>Remove</button>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* 2. DELIVERY DATE */}
             <div className="checkout-section-card">
               <div className="section-header"><h3>2. Delivery Date</h3></div>
               <div className="delivery-date-picker">
                 {deliveryOptions.map(option => (
                   <label key={option.date} className={`date-option ${selectedDate === option.date ? 'active' : ''}`}>
-                    <input type="radio" name="deliveryDate" value={option.date} onChange={(e) => setSelectedDate(e.target.value)} />
+                    <input 
+                      type="radio" 
+                      name="deliveryDate" 
+                      value={option.date} 
+                      onChange={(e) => handleDateSelection(e.target.value)} 
+                    />
                     <span>{option.date}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            {/* 3. SHIPPING ADDRESS */}
             <div className="checkout-section-card">
               <div className="section-header"><h3>3. Shipping Information</h3></div>
               <div className="shipping-form-grid">
@@ -156,7 +170,6 @@ export function Checkout({ cart = [], setCart }) {
             </div>
           </div>
 
-          {/* RIGHT SIDE: SUMMARY BOX */}
           <div className="checkout-right-column">
             <div className="order-summary-box">
               <h3>Order Summary</h3>
@@ -183,7 +196,6 @@ export function Checkout({ cart = [], setCart }) {
               <p className="secure-text">🔒 Secure Checkout Guaranteed</p>
             </div>
           </div>
-
         </div>
       </div>
     </div>

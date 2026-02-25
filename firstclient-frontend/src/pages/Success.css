@@ -1,48 +1,64 @@
 .success-wrapper {
+  min-height: 80vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 90vh;
-  background-color: #f3f3f3;
+  justify-content: center;
   padding: 20px;
+  background-color: #f9f9f9;
 }
 
 .success-card {
   background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   max-width: 500px;
   width: 100%;
-  padding: 40px;
-  border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
-.error-border { border-top: 5px solid #d32f2f; }
-
+/* --- The Animated Checkmark --- */
 .checkmark-circle {
-  width: 70px;
-  height: 70px;
-  background: #e6f4ea;
+  width: 80px;
+  height: 80px;
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
+  border: 4px solid #4caf50;
+  margin-bottom: 20px;
 }
 
 .checkmark {
-  width: 30px;
-  height: 15px;
-  border-left: 5px solid #007600;
-  border-bottom: 5px solid #007600;
-  transform: rotate(-45deg);
-  margin-top: -5px;
+  display: block;
 }
 
+.checkmark:after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  top: 45px;
+  width: 15px;
+  height: 30px;
+  border: solid #4caf50;
+  border-width: 0 4px 4px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  animation: checkmark-show 0.8s ease forwards;
+}
+
+@keyframes checkmark-show {
+  0% { height: 0; width: 0; opacity: 1; }
+  20% { height: 0; width: 15px; opacity: 1; }
+  40% { height: 30px; width: 15px; opacity: 1; }
+  100% { height: 30px; width: 15px; opacity: 1; }
+}
+
+/* --- Order Summary Box --- */
 .order-summary-box {
-  background: #f9f9f9;
+  background: #fdfdfd;
   border: 1px solid #eee;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 20px;
   margin: 25px 0;
   text-align: left;
@@ -51,40 +67,50 @@
 .summary-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
 }
 
-.summary-item:last-child {
-  border-bottom: none;
+.total-row {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #f0f0f0;
 }
 
+.total-amount {
+  color: #d4af37; /* Gold color */
+  font-size: 1.2rem;
+}
+
+/* --- Buttons --- */
 .continue-btn {
   display: block;
-  background-color: #FFD814;
-  color: #111;
-  text-decoration: none;
+  background: #222;
+  color: white;
   padding: 15px;
-  border-radius: 8px;
+  border-radius: 10px;
+  text-decoration: none;
   font-weight: bold;
-  margin-top: 20px;
-  transition: background 0.2s;
+  transition: transform 0.2s;
 }
 
-.continue-btn:hover { background-color: #f7ca00; }
-
-/* Loader Animation */
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #ddd;
-  border-top-color: #007600;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 15px;
+.continue-btn:hover {
+  transform: translateY(-2px);
+  background: #444;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.error-card .checkmark-circle {
+  border-color: #f44336;
+}
+
+.error-card .checkmark:after {
+  content: "✕";
+  border: none;
+  transform: none;
+  left: 28px;
+  top: 15px;
+  color: #f44336;
+  font-size: 40px;
+  animation: none;
+  opacity: 1;
 }

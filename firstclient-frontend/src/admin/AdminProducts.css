@@ -1,291 +1,172 @@
-/* AdminOrders.css */
+:root {
+  --konga-pink: #ed017f;
+  --konga-bg: #f2f2f2;
+  --border-color: #e5e5e5;
+}
 
-/* 1. Base Layout */
-.admin-orders-page {
-  padding: 20px;
-  background-color: #f4f7f9;
+.konga-admin-wrapper {
+  background-color: var(--konga-bg);
   min-height: 100vh;
-  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: #333;
+  padding: 20px;
+  font-family: 'Inter', sans-serif;
 }
 
-.admin-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto 30px auto;
-}
-
-.page-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0;
-}
-
-.order-count {
-  background: #e2e8f0;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #4a5568;
-}
-
-/* 2. Order Card Structure */
-.orders-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.order-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 25px;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-  transition: transform 0.2s ease;
-}
-
-/* 3. Card Header (Reference & Timing) */
-.order-card-header {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 15px 25px;
-  background: #f8fafc;
-  border-bottom: 1px solid #edf2f7;
-  gap: 30px;
-  align-items: center;
-}
-
-.ref-group, .date-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.label {
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  color: #718096;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-/* 4. Status Badges */
-.status-badge {
-  margin-left: auto;
-}
-
-.status-badge select {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 12px;
-  border: 1px solid #cbd5e0;
-  cursor: pointer;
-  outline: none;
-  background-color: white;
-  transition: all 0.2s;
-}
-
-/* Status Colors */
-.status-badge select:hover { border-color: #a0aec0; }
-.status-badge.pending select { color: #d69e2e; border-color: #f6e05e; background: #fffff0; }
-.status-badge.processing select { color: #3182ce; border-color: #90cdf4; background: #ebf8ff; }
-.status-badge.shipped select { color: #805ad5; border-color: #d6bcfa; background: #faf5ff; }
-.status-badge.delivered select { color: #38a169; border-color: #9ae6b4; background: #f0fff4; }
-
-/* 5. Responsive Grid Body */
-.order-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr;
-  gap: 25px;
-  padding: 25px;
-}
-
-/* Responsive Breakpoint for Tablets/Phones */
-@media (max-width: 1024px) {
-  .order-grid {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-  
-  .status-badge {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .status-badge select {
-    width: 100%;
-  }
-}
-
-.grid-section h4 {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #a0aec0;
-  margin-bottom: 15px;
-  border-bottom: 2px solid #edf2f7;
-  padding-bottom: 8px;
-}
-
-/* 6. Customer Section */
-.cust-name {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0 0 5px 0;
-  color: #1a202c;
-}
-
-.cust-detail {
-  font-size: 14px;
-  color: #4a5568;
-  margin: 2px 0;
-}
-
-.address {
-  line-height: 1.5;
-  background: #f7fafc;
-  padding: 8px;
-  border-radius: 6px;
-  margin-top: 10px;
-}
-
-.delivery-highlight {
-  margin-top: 15px;
-  background: #fffaf0;
-  border: 1px solid #feebc8;
-  padding: 12px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-}
-
-.delivery-highlight span {
-  font-size: 11px;
-  color: #c05621;
-  font-weight: 700;
-}
-
-.delivery-highlight strong {
-  font-size: 14px;
-  color: #7b341e;
-}
-
-/* 7. Items Section */
-.items-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.admin-item-row {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f0f4f8;
-}
-
-.admin-item-row img {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: #edf2f7;
-}
-
-.admin-item-info {
-  flex: 1;
-}
-
-.admin-item-name {
-  font-weight: 600;
-  font-size: 14px;
-  margin: 0;
-  color: #2d3748;
-}
-
-.admin-item-price {
-  font-size: 12px;
-  color: #718096;
-  margin: 2px 0 0 0;
-}
-
-.admin-item-total {
-  font-weight: 700;
-  font-size: 14px;
-  color: #2d3748;
-}
-
-/* 8. Summary & Actions */
-.summary-section {
-  background: #f8fafc;
-  padding: 15px;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.total-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.total-line span:first-child {
-  font-size: 14px;
-  font-weight: 600;
-  color: #4a5568;
-}
-
-.total-amt {
-  font-size: 22px;
-  color: #2c7a7b;
-  font-weight: 800;
-}
-
-.action-buttons {
-  margin-top: 20px;
-}
-
-.del-btn {
-  width: 100%;
-  padding: 12px;
-  background: #fff5f5;
-  color: #c53030;
-  border: 1px solid #feb2b2;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.del-btn:hover {
-  background: #c53030;
-  color: white;
-  border-color: #c53030;
-}
-
-.no-orders {
-  text-align: center;
-  padding: 100px 20px;
-  color: #a0aec0;
-  font-size: 18px;
+.konga-admin-header {
   background: white;
-  border-radius: 12px;
-  border: 2px dashed #e2e8f0;
+  padding: 15px 25px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
+
+.konga-form-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.konga-form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.konga-form-row input[type="text"],
+.konga-form-row input[type="number"] {
+  flex: 1;
+  min-width: 150px;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.konga-add-submit-btn {
+  background-color: var(--konga-pink);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 📱 💻 THE KONGA GRID: Mobile (2) -> Desktop (6) */
+.konga-inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Mobile default */
+  gap: 15px;
+}
+
+@media (min-width: 768px) {
+  .konga-inventory-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (min-width: 1200px) {
+  .konga-inventory-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* Product Card Styling */
+.konga-product-card {
+  background: white;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.konga-product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.konga-img-container {
+  aspect-ratio: 1 / 1;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: white;
+}
+
+.konga-img-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.konga-uploading-tag {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+
+.konga-product-info {
+  padding: 10px;
+  flex-grow: 1;
+}
+
+.konga-p-name {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 5px;
+  height: 32px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.konga-p-price {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.konga-product-actions {
+  display: flex;
+  border-top: 1px solid var(--border-color);
+}
+
+.konga-action-edit, .konga-action-delete {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.konga-action-edit { color: #007bff; border-right: 1px solid var(--border-color); }
+.konga-action-delete { color: #dc3545; }
+
+/* Edit Mode styling */
+.konga-edit-overlay {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.konga-edit-overlay input {
+  font-size: 12px;
+  padding: 5px;
+  border: 1px solid #ddd;
+}
+
+.konga-edit-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.konga-save-btn { background: #28a745; color: white; border: none; padding: 5px; flex: 2; }
+.konga-cancel-btn { background: #6c757d; color: white; border: none; padding: 5px; flex: 1; }

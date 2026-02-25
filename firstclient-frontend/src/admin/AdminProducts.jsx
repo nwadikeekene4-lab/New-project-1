@@ -34,11 +34,7 @@ export default function AdminProducts() {
     if (!imagePath || imagePath === "null" || typeof imagePath !== 'string') {
       return "https://placehold.co/100x100?text=No+Image";
     }
-
-    // 1. If it's a blob (local preview) or full URL, use it directly
     if (imagePath.startsWith('blob:') || imagePath.startsWith('http')) return imagePath;
-    
-    // 2. Fallback for older partial paths (Cloudinary)
     const fileName = imagePath.split('/').pop();
     return `https://res.cloudinary.com/dw4jcixiu/image/upload/f_auto,q_auto/v1/shop_products/${fileName}`;
   };
@@ -61,13 +57,12 @@ export default function AdminProducts() {
 
     setProducts((prev) => [optimisticProduct, ...prev]);
 
-    // Clear inputs immediately
     setNewName("");
     setNewPrice("");
     setNewImageFile(null);
     e.target.reset();
 
-    // ✅ UPDATED: Manual Token Retrieval
+    // ✅ RETAINED: Manual Token Retrieval
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
     formData.append("name", optimisticProduct.name);
@@ -99,10 +94,7 @@ export default function AdminProducts() {
 
   const deleteProduct = async (id) => {
     if (!window.confirm("Are you sure?")) return;
-    
-    // ✅ UPDATED: Manual Token Retrieval
     const token = localStorage.getItem("adminToken");
-    
     try {
       await API.delete(`/admin/products/${id}`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -115,8 +107,6 @@ export default function AdminProducts() {
 
   const updateProduct = async (id) => {
     setIsSaving(true);
-    
-    // ✅ UPDATED: Manual Token Retrieval
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
     formData.append("name", editName);
@@ -145,76 +135,71 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="admin-wrapper">
-      <header className="admin-header">
+    <div className="konga-admin-wrapper">
+      <header className="konga-admin-header">
         <div className="header-content">
           <h1>Product Management</h1>
           <span className="product-count">{products.length} Items Total</span>
         </div>
       </header>
 
-      <main className="admin-main">
-        <section className="form-container">
-          <form className="admin-form" onSubmit={addProduct}>
+      <main className="konga-admin-main">
+        <section className="konga-form-section">
+          <form className="konga-quick-add-form" onSubmit={addProduct}>
             <h3>Add New Product</h3>
-            <div className="form-group-row">
+            <div className="konga-form-row">
               <input type="text" placeholder="Product Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
               <input type="number" placeholder="Price (₦)" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
-              <input type="file" className="file-input" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
-              <button type="submit" className="add-btn">
-                + Add Product
+              <div className="konga-file-wrapper">
+                <input type="file" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
+              </div>
+              <button type="submit" className="konga-add-submit-btn">
+                Add Product
               </button>
             </div>
           </form>
         </section>
 
-        <div className="inventory-grid">
+        {/* ✅ KONGA GRID LAYOUT: Responsive Columns */}
+        <div className="konga-inventory-grid">
           {products.map((p) => (
-            <div key={p.id} className="inventory-card">
+            <div key={p.id} className={`konga-product-card ${p.syncing ? 'is-syncing' : ''}`}>
               {editingId === p.id ? (
-                <div className="edit-overlay">
-                  <h3>Editing Product</h3>
+                <div className="konga-edit-overlay">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
                   <input type="file" onChange={(e) => setEditImageFile(e.target.files[0])} />
-                  <div className="edit-actions">
-                    <button className="save-btn" onClick={() => updateProduct(p.id)} disabled={isSaving}>
-                      {isSaving ? "Saving..." : "Save Changes"}
+                  <div className="konga-edit-actions">
+                    <button className="konga-save-btn" onClick={() => updateProduct(p.id)} disabled={isSaving}>
+                      {isSaving ? "..." : "Save"}
                     </button>
-                    <button className="cancel-btn" onClick={() => setEditingId(null)}>Cancel</button>
+                    <button className="konga-cancel-btn" onClick={() => setEditingId(null)}>X</button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="img-wrapper" style={{ position: 'relative' }}>
+                  <div className="konga-img-container">
                     {/* ✅ RETAINED: Image Refresh Key Logic */}
                     <img 
                       key={p.image}
                       src={getImageUrl(p.image)} 
                       alt={p.name} 
-                      style={{ opacity: p.syncing ? 0.5 : 1, transition: 'opacity 0.3s' }}
+                      style={{ opacity: p.syncing ? 0.5 : 1 }}
                     />
                     {/* ✅ RETAINED: Syncing Badge Logic */}
-                    {p.syncing && (
-                      <div className="syncing-badge" style={{
-                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                        background: 'rgba(0,0,0,0.6)', color: '#fff', padding: '5px 10px', borderRadius: '4px', fontSize: '12px'
-                      }}>
-                        Uploading...
-                      </div>
-                    )}
+                    {p.syncing && <div className="konga-uploading-tag">Uploading...</div>}
                   </div>
-                  <div className="info">
-                    <p className="p-name">{p.name}</p>
-                    <p className="p-price">₦{Number(p.price || 0).toLocaleString()}</p>
+                  <div className="konga-product-info">
+                    <p className="konga-p-name">{p.name}</p>
+                    <p className="konga-p-price">₦{Number(p.price || 0).toLocaleString()}</p>
                   </div>
-                  <div className="actions">
-                    <button className="edit-link" onClick={() => { 
+                  <div className="konga-product-actions">
+                    <button className="konga-action-edit" onClick={() => { 
                       setEditingId(p.id); 
                       setEditName(p.name); 
                       setEditPrice(p.price); 
                     }}>Edit</button>
-                    <button className="delete-link" onClick={() => deleteProduct(p.id)}>Remove</button>
+                    <button className="konga-action-delete" onClick={() => deleteProduct(p.id)}>Remove</button>
                   </div>
                 </>
               )}

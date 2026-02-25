@@ -54,7 +54,6 @@ const verifyToken = (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-
     if (!token) return res.status(403).json({ message: "No token provided" });
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
@@ -89,12 +88,11 @@ router.post("/paystack/webhook", async (req, res) => {
   } catch (err) { res.sendStatus(500); }
 });
 
-// 2. 🛡️ UPDATED ADMIN LOGIN (Checks Database)
+// 2. 🛡️ ADMIN LOGIN
 router.post("/admin/login", async (req, res) => {
   try {
     const { username, password } = sanitizeInput(req.body);
     const admin = await Admin.findOne({ where: { username: username || process.env.ADMIN_USERNAME } });
-
     if (!admin) return res.status(401).json({ success: false, message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, admin.password);
@@ -142,15 +140,37 @@ router.get("/cart", async (req, res) => {
 
 router.post("/cart/add", async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
+    const { productId, quantity, overrideQuantity } = req.body;
     let item = await CartItem.findOne({ where: { productId } });
+
     if (item) { 
-      item.quantity += parseInt(quantity); 
+      if (overrideQuantity !== undefined) {
+        item.quantity = parseInt(overrideQuantity);
+      } else {
+        item.quantity += parseInt(quantity); 
+      }
       await item.save(); 
     } else { 
-      item = await CartItem.create({ productId, quantity: parseInt(quantity) }); 
+      const finalQty = overrideQuantity !== undefined ? parseInt(overrideQuantity) : parseInt(quantity);
+      item = await CartItem.create({ productId, quantity: finalQty }); 
     }
     res.json(item);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete("/cart/:id", async (req, res) => {
+  try {
+    const deleted = await CartItem.destroy({ where: { id: req.params.id } });
+    if (deleted) res.json({ success: true, message: "Item removed" });
+    else res.status(404).json({ success: false, message: "Not found" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post("/cart/update-date", async (req, res) => {
+  try {
+    const { cartItemId, deliveryDate } = req.body;
+    await CartItem.update({ deliveryOptionId: deliveryDate }, { where: { id: cartItemId } });
+    res.json({ success: true, message: "Date updated" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -190,7 +210,26 @@ router.get("/orders", verifyToken, async (req, res) => {
   }
 });
 
-// 🛡️ 7. EMERGENCY PASSWORD RESET (AUTO-UPDATE)
+router.patch("/orders/:id", verifyToken, async (req, res) => {
+  try {
+    await Order.update({ status: req.body.status }, { where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete("/orders/:id", verifyToken, async (req, res) => {
+  try {
+    await Order.destroy({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete("/orders/all/bulk", verifyToken, async (req, res) => {
+  try { await Order.destroy({ where: {}, truncate: false }); res.json({ success: true }); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 7. EMERGENCY RESET
 router.post("/admin/emergency-reset", async (req, res) => {
   try {
     const { recoveryKey, newPassword } = req.body;
@@ -206,45 +245,55 @@ router.post("/admin/emergency-reset", async (req, res) => {
       admin.password = hashedPassword;
       await admin.save();
     }
-    res.json({ success: true, message: "Password updated successfully in database!" });
+    res.json({ success: true, message: "Password updated successfully!" });
   } catch (err) { res.status(500).json({ success: false, message: "Update failed" }); }
 });
 
-// 🛡️ 8. FINAL FIX: PAYMENT VERIFICATION ROUTE (INTEGRATED ITEMS FIX)
+
+// 🛡️ 8. PAYMENT VERIFICATION ROUTE (IDEMPOTENT & INTEGRATED)
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
+
+    const existingOrder = await Order.findOne({ where: { reference } });
+    if (existingOrder) {
+      return res.json({ success: true, message: "Payment verified!", order: existingOrder });
+    }
     
-    // Check with Paystack
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
     });
 
     if (response.data.data.status === 'success') {
-      // 🛒 FETCH CURRENT CART ITEMS (To satisfy the "items cannot be null" DB rule)
       const cartItems = await CartItem.findAll({ 
         include: [{ model: Product, as: "product" }] 
       });
 
-      // 📝 SAVE ORDER TO DB
       const newOrder = await Order.create({
         reference: reference,
         amount: response.data.data.amount / 100,
         status: 'Paid',
-        items: JSON.stringify(cartItems), // Save items as JSON string
-        customerDetails: JSON.stringify(customerDetails)
+        items: JSON.stringify(cartItems), 
+        customerName: customerDetails?.name,
+        address: customerDetails?.address,
+        city: customerDetails?.location, 
+        phone: customerDetails?.phone,
+        country: customerDetails?.country || 'Nigeria',
+        // ⭐ THE INTEGRATED CHANGE:
+        selectedDate: customerDetails?.selectedDate 
       });
 
-      // 🧹 CLEAR CART ON SUCCESS
       await CartItem.destroy({ where: {} });
-
       return res.json({ success: true, message: "Payment verified!", order: newOrder });
     }
     
-    res.status(400).json({ success: false, message: "Verification failed at Paystack" });
+    res.status(400).json({ success: false, message: "Verification failed" });
   } catch (err) {
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      return res.json({ success: true, message: "Already processed" });
+    }
     console.error("❌ Verify Error:", err.message);
-    res.status(500).json({ error: "Server Error during verification" });
+    res.status(500).json({ error: "Server Error: " + err.message });
   }
 });
 

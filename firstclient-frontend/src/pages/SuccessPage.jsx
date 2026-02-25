@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import API from '../api';
 import './Success.css';
@@ -8,6 +8,10 @@ export function SuccessPage({ setCart }) {
   const [orderDetails, setOrderDetails] = useState(null);
   const [prices, setPrices] = useState({ subtotal: 0, shipping: 0, total: 0 });
   const [reference, setReference] = useState('');
+  
+  // 🛡️ THE LOCK: This prevents the frontend from sending the same ref twice
+  const hasVerified = useRef(false); 
+  
   const location = useLocation();
 
   useEffect(() => {
@@ -15,6 +19,12 @@ export function SuccessPage({ setCart }) {
     const ref = query.get('trxref') || query.get('reference');
     setReference(ref);
     
+    // 🛑 GUARD: If there is no reference OR we have already fired this request, STOP.
+    if (!ref || hasVerified.current) return;
+
+    // Flip the lock to true immediately so no other re-render can pass this point
+    hasVerified.current = true;
+
     const savedDetails = localStorage.getItem("pendingCustomerDetails");
 
     if (ref) {
@@ -23,7 +33,7 @@ export function SuccessPage({ setCart }) {
       if (customerDetails) {
         setOrderDetails(customerDetails);
         
-        // INTEGRATED PRICE CALCULATION
+        // Calculate prices for the UI display
         const shipping = Number(customerDetails.shippingFee || 0);
         const total = Number(customerDetails.totalAmount || 0);
         setPrices({
@@ -33,7 +43,7 @@ export function SuccessPage({ setCart }) {
         });
       }
 
-      // ✅ FIXED: Changed /payment/verify to /orders/verify to match backend
+      // 🚀 Send verification to backend
       API.post("/orders/verify", { 
         reference: ref, 
         customerDetails 
@@ -41,7 +51,7 @@ export function SuccessPage({ setCart }) {
       .then((res) => {
         if (res.data.success) {
           setStatus('success');
-          setCart([]); // Clear the visual cart
+          setCart([]); // Clear the visual cart state
           localStorage.removeItem("pendingCustomerDetails"); 
         } else {
           setStatus('error');
@@ -56,12 +66,15 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
+  // --- UI RENDERING ---
+
   if (status === 'processing') {
     return (
       <div className="success-wrapper">
         <div className="status-box">
           <div className="loader"></div>
           <h2>Verifying Payment...</h2>
+          <p>Please do not refresh the page.</p>
         </div>
       </div>
     );
@@ -99,12 +112,12 @@ export function SuccessPage({ setCart }) {
             <span>Delivery Fee:</span>
             <strong>₦{prices.shipping.toLocaleString()}</strong>
           </div>
-          <div className="summary-item total-row" style={{ borderTop: '2px solid #eee', marginTop: '10px', paddingTop: '10px' }}>
+          <div className="summary-item total-row">
             <span>Grand Total Paid:</span>
-            <strong style={{ fontSize: '1.2rem', color: '#d4af37' }}>₦{prices.total.toLocaleString()}</strong>
+            <strong className="total-amount">₦{prices.total.toLocaleString()}</strong>
           </div>
           
-          <hr style={{ margin: '15px 0', opacity: '0.2' }} />
+          <hr />
 
           <div className="summary-item">
             <span>Delivery Date:</span>
@@ -121,7 +134,7 @@ export function SuccessPage({ setCart }) {
         </div>
 
         <p className="email-note">
-          A receipt with this breakdown has been sent to <strong>{orderDetails?.email}</strong>.
+          A receipt has been sent to <strong>{orderDetails?.email}</strong>.
         </p>
 
         <Link to="/shop" className="continue-btn">Continue Shopping</Link>

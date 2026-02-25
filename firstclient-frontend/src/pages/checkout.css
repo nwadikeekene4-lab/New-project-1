@@ -188,3 +188,173 @@
   .checkout-main-content { padding-top: 80px; }
   .date-option { min-width: 100%; }
 }
+
+.qty-input-small {
+  width: 50px;
+  padding: 2px 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 0 5px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.qty-edit-wrapper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+/* Removes the default arrows in Chrome/Safari/Edge/Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Removes arrows in Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.qty-input-small {
+  width: 40px;
+  height: 25px;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #333;
+  background-color: #f9f9f9;
+  transition: border-color 0.2s;
+}
+
+.qty-input-small:focus {
+  outline: none;
+  border-color: #ff9900; /* Matches typical brand/action colors */
+  background-color: #fff;
+}
+
+/* --- 1. THE MAIN ACTION BUTTON (PAY NOW) --- */
+.place-order-btn {
+  width: 100%;
+  background: #228b22;
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  /* Smooth transition for hover */
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.place-order-btn:hover:not(:disabled) {
+  background: #1e7a1e; /* Slightly darker green */
+  box-shadow: 0 4px 12px rgba(34, 139, 34, 0.3);
+  transform: translateY(-1px); /* Subtle lift */
+}
+
+.place-order-btn:active:not(:disabled) {
+  transform: translateY(1px); /* "Push" effect */
+}
+
+.place-order-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* --- 2. THE REMOVE (DELETE) BUTTON --- */
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #d9534f; /* Muted professional red */
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px 0;
+  transition: color 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.delete-btn:hover {
+  color: #c9302c; /* Deep red on hover */
+  text-decoration: underline;
+}
+
+/* --- 3. CLEAR ALL (TEXT BUTTON) --- */
+.text-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.text-btn:hover {
+  background: #f0f0f0;
+  color: #228b22;
+}
+
+/* --- 4. HEADER LINKS & LOGO --- */
+.back-link {
+  text-decoration: none;
+  color: #333;
+  font-size: 13px;
+  transition: color 0.2s ease;
+  padding: 5px 0;
+  border-bottom: 1px solid transparent;
+}
+
+.back-link:hover {
+  color: #228b22;
+  border-bottom: 1px solid #228b22;
+}
+
+.checkout-logo:hover {
+  opacity: 0.8;
+}
+
+/* --- 5. DATE PICKER CARDS --- */
+.date-option {
+  flex: 1;
+  min-width: 140px;
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease-in-out;
+}
+
+.date-option:hover:not(.active) {
+  border-color: #228b22;
+  background-color: #f9fdf9;
+}
+
+/* --- 6. FORM INPUTS --- */
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #228b22;
+  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+}

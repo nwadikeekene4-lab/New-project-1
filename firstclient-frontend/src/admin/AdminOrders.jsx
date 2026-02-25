@@ -8,16 +8,21 @@ export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  useEffect(() => { fetchOrders(); }, []);
 
   const fetchOrders = () => {
     const token = localStorage.getItem("adminToken");
-    API.get("/orders", {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => setOrders(res.data))
+    API.get("/orders", { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        const sanitizedOrders = res.data.map(order => {
+          let parsedItems = [];
+          try {
+            parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
+          } catch (e) { parsedItems = []; }
+          return { ...order, items: Array.isArray(parsedItems) ? parsedItems : [] };
+        });
+        setOrders(sanitizedOrders);
+      })
       .catch(err => console.error("Error fetching orders:", err));
   };
 
@@ -25,23 +30,18 @@ export default function AdminOrders() {
     if (window.confirm("Are you sure?")) {
       const token = localStorage.getItem("adminToken");
       try {
-        await API.delete(`/orders/${orderId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await API.delete(`/orders/${orderId}`, { headers: { Authorization: `Bearer ${token}` } });
         setOrders(orders.filter(order => order.id !== orderId));
       } catch (err) { alert("Error deleting order."); }
     }
   };
 
   const deleteAllOrders = async () => {
-    if (window.confirm("CRITICAL: This will permanently delete ALL orders. Proceed?")) {
+    if (window.confirm("CRITICAL: Delete ALL orders?")) {
       const token = localStorage.getItem("adminToken");
       try {
-        await API.delete("/orders/all/bulk", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await API.delete("/orders/all/bulk", { headers: { Authorization: `Bearer ${token}` } });
         setOrders([]);
-        alert("All order records have been cleared.");
       } catch (err) { alert("Error clearing orders."); }
     }
   };
@@ -58,13 +58,10 @@ export default function AdminOrders() {
 
   const filteredOrders = orders.filter(order => {
     const searchStr = searchTerm.toLowerCase();
-    const matchesSearch = 
-      (order.reference?.toLowerCase() || "").includes(searchStr) || 
-      (order.customerName?.toLowerCase() || "").includes(searchStr);
-    const currentStatus = (order.status || "Pending").toLowerCase();
+    const matchesSearch = (order.reference?.toLowerCase() || "").includes(searchStr) || 
+                          (order.customerName?.toLowerCase() || "").includes(searchStr);
     const targetFilter = filterStatus.toLowerCase();
-    const matchesStatus = targetFilter === "all" || currentStatus === targetFilter;
-    return matchesSearch && matchesStatus;
+    return matchesSearch && (targetFilter === "all" || (order.status || "Pending").toLowerCase() === targetFilter);
   });
 
   return (
@@ -72,35 +69,22 @@ export default function AdminOrders() {
       <div className="admin-controls-container">
         <h2 className="page-title">Manage Orders</h2>
         <div className="controls-row">
-          <input 
-            type="text" 
-            placeholder="Search by Ref or Name..." 
-            className="search-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <select 
-            className="filter-select" 
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
+          <input type="text" placeholder="Search..." className="search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="All">All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="Processing">Processing</option>
-            <option value="Shipped">Shipped</option>
+            {/* ❌ REMOVED: Shipped Option from filter */}
             <option value="Delivered">Delivered</option>
           </select>
-          <button onClick={deleteAllOrders} style={{backgroundColor: '#ff4d4d', color: 'white', border: 'none', padding: '10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold'}}>Clear All History</button>
+          <button onClick={deleteAllOrders} className="bulk-delete-btn">Clear All History</button>
         </div>
       </div>
 
       <div className="orders-container">
-        {filteredOrders.length === 0 ? (
-          <div className="no-orders">No matching orders found.</div>
-        ) : (
+        {filteredOrders.length === 0 ? <div className="no-orders">No matching orders found.</div> : (
           filteredOrders.map(order => {
-            const orderItems = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
-            const estDelivery = orderItems[0]?.deliveryOption?.deliveryDays || "Standard";
+            const deliveryDate = order.selectedDate || "Standard Delivery";
             const isDelivered = (order.status || "").toLowerCase() === "delivered";
             
             return (
@@ -117,13 +101,10 @@ export default function AdminOrders() {
                     </span>
                   </div>
                   <div className={`status-badge ${(order.status || "Pending").toLowerCase()}`}>
-                    <select 
-                      value={order.status || "Pending"}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                    >
+                    <select value={order.status || "Pending"} onChange={(e) => handleStatusChange(order.id, e.target.value)}>
                       <option value="Pending">Pending</option>
                       <option value="Processing">Processing</option>
-                      <option value="Shipped">Shipped</option>
+                      {/* ❌ REMOVED: Shipped Option from status update */}
                       <option value="Delivered">Delivered</option>
                     </select>
                   </div>
@@ -139,7 +120,7 @@ export default function AdminOrders() {
                   <div className="grid-section">
                     <h4>Order Details</h4>
                     <div className="items-list">
-                      {orderItems.map((item, idx) => (
+                      {order.items.map((item, idx) => (
                         <div key={idx} className="admin-item-row">
                           <div className="admin-item-info">
                             <p className="admin-item-name">{item.product?.name || item.name}</p>
@@ -152,8 +133,8 @@ export default function AdminOrders() {
                   </div>
                   <div className="grid-section summary-section">
                     <div className="delivery-highlight">
-                      <span>Est. Delivery:</span>
-                      <strong>{estDelivery}</strong>
+                      <span>Preferred Date:</span>
+                      <strong>{deliveryDate}</strong> 
                     </div>
                     <div className="total-line">
                       <span>Total Paid:</span>
