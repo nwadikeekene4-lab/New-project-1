@@ -5,6 +5,11 @@ import "./adminDashboard.css";
 export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Toggle function for the hamburger menu
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
@@ -21,21 +26,23 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className="konga-dash-wrapper">
-      {/* 📱 Mobile Header Toggle */}
+    <div className={`konga-dash-wrapper ${isSidebarOpen ? "sidebar-active" : ""}`}>
+      
+      {/* 📱 Mobile/Desktop Header Toggle */}
       <div className="mobile-nav-bar">
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="menu-toggle">
-          {isSidebarOpen ? "✕ Close" : "☰ Menu"}
+        <button onClick={toggleSidebar} className="menu-toggle">
+          {isSidebarOpen ? "✕" : "☰"}
         </button>
         <span className="mobile-logo">Admin Panel</span>
       </div>
 
-      <aside className={`konga-sidebar ${isSidebarOpen ? "open" : ""}`}>
+      {/* SIDEBAR - Slide logic controlled by isSidebarOpen */}
+      <aside className={`konga-sidebar ${isSidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-brand">
           <h2 className="admin-logo">Konga Admin</h2>
         </div>
         <nav className="konga-nav">
-          <Link to="/admin/dashboard" className="konga-nav-link active">Dashboard Home</Link>
+          {/* ✅ Dashboard Home Link REMOVED */}
           <Link to="/admin/products" className="konga-nav-link">Manage Products</Link>
           <Link to="/admin/orders" className="konga-nav-link">View Orders</Link>
           <div className="nav-divider"></div>
@@ -46,10 +53,13 @@ export default function AdminDashboard() {
         </nav>
       </aside>
 
+      {/* Main Overlay to close sidebar when clicking outside on mobile */}
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
+
       <main className="konga-dash-main">
         <header className="konga-dash-header">
           <div className="header-greeting">
-            <h1>Dashboard Overview</h1>
+            <h1>Dashboard</h1>
             <p>Welcome back, Admin</p>
           </div>
           <div className="quick-actions">
@@ -57,35 +67,28 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        {/* 📊 Metrics / Stats Section */}
         <section className="konga-stats-grid">
           <div className="stat-card">
             <div className="stat-info">
-              <h3>Inventory</h3>
-              <p>Product Catalog</p>
+              <h3>Products</h3>
+              <p>Inventory Control</p>
             </div>
             <div className="stat-icon">📦</div>
-            <Link to="/admin/products" className="stat-link">Manage Inventory</Link>
+            <Link to="/admin/products" className="stat-link">Manage Items</Link>
           </div>
 
           <div className="stat-card">
             <div className="stat-info">
               <h3>Orders</h3>
-              <p>Customer Sales</p>
+              <p>Sales Tracking</p>
             </div>
             <div className="stat-icon">📜</div>
-            <Link to="/admin/orders" className="stat-link">Process Orders</Link>
+            <Link to="/admin/orders" className="stat-link">View Details</Link>
           </div>
         </section>
 
-        {/* 🛠️ System Status Section */}
-        <section className="system-status-section">
-           <div className="status-banner">
-              <h3>System Live</h3>
-              <p>Everything is running smoothly. Your store is active.</p>
-           </div>
-        </section>
+        {/* ✅ System Status Text REMOVED */}
       </main>
     </div>
   );
-}
+      }
