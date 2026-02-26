@@ -5,6 +5,7 @@ import './AdminProducts.css';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); 
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
@@ -26,7 +27,7 @@ export default function AdminProducts() {
 
   const getImageUrl = (imagePath) => {
     if (!imagePath || imagePath === "null" || typeof imagePath !== 'string') {
-      return "https://placehold.co/100x100?text=No+Image";
+      return "https://placehold.co/200x200?text=No+Image";
     }
     if (imagePath.startsWith('blob:') || imagePath.startsWith('http')) return imagePath;
     const fileName = imagePath.split('/').pop();
@@ -36,20 +37,19 @@ export default function AdminProducts() {
   const addProduct = async (e) => {
     e.preventDefault();
     if (!newName || !newPrice || !newImageFile) return alert("All fields required");
-
     const localPreview = URL.createObjectURL(newImageFile);
     const tempId = Date.now();
     const optimisticProduct = { id: tempId, name: newName, price: newPrice, image: localPreview, syncing: true };
-
     setProducts((prev) => [optimisticProduct, ...prev]);
-    setNewName(""); setNewPrice(""); setNewImageFile(null);
-    e.target.reset();
-
+    
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
-    formData.append("name", optimisticProduct.name);
-    formData.append("price", optimisticProduct.price);
+    formData.append("name", newName);
+    formData.append("price", newPrice);
     formData.append("image", newImageFile);
+
+    setNewName(""); setNewPrice(""); setNewImageFile(null);
+    e.target.reset();
 
     try {
       const res = await API.post("/admin/products", formData, {
@@ -64,7 +64,7 @@ export default function AdminProducts() {
   };
 
   const deleteProduct = async (id) => {
-    if (!window.confirm("Are you sure?")) return;
+    if (!window.confirm("Delete this product?")) return;
     const token = localStorage.getItem("adminToken");
     try {
       await API.delete(`/admin/products/${id}`, { headers: { "Authorization": `Bearer ${token}` } });
@@ -79,7 +79,6 @@ export default function AdminProducts() {
     formData.append("name", editName);
     formData.append("price", editPrice);
     if (editImageFile) formData.append("image", editImageFile);
-
     try {
       const res = await API.put(`/admin/products/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
@@ -90,75 +89,77 @@ export default function AdminProducts() {
     finally { setIsSaving(false); }
   };
 
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="admin-products-page">
-      <nav className="konga-top-nav">
-        <Link to="/admin/dashboard" className="konga-back-link">
-          <span className="arrow">←</span> Back to Dashboard
-        </Link>
-      </nav>
-
-      <div className="admin-controls-container">
-        <h2 className="page-title">Product Management</h2>
+    <div className="admin-inventory-wrapper">
+      <div className="admin-container-max">
         
-        <section className="product-form-section">
-          <form className="controls-row" onSubmit={addProduct}>
-            <input type="text" placeholder="Product Name" className="search-input" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
-            <input type="number" placeholder="Price (₦)" className="filter-select" style={{flex: '0.5'}} value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
-            <input type="file" className="file-input-custom" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
-            <button type="submit" className="konga-submit-btn">Add Product</button>
-          </form>
-        </section>
-      </div>
+        {/* Navigation & Search Area */}
+        <header className="inventory-header">
+          <div className="nav-top">
+            <Link to="/admin/dashboard" className="back-btn-minimal" title="Back to Dashboard">
+              ←
+            </Link>
+            <h1 className="inventory-title">Manage Inventory</h1>
+          </div>
 
-      <div className="products-container">
-        <div className="item-count-label">{products.length} Products in Inventory</div>
-        
-        {products.map((p) => (
-          <div key={p.id} className="product-card">
-            {editingId === p.id ? (
-              <div className="edit-overlay-container">
-                <div className="edit-grid">
+          <div className="inventory-actions">
+            <div className="search-box-container">
+              <input 
+                type="text" 
+                placeholder="Search products by name..." 
+                className="robust-search-bar"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <section className="add-product-mini-card">
+              <form className="mini-form" onSubmit={addProduct}>
+                <input type="text" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
+                <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
+                <input type="file" className="mini-file" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
+                <button type="submit" className="mini-add-btn">Add Product</button>
+              </form>
+            </section>
+          </div>
+        </header>
+
+        {/* Dynamic Responsive Grid */}
+        <main className="inventory-grid">
+          {filteredProducts.map((p) => (
+            <div key={p.id} className="inventory-item">
+              {editingId === p.id ? (
+                <div className="grid-edit-form">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                  <input type="file" onChange={(e) => setEditImageFile(e.target.files[0])} />
-                  <div className="edit-actions">
-                    <button className="save-btn-alt" onClick={() => updateProduct(p.id)}>{isSaving ? "..." : "Save Changes"}</button>
-                    <button className="cancel-btn-alt" onClick={() => setEditingId(null)}>Cancel</button>
+                  <div className="edit-grid-btns">
+                    <button className="grid-btn-save" onClick={() => updateProduct(p.id)}>{isSaving ? "..." : "Save"}</button>
+                    <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="product-grid-layout">
-                {/* Section 1: Image */}
-                <div className="grid-section img-section">
-                  <div className="admin-img-box">
-                    <img src={getImageUrl(p.image)} alt={p.name} />
-                    {p.syncing && <div className="sync-tag">Uploading...</div>}
+              ) : (
+                <div className="item-inner">
+                  <div className="item-img-container">
+                    <img src={getImageUrl(p.image)} alt={p.name} loading="lazy" />
+                    {p.syncing && <div className="sync-overlay"><span>Syncing...</span></div>}
+                  </div>
+                  <div className="item-details">
+                    <h3 className="item-name">{p.name}</h3>
+                    <p className="item-price">₦{Number(p.price || 0).toLocaleString()}</p>
+                  </div>
+                  <div className="item-footer-actions">
+                    <button className="action-link edit" onClick={() => { setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); }}>Edit</button>
+                    <button className="action-link delete" onClick={() => deleteProduct(p.id)}>Delete</button>
                   </div>
                 </div>
-
-                {/* Section 2: Details */}
-                <div className="grid-section info-section">
-                  <span className="label">PRODUCT NAME</span>
-                  <p className="p-name-display">{p.name}</p>
-                  <span className="label">BASE PRICE</span>
-                  <p className="p-price-display">₦{Number(p.price || 0).toLocaleString()}</p>
-                </div>
-
-                {/* Section 3: Actions */}
-                <div className="grid-section summary-section">
-                   <button className="edit-btn-action" onClick={() => { 
-                      setEditingId(p.id); 
-                      setEditName(p.name); 
-                      setEditPrice(p.price); 
-                    }}>Edit Product</button>
-                   <button className="del-btn" onClick={() => deleteProduct(p.id)}>Remove from Store</button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          ))}
+        </main>
       </div>
     </div>
   );
