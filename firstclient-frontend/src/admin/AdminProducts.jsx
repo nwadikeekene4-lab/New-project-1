@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom"; // Import Link for navigation
 import API from "../api"; 
 import './AdminProducts.css';
 
@@ -27,9 +28,6 @@ export default function AdminProducts() {
     }
   };
 
-  /**
-   * ✅ RETAINED: Helper to resolve the correct image URL
-   */
   const getImageUrl = (imagePath) => {
     if (!imagePath || imagePath === "null" || typeof imagePath !== 'string') {
       return "https://placehold.co/100x100?text=No+Image";
@@ -43,10 +41,8 @@ export default function AdminProducts() {
     e.preventDefault();
     if (!newName || !newPrice || !newImageFile) return alert("All fields required");
 
-    // ✅ RETAINED: Optimistic UI Logic
     const localPreview = URL.createObjectURL(newImageFile);
     const tempId = Date.now();
-
     const optimisticProduct = {
       id: tempId,
       name: newName,
@@ -56,13 +52,11 @@ export default function AdminProducts() {
     };
 
     setProducts((prev) => [optimisticProduct, ...prev]);
-
     setNewName("");
     setNewPrice("");
     setNewImageFile(null);
     e.target.reset();
 
-    // ✅ RETAINED: Manual Token Retrieval
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
     formData.append("name", optimisticProduct.name);
@@ -76,19 +70,13 @@ export default function AdminProducts() {
           "Authorization": `Bearer ${token}` 
         }
       });
-
-      // ✅ RETAINED: Syncing flag replacement
       setProducts((prev) =>
-        prev.map((p) => 
-          p.id === tempId ? { ...res.data, syncing: false } : p
-        )
+        prev.map((p) => p.id === tempId ? { ...res.data, syncing: false } : p)
       );
-      
       URL.revokeObjectURL(localPreview);
-
     } catch (err) {
       setProducts((prev) => prev.filter((p) => p.id !== tempId));
-      alert("Upload failed. Make sure you are still logged in.");
+      alert("Upload failed.");
     }
   };
 
@@ -120,11 +108,9 @@ export default function AdminProducts() {
           "Authorization": `Bearer ${token}` 
         }
       });
-      
       setProducts((prev) => 
         prev.map((p) => (p.id === id ? { ...p, ...res.data.updatedProduct } : p))
       );
-      
       setEditingId(null);
       setEditImageFile(null); 
     } catch (err) {
@@ -138,7 +124,11 @@ export default function AdminProducts() {
     <div className="konga-admin-wrapper">
       <header className="konga-admin-header">
         <div className="header-content">
-          <h1>Product Management</h1>
+          <div className="header-left">
+            {/* ✅ NEW: Back to Dashboard Link */}
+            <Link to="/admin/dashboard" className="back-dash-btn">← Dashboard</Link>
+            <h1>Product Management</h1>
+          </div>
           <span className="product-count">{products.length} Items Total</span>
         </div>
       </header>
@@ -160,7 +150,6 @@ export default function AdminProducts() {
           </form>
         </section>
 
-        {/* ✅ KONGA GRID LAYOUT: Responsive Columns */}
         <div className="konga-inventory-grid">
           {products.map((p) => (
             <div key={p.id} className={`konga-product-card ${p.syncing ? 'is-syncing' : ''}`}>
@@ -179,14 +168,12 @@ export default function AdminProducts() {
               ) : (
                 <>
                   <div className="konga-img-container">
-                    {/* ✅ RETAINED: Image Refresh Key Logic */}
                     <img 
                       key={p.image}
                       src={getImageUrl(p.image)} 
                       alt={p.name} 
                       style={{ opacity: p.syncing ? 0.5 : 1 }}
                     />
-                    {/* ✅ RETAINED: Syncing Badge Logic */}
                     {p.syncing && <div className="konga-uploading-tag">Uploading...</div>}
                   </div>
                   <div className="konga-product-info">
