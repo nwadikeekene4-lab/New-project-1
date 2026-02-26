@@ -1,54 +1,144 @@
-/* Base Layout */
+:root {
+  /* Updated to Essence Brand Green */
+  --essence-green: #4caf50; 
+  --essence-dark-green: #388e3c;
+  --sidebar-bg: #1e1e1e;
+  --main-bg: #f8f9fa;
+  --text-grey: #6c757d;
+}
+
+/* Base Layout Wrapper - Key for the "Push" effect */
 .essence-dash-wrapper {
   display: flex;
   min-height: 100vh;
-  background-color: #f4f7f6;
-  transition: all 0.3s ease-in-out;
+  background-color: var(--main-bg);
+  transition: all 0.3s ease; /* Smooth transition when pushing content */
 }
 
-/* Sidebar */
+/* --- SIDEBAR --- */
 .essence-sidebar {
   width: 260px;
-  background: #1a1a1a;
-  color: #fff;
-  height: 100vh;
-  position: fixed;
-  left: -260px; /* Hidden by default */
-  transition: 0.3s ease;
+  background-color: var(--sidebar-bg);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
   z-index: 1000;
+  position: fixed; /* Keep sidebar fixed */
+  height: 100vh;
+  left: -260px; /* Hidden by default */
 }
 
 .essence-sidebar.open {
-  left: 0;
+  left: 0; /* Slide in */
 }
 
-/* THE FIX: Push the main content when sidebar is active */
+.sidebar-brand {
+  padding: 30px 20px;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+
+.essence-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  height: 100%;
+}
+
+.essence-nav-link {
+  color: #bbb;
+  text-decoration: none;
+  padding: 15px 25px;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.essence-nav-link:hover, .essence-nav-link.active {
+  background-color: #333;
+  color: white;
+  border-left: 4px solid var(--essence-green);
+}
+
+.nav-divider {
+  margin: 20px 0;
+  border-top: 1px solid #333;
+}
+
+.essence-logout-btn {
+  margin: auto 20px 20px 20px;
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* --- MAIN CONTENT: THE PUSH LOGIC --- */
 .essence-dash-main {
-  flex: 1;
+  flex-grow: 1;
+  padding: 30px;
   width: 100%;
-  padding: 80px 40px 40px 40px; /* Top padding for the mobile nav bar */
-  transition: transform 0.3s ease, margin-left 0.3s ease;
+  transition: margin-left 0.3s ease; /* Animate the push */
 }
 
-/* When sidebar is open on Desktop, move the content over */
+/* On Desktop: When sidebar is active, push content to the right */
 @media (min-width: 769px) {
   .sidebar-active .essence-dash-main {
-    margin-left: 260px; /* Shoves the content so it's not blocked */
+    margin-left: 260px; 
   }
 }
 
-/* Mobile Nav Bar */
-.mobile-nav-bar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  height: 60px;
-  background: #fff;
+.essence-dash-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  border-bottom: 1px solid #ddd;
-  z-index: 999;
+  margin-bottom: 30px;
+}
+
+.essence-action-btn {
+  background-color: var(--essence-green);
+  color: white;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* --- STAT CARDS --- */
+.essence-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  display: grid;
+  grid-template-areas: 
+    "info icon"
+    "link link";
+  align-items: center;
+}
+
+/* ... (Keep your existing stat-info, stat-icon, and stat-link styles) ... */
+
+/* --- MOBILE STYLING --- */
+.mobile-nav-bar {
+  display: none;
+  background: white;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1100;
 }
 
 .menu-toggle {
@@ -56,50 +146,23 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  margin-right: 15px;
 }
 
-/* Stats Cards */
-.essence-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-top: 30px;
-}
-
-.stat-card {
-  background: #fff;
-  padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stat-link {
-  width: 100%;
-  margin-top: 15px;
-  text-decoration: none;
-  color: #3b82f6;
-  font-weight: bold;
-}
-
-/* Overlay for Mobile */
 .sidebar-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
-  z-index: 998;
+  z-index: 999;
 }
 
 @media (max-width: 768px) {
-  .essence-dash-main {
-    padding: 80px 20px 20px 20px;
-  }
-  /* On mobile, we usually let it overlap to save space, but dim the background */
+  .mobile-nav-bar { display: flex; }
+  
+  /* On mobile, we DON'T push (it would be too narrow), we just use overlay */
   .sidebar-active .essence-dash-main {
-    margin-left: 0; 
+    margin-left: 0;
   }
+  
+  .essence-dash-main { padding: 20px; }
+  .essence-dash-header { flex-direction: column; align-items: flex-start; gap: 15px; }
   }
