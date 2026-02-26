@@ -39,7 +39,7 @@ export default function AdminDashboard() {
           <Link to="/admin/products" className="essence-nav-item">Manage Products</Link>
           <Link to="/admin/orders" className="essence-nav-item">View Orders</Link>
           <div className="essence-nav-spacer"></div>
-          <Link to="/" className="essence-nav-item store-link">Go to Store</Link>
+          <Link to="/shop" className="essence-nav-item store-link">Go to Store</Link>
           <button onClick={handleLogout} className="essence-logout-btn">Logout</button>
         </nav>
       </aside>
@@ -85,3 +85,4 @@ export default function AdminDashboard() {
     </div>
   );
     }
+
