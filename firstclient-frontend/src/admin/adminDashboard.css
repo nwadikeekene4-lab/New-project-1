@@ -1,144 +1,69 @@
 :root {
-  /* Updated to Essence Brand Green */
-  --essence-green: #4caf50; 
-  --essence-dark-green: #388e3c;
+  --konga-green: #4caf50;
   --sidebar-bg: #1e1e1e;
-  --main-bg: #f8f9fa;
-  --text-grey: #6c757d;
+  --main-bg: #f4f4f4;
 }
 
-/* Base Layout Wrapper - Key for the "Push" effect */
-.essence-dash-wrapper {
+.konga-dash-wrapper {
   display: flex;
   min-height: 100vh;
   background-color: var(--main-bg);
-  transition: all 0.3s ease; /* Smooth transition when pushing content */
+  overflow-x: hidden;
 }
 
-/* --- SIDEBAR --- */
-.essence-sidebar {
+/* --- SIDEBAR ANIMATION --- */
+.konga-sidebar {
   width: 260px;
   background-color: var(--sidebar-bg);
   color: white;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
-  z-index: 1000;
-  position: fixed; /* Keep sidebar fixed */
-  height: 100vh;
-  left: -260px; /* Hidden by default */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1001;
 }
 
-.essence-sidebar.open {
-  left: 0; /* Slide in */
+/* State when closed */
+.konga-sidebar.closed {
+  transform: translateX(-260px);
 }
 
-.sidebar-brand {
-  padding: 30px 20px;
-  text-align: center;
-  border-bottom: 1px solid #333;
+/* State when open */
+.konga-sidebar.open {
+  transform: translateX(0);
 }
 
-.essence-nav {
-  display: flex;
-  flex-direction: column;
-  padding: 20px 0;
-  height: 100%;
-}
-
-.essence-nav-link {
-  color: #bbb;
-  text-decoration: none;
-  padding: 15px 25px;
-  font-size: 15px;
-  transition: 0.2s;
-}
-
-.essence-nav-link:hover, .essence-nav-link.active {
-  background-color: #333;
-  color: white;
-  border-left: 4px solid var(--essence-green);
-}
-
-.nav-divider {
-  margin: 20px 0;
-  border-top: 1px solid #333;
-}
-
-.essence-logout-btn {
-  margin: auto 20px 20px 20px;
-  background-color: #d9534f;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* --- MAIN CONTENT: THE PUSH LOGIC --- */
-.essence-dash-main {
+/* Adjust Main Content based on sidebar on Desktop */
+.konga-dash-main {
   flex-grow: 1;
-  padding: 30px;
+  padding: 80px 30px 30px 30px; /* Space for fixed header */
+  transition: margin-left 0.3s ease;
   width: 100%;
-  transition: margin-left 0.3s ease; /* Animate the push */
 }
 
-/* On Desktop: When sidebar is active, push content to the right */
-@media (min-width: 769px) {
-  .sidebar-active .essence-dash-main {
-    margin-left: 260px; 
+@media (min-width: 1024px) {
+  .konga-sidebar.open + .konga-dash-main {
+    margin-left: 260px;
   }
 }
 
-.essence-dash-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.essence-action-btn {
-  background-color: var(--essence-green);
-  color: white;
-  padding: 10px 20px;
-  text-decoration: none;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-/* --- STAT CARDS --- */
-.essence-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.stat-card {
-  background: white;
-  padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  display: grid;
-  grid-template-areas: 
-    "info icon"
-    "link link";
-  align-items: center;
-}
-
-/* ... (Keep your existing stat-info, stat-icon, and stat-link styles) ... */
-
-/* --- MOBILE STYLING --- */
+/* --- HAMBURGER HEADER --- */
 .mobile-nav-bar {
-  display: none;
-  background: white;
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 1100;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: white;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 1002;
 }
 
 .menu-toggle {
@@ -146,23 +71,88 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
+  color: #333;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
 }
 
+.menu-toggle:hover {
+  background: #f0f0f0;
+}
+
+/* Sidebar Overlay for Mobile */
 .sidebar-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  z-index: 999;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
 }
 
-@media (max-width: 768px) {
-  .mobile-nav-bar { display: flex; }
-  
-  /* On mobile, we DON'T push (it would be too narrow), we just use overlay */
-  .sidebar-active .essence-dash-main {
-    margin-left: 0;
-  }
-  
-  .essence-dash-main { padding: 20px; }
-  .essence-dash-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+/* --- UI ELEMENTS --- */
+.sidebar-brand { padding: 25px; border-bottom: 1px solid #333; }
+.konga-nav { display: flex; flex-direction: column; padding: 15px 0; }
+
+.konga-nav-link {
+  color: #bbb;
+  text-decoration: none;
+  padding: 12px 25px;
+  transition: 0.2s;
+}
+
+.konga-nav-link:hover {
+  background: #333;
+  color: var(--konga-green);
+}
+
+.konga-logout-btn {
+  margin: 30px 20px;
+  background: #d9534f;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.konga-green-btn {
+  background: var(--konga-green);
+  color: white;
+  padding: 10px 18px;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.konga-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stat-link {
+  width: 100%;
+  margin-top: 15px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+  text-decoration: none;
+  color: var(--konga-green);
+  font-weight: bold;
   }
