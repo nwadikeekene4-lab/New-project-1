@@ -5,7 +5,6 @@ import "./adminDashboard.css";
 export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Toggle function for the hamburger menu
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -26,48 +25,46 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className={`konga-dash-wrapper ${isSidebarOpen ? "sidebar-active" : ""}`}>
+    // The "sidebar-active" class now pushes the content instead of just covering it
+    <div className={`essence-dash-wrapper ${isSidebarOpen ? "sidebar-active" : ""}`}>
       
-      {/* 📱 Mobile/Desktop Header Toggle */}
       <div className="mobile-nav-bar">
         <button onClick={toggleSidebar} className="menu-toggle">
           {isSidebarOpen ? "✕" : "☰"}
         </button>
-        <span className="mobile-logo">Admin Panel</span>
+        <span className="mobile-logo">Essence Admin</span>
       </div>
 
-      {/* SIDEBAR - Slide logic controlled by isSidebarOpen */}
-      <aside className={`konga-sidebar ${isSidebarOpen ? "open" : "closed"}`}>
+      <aside className={`essence-sidebar ${isSidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-brand">
-          <h2 className="admin-logo">Konga Admin</h2>
+          <h2 className="admin-logo">Essence Board</h2>
         </div>
-        <nav className="konga-nav">
-          {/* ✅ Dashboard Home Link REMOVED */}
-          <Link to="/admin/products" className="konga-nav-link">Manage Products</Link>
-          <Link to="/admin/orders" className="konga-nav-link">View Orders</Link>
+        <nav className="essence-nav">
+          <Link to="/admin/products" className="essence-nav-link">Manage Products</Link>
+          <Link to="/admin/orders" className="essence-nav-link">View Orders</Link>
           <div className="nav-divider"></div>
-          <Link to="/" className="konga-nav-link store-link">Go to Store</Link>
-          <button onClick={handleLogout} className="konga-logout-btn">
+          <Link to="/" className="essence-nav-link store-link">Go to Store</Link>
+          <button onClick={handleLogout} className="essence-logout-btn">
             Logout
           </button>
         </nav>
       </aside>
 
-      {/* Main Overlay to close sidebar when clicking outside on mobile */}
+      {/* Overlay only active on mobile to dim the background */}
       {isSidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
 
-      <main className="konga-dash-main">
-        <header className="konga-dash-header">
+      <main className="essence-dash-main">
+        <header className="essence-dash-header">
           <div className="header-greeting">
-            <h1>Dashboard</h1>
+            <h1>Essence Admin Board</h1>
             <p>Welcome back, Admin</p>
           </div>
           <div className="quick-actions">
-             <Link to="/admin/products" className="konga-green-btn">+ New Product</Link>
+             <Link to="/admin/products" className="essence-action-btn">+ New Product</Link>
           </div>
         </header>
 
-        <section className="konga-stats-grid">
+        <section className="essence-stats-grid">
           <div className="stat-card">
             <div className="stat-info">
               <h3>Products</h3>
@@ -86,8 +83,6 @@ export default function AdminDashboard() {
             <Link to="/admin/orders" className="stat-link">View Details</Link>
           </div>
         </section>
-
-        {/* ✅ System Status Text REMOVED */}
       </main>
     </div>
   );
