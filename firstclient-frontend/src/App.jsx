@@ -23,7 +23,7 @@ function App () {
   const [allProducts, setAllProducts] = useState([]); 
   const [globalLoading, setGlobalLoading] = useState(true);
 
-  // --- 1. REMOVE LOGIC ---
+  // --- 1. REMOVE FROM CART ---
   const removeFromCart = (cartItemId) => {
     setCart((prev) => prev.filter(item => item.id !== cartItemId));
 
@@ -34,29 +34,29 @@ function App () {
       });
   };
 
-  // --- 2. INTEGRATED: QUANTITY UPDATE LOGIC ---
+  // --- 2. UPDATED QUANTITY LOGIC (REMOVED BLOCKER) ---
   const updateCartQuantity = (cartItemId, newQuantity) => {
-    if (newQuantity < 1) return; // Prevent 0 or negative quantities
+    // We no longer return early if newQuantity < 1.
+    // This allows the user to clear the input or type 0.
 
-    // Find the item to get the productId for the API call
     const itemToUpdate = cart.find(i => i.id === cartItemId);
     if (!itemToUpdate) return;
 
-    // Instant UI update for a snappy feel
+    // Instant UI update for the state
     setCart((prev) => 
       prev.map(item => item.id === cartItemId ? { ...item, quantity: newQuantity } : item)
     );
 
-    // Background Sync with your backend
-    // We send quantity: 0 but include a custom 'override' or simply the new total
+    // Sync with backend only if it's a number (use 0 for empty strings)
+    const syncValue = newQuantity === "" ? 0 : newQuantity;
+
     API.post('/cart/add', { 
       productId: itemToUpdate.productId, 
       quantity: 0, 
-      overrideQuantity: newQuantity 
+      overrideQuantity: syncValue 
     }).catch(err => {
         console.error("Quantity sync failed:", err);
-        // Optional: rollback if sync is critical
-      });
+    });
   };
 
   useEffect(() => {
@@ -80,7 +80,7 @@ function App () {
         <Route path="/" element={<WelcomeScreen />} />
         <Route path="/hub" element={<NavigationHub />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/contact" element={<AboutPage />} /> {/* Corrected to AboutPage or ContactPage as needed */}
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/socials" element={<SocialMediaPage />} />
         
@@ -93,7 +93,6 @@ function App () {
           />
         }/>
         
-        {/* INTEGRATED: Passing both removeFromCart and updateCartQuantity */}
         <Route path="/checkout" element={
           <Checkout 
             cart={cart} 
