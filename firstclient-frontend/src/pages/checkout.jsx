@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import API from '../api'; 
 import './checkout.css';
 
-// Added updateCartQuantity to props
 export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantity }) {
   const getWorkDay = (daysToAdd) => {
     let targetDate = dayjs().add(daysToAdd, 'day');
@@ -44,7 +43,7 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
     }
   };
 
-  // --- INTEGRATED: CALCULATE TOTALS ---
+  // CALCULATE TOTALS
   const itemsTotal = cart.reduce((sum, item) => sum + (item.product?.price || 0) * (item.quantity || 0), 0);
   
   const getShippingFee = (loc) => {
@@ -92,7 +91,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
         <div className="header-inner">
           <Link to="/" className="checkout-logo">Heritage Hub</Link>
           <div className="checkout-step-label">Secure Checkout</div>
-          {/* FIXED: Pointing to /shop (where your products live) */}
           <Link to="/shop" className="back-link">Continue Shopping</Link>
         </div>
       </div>
@@ -112,18 +110,36 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                     <div className="checkout-item-info">
                       <div className="item-title">{cartItem.product?.name}</div>
                       <div className="item-meta">
-                        {/* INTEGRATED: Editable Quantity Input */}
+                        
+                        {/* ENHANCED QUANTITY SELECTOR */}
                         <div className="qty-edit-wrapper">
                           <span>Qty: </span>
                           <input 
                             type="number" 
+                            list="qty-options"
                             min="1" 
-                            className="qty-input-small"
-                            value={cartItem.quantity} 
-                            onChange={(e) => updateCartQuantity(cartItem.id, parseInt(e.target.value) || 1)}
+                            max="1000"
+                            className="qty-input-enhanced"
+                            value={cartItem.quantity || ""} 
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              updateCartQuantity(cartItem.id, isNaN(val) ? "" : val);
+                            }}
+                            onBlur={(e) => {
+                              if (!e.target.value || e.target.value < 1) {
+                                updateCartQuantity(cartItem.id, 1);
+                              }
+                            }}
                           />
-                          <span> • ₦{Number(cartItem.product?.price).toLocaleString()}</span>
+                          <datalist id="qty-options">
+                            <option value="1" /><option value="2" /><option value="3" />
+                            <option value="4" /><option value="5" /><option value="10" />
+                            <option value="20" /><option value="50" /><option value="100" />
+                            <option value="500" /><option value="1000" />
+                          </datalist>
+                          <span className="unit-price"> • ₦{Number(cartItem.product?.price).toLocaleString()}</span>
                         </div>
+
                       </div>
                       <button className="delete-btn" onClick={() => removeFromCart(cartItem.id)}>Remove</button>
                     </div>
@@ -200,4 +216,4 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       </div>
     </div>
   );
-}
+    }
