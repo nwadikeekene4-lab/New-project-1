@@ -357,4 +357,49 @@ input[type=number] {
   outline: none;
   border-color: #228b22;
   box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+
 }
+
+/* Enhanced Quantity Styles */
+.qty-edit-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.qty-input-enhanced {
+  width: 75px;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  background-color: #ffffff;
+  transition: all 0.2s;
+}
+
+.qty-input-enhanced:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.15);
+}
+
+/* Hide spin arrows for cleaner look */
+.qty-input-enhanced::-webkit-inner-spin-button,
+.qty-input-enhanced::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.unit-price {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Tooltip/Dropdown styling for native datalist */
+input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 2px;
+  filter: invert(0.5);
+  }
