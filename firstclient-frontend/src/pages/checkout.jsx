@@ -43,8 +43,10 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
     }
   };
 
-  // CALCULATE TOTALS
-  const itemsTotal = cart.reduce((sum, item) => sum + (item.product?.price || 0) * (item.quantity || 0), 0);
+  // --- SAFETY LOGIC: Check for zero or empty quantities ---
+  const hasInvalidQuantity = cart.some(item => item.quantity === "" || item.quantity <= 0);
+
+  const itemsTotal = cart.reduce((sum, item) => sum + (item.product?.price || 0) * (Number(item.quantity) || 0), 0);
   
   const getShippingFee = (loc) => {
     if (loc === "Ikorodu") return 2000;
@@ -58,6 +60,7 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return alert("Your cart is empty.");
+    if (hasInvalidQuantity) return alert("Please set a valid quantity for all items.");
     if (!selectedDate) return alert("Please select a delivery date."); 
     if (!customerDetails.location) return alert("Please select your delivery location.");
     if (!customerDetails.name || !customerDetails.email || !customerDetails.address || !customerDetails.phone || !customerDetails.country) {
@@ -111,31 +114,34 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                       <div className="item-title">{cartItem.product?.name}</div>
                       <div className="item-meta">
                         
-                        {/* ENHANCED QUANTITY SELECTOR */}
+                        {/* ENHANCED EDITABLE QUANTITY */}
                         <div className="qty-edit-wrapper">
                           <span>Qty: </span>
                           <input 
                             type="number" 
-                            list="qty-options"
-                            min="1" 
+                            list="checkout-qty-list"
+                            min="0" 
                             max="1000"
-                            className="qty-input-enhanced"
-                            value={cartItem.quantity || ""} 
+                            className={`qty-input-enhanced ${cartItem.quantity <= 0 ? 'qty-error' : ''}`}
+                            value={cartItem.quantity === 0 ? "0" : cartItem.quantity || ""} 
                             onChange={(e) => {
-                              const val = parseInt(e.target.value);
-                              updateCartQuantity(cartItem.id, isNaN(val) ? "" : val);
+                              const val = e.target.value;
+                              if (val === "") {
+                                updateCartQuantity(cartItem.id, ""); // Allows clearing entirely
+                              } else {
+                                updateCartQuantity(cartItem.id, parseInt(val));
+                              }
                             }}
                             onBlur={(e) => {
-                              if (!e.target.value || e.target.value < 1) {
-                                updateCartQuantity(cartItem.id, 1);
+                              if (e.target.value === "") {
+                                updateCartQuantity(cartItem.id, 0); // Defaults to 0 if clicked away while empty
                               }
                             }}
                           />
-                          <datalist id="qty-options">
-                            <option value="1" /><option value="2" /><option value="3" />
-                            <option value="4" /><option value="5" /><option value="10" />
-                            <option value="20" /><option value="50" /><option value="100" />
-                            <option value="500" /><option value="1000" />
+                          <datalist id="checkout-qty-list">
+                            <option value="1" /><option value="2" /><option value="5" />
+                            <option value="10" /><option value="20" /><option value="50" />
+                            <option value="100" /><option value="500" /><option value="1000" />
                           </datalist>
                           <span className="unit-price"> • ₦{Number(cartItem.product?.price).toLocaleString()}</span>
                         </div>
@@ -205,9 +211,13 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
               <button 
                 className="place-order-btn" 
                 onClick={handlePlaceOrder} 
-                disabled={isProcessing || cart.length === 0}
+                disabled={isProcessing || cart.length === 0 || hasInvalidQuantity}
+                style={{ 
+                    opacity: (hasInvalidQuantity || cart.length === 0) ? 0.6 : 1,
+                    cursor: (hasInvalidQuantity || cart.length === 0) ? 'not-allowed' : 'pointer'
+                }}
               >
-                {isProcessing ? "Processing..." : "Pay Now with Paystack"}
+                {isProcessing ? "Processing..." : hasInvalidQuantity ? "Update Quantities" : "Pay Now with Paystack"}
               </button>
               <p className="secure-text">🔒 Secure Checkout Guaranteed</p>
             </div>
@@ -216,4 +226,4 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       </div>
     </div>
   );
-    }
+      }
