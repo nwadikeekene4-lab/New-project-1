@@ -316,4 +316,32 @@
   background-color: #c53030;
   color: white;
   box-shadow: 0 4px 12px rgba(197, 48, 48, 0.2);
+
+}
+
+/* ROBUST MINIMAL ARROW (Matches Admin Products) */
+.back-btn-minimal {
+  text-decoration: none;
+  font-size: 28px; /* High visibility arrow */
+  color: #1e293b;
+  padding: 5px 10px;
+  display: inline-block;
+  margin-bottom: 10px;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.back-btn-minimal:hover {
+  color: #3b82f6;
+  transform: translateX(-5px); /* Smooth slide effect */
+}
+
+/* Ensure container sizing remains robust */
+.admin-orders-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-title {
+  margin-top: 0; /* Align with the arrow's layout */
 }
