@@ -1,21 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
 import "./adminDashboard.css";
 
 export default function AdminDashboard() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
-    
     if (confirmLogout) {
-      // ✅ UPDATED: Clear the token from storage
       localStorage.removeItem("adminToken");
       window.location.href = "/admin/login";
     }
   };
 
   useEffect(() => {
-    // ✅ UPDATED: Check for the token key
     const auth = localStorage.getItem("adminToken");
     if (!auth) {
       window.location.href = "/admin/login";
@@ -23,54 +21,69 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className="admin-container">
-      <aside className="admin-sidebar">
-        <h2 className="admin-logo">Admin Panel</h2>
-        <nav className="admin-nav" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Link to="/admin/products" className="admin-link">Manage Products</Link>
-          <Link to="/admin/orders" className="admin-link">View Orders</Link>
-          <Link to="/" className="admin-link home-btn">Go to Store</Link>
+    <div className="konga-dash-wrapper">
+      {/* 📱 Mobile Header Toggle */}
+      <div className="mobile-nav-bar">
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="menu-toggle">
+          {isSidebarOpen ? "✕ Close" : "☰ Menu"}
+        </button>
+        <span className="mobile-logo">Admin Panel</span>
+      </div>
 
-          <button 
-            onClick={handleLogout} 
-            style={{ 
-              backgroundColor: '#d9534f', 
-              color: 'white', 
-              padding: '12px', 
-              cursor: 'pointer', 
-              border: 'none', 
-              borderRadius: '5px',
-              marginTop: '40px',
-              fontWeight: 'bold'
-            }}
-          >
-            Logout 
+      <aside className={`konga-sidebar ${isSidebarOpen ? "open" : ""}`}>
+        <div className="sidebar-brand">
+          <h2 className="admin-logo">Konga Admin</h2>
+        </div>
+        <nav className="konga-nav">
+          <Link to="/admin/dashboard" className="konga-nav-link active">Dashboard Home</Link>
+          <Link to="/admin/products" className="konga-nav-link">Manage Products</Link>
+          <Link to="/admin/orders" className="konga-nav-link">View Orders</Link>
+          <div className="nav-divider"></div>
+          <Link to="/" className="konga-nav-link store-link">Go to Store</Link>
+          <button onClick={handleLogout} className="konga-logout-btn">
+            Logout
           </button>
         </nav>
       </aside>
 
-      <main className="admin-main">
-        <header className="admin-header">
-          <div className="header-text">
-            <h1>Dashboard</h1>
+      <main className="konga-dash-main">
+        <header className="konga-dash-header">
+          <div className="header-greeting">
+            <h1>Dashboard Overview</h1>
             <p>Welcome back, Admin</p>
+          </div>
+          <div className="quick-actions">
+             <Link to="/admin/products" className="konga-green-btn">+ New Product</Link>
           </div>
         </header>
 
-        <section className="admin-cards">
-          <div className="admin-card">
-            <div className="card-icon">📦</div>
-            <h3>Products</h3>
-            <p>Add, edit, or delete items in your catalog</p>
-            <Link to="/admin/products" className="admin-btn">Manage</Link>
+        {/* 📊 Metrics / Stats Section */}
+        <section className="konga-stats-grid">
+          <div className="stat-card">
+            <div className="stat-info">
+              <h3>Inventory</h3>
+              <p>Product Catalog</p>
+            </div>
+            <div className="stat-icon">📦</div>
+            <Link to="/admin/products" className="stat-link">Manage Inventory</Link>
           </div>
 
-          <div className="admin-card">
-            <div className="card-icon">📜</div>
-            <h3>Orders</h3>
-            <p>Track and manage customer purchases</p>
-            <Link to="/admin/orders" className="admin-btn">View Orders</Link>
+          <div className="stat-card">
+            <div className="stat-info">
+              <h3>Orders</h3>
+              <p>Customer Sales</p>
+            </div>
+            <div className="stat-icon">📜</div>
+            <Link to="/admin/orders" className="stat-link">Process Orders</Link>
           </div>
+        </section>
+
+        {/* 🛠️ System Status Section */}
+        <section className="system-status-section">
+           <div className="status-banner">
+              <h3>System Live</h3>
+              <p>Everything is running smoothly. Your store is active.</p>
+           </div>
         </section>
       </main>
     </div>
