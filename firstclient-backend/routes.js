@@ -249,45 +249,56 @@ router.post("/admin/emergency-reset", async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: "Update failed" }); }
 });
 
-
-// 🛡️ 8. PAYMENT VERIFICATION ROUTE (IDEMPOTENT & INTEGRATED)
+// 🛡️ 8. PAYMENT VERIFICATION ROUTE (FIXED & ROBUST)
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
 
+    // 1. Check if order already exists (Idempotency)
     const existingOrder = await Order.findOne({ where: { reference } });
     if (existingOrder) {
-      return res.json({ success: true, message: "Payment verified!", order: existingOrder });
+      return res.json({ success: true, message: "Payment already verified!", order: existingOrder });
     }
     
+    // 2. Verify with Paystack
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
     });
 
     if (response.data.data.status === 'success') {
-      const cartItems = await CartItem.findAll({ 
-        include: [{ model: Product, as: "product" }] 
-      });
+      
+      // 3. GET ITEMS: Prefer the items sent from frontend, fallback to DB if missing
+      let itemsToSave;
+      if (customerDetails?.items && customerDetails.items.length > 0) {
+        itemsToSave = customerDetails.items;
+      } else {
+        // Fallback: Try to grab from CartItem table if frontend didn't send them
+        itemsToSave = await CartItem.findAll({ 
+          include: [{ model: Product, as: "product" }] 
+        });
+      }
 
+      // 4. Create the Order
       const newOrder = await Order.create({
         reference: reference,
         amount: response.data.data.amount / 100,
-        status: 'Paid',
-        items: JSON.stringify(cartItems), 
-        customerName: customerDetails?.name,
-        address: customerDetails?.address,
-        city: customerDetails?.location, 
-        phone: customerDetails?.phone,
+        status: 'Pending', // Changed 'Paid' to 'Pending' so it shows up in your "Pending" filter
+        items: JSON.stringify(itemsToSave), 
+        customerName: customerDetails?.name || "Unknown Customer",
+        address: customerDetails?.address || "No Address Provided",
+        city: customerDetails?.location || "N/A", 
+        phone: customerDetails?.phone || "N/A",
         country: customerDetails?.country || 'Nigeria',
-        // ⭐ THE INTEGRATED CHANGE:
-        selectedDate: customerDetails?.selectedDate 
+        selectedDate: customerDetails?.selectedDate || "Standard Delivery"
       });
 
+      // 5. Clear the Cart table now that the order is safely recorded
       await CartItem.destroy({ where: {} });
-      return res.json({ success: true, message: "Payment verified!", order: newOrder });
+
+      return res.json({ success: true, message: "Order saved successfully!", order: newOrder });
     }
     
-    res.status(400).json({ success: false, message: "Verification failed" });
+    res.status(400).json({ success: false, message: "Paystack verification failed" });
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError') {
       return res.json({ success: true, message: "Already processed" });
@@ -296,5 +307,6 @@ router.post("/orders/verify", async (req, res) => {
     res.status(500).json({ error: "Server Error: " + err.message });
   }
 });
+
 
 module.exports = router;
