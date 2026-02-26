@@ -15,17 +15,13 @@ export default function AdminProducts() {
   const [editPrice, setEditPrice] = useState("");
   const [editImageFile, setEditImageFile] = useState(null);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  useEffect(() => { fetchProducts(); }, []);
 
   const fetchProducts = async () => {
     try {
       const res = await API.get("/products");
       setProducts(res.data);
-    } catch (err) {
-      console.error("Failed to load products:", err);
-    }
+    } catch (err) { console.error("Failed to load products:", err); }
   };
 
   const getImageUrl = (imagePath) => {
@@ -43,18 +39,10 @@ export default function AdminProducts() {
 
     const localPreview = URL.createObjectURL(newImageFile);
     const tempId = Date.now();
-    const optimisticProduct = {
-      id: tempId,
-      name: newName,
-      price: newPrice,
-      image: localPreview, 
-      syncing: true 
-    };
+    const optimisticProduct = { id: tempId, name: newName, price: newPrice, image: localPreview, syncing: true };
 
     setProducts((prev) => [optimisticProduct, ...prev]);
-    setNewName("");
-    setNewPrice("");
-    setNewImageFile(null);
+    setNewName(""); setNewPrice(""); setNewImageFile(null);
     e.target.reset();
 
     const token = localStorage.getItem("adminToken");
@@ -65,14 +53,9 @@ export default function AdminProducts() {
 
     try {
       const res = await API.post("/admin/products", formData, {
-        headers: { 
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}` 
-        }
+        headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
-      setProducts((prev) =>
-        prev.map((p) => p.id === tempId ? { ...res.data, syncing: false } : p)
-      );
+      setProducts((prev) => prev.map((p) => p.id === tempId ? { ...res.data, syncing: false } : p));
       URL.revokeObjectURL(localPreview);
     } catch (err) {
       setProducts((prev) => prev.filter((p) => p.id !== tempId));
@@ -84,13 +67,9 @@ export default function AdminProducts() {
     if (!window.confirm("Are you sure?")) return;
     const token = localStorage.getItem("adminToken");
     try {
-      await API.delete(`/admin/products/${id}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+      await API.delete(`/admin/products/${id}`, { headers: { "Authorization": `Bearer ${token}` } });
       setProducts(prev => prev.filter(p => p.id !== id));
-    } catch (err) {
-      alert("Error deleting product.");
-    }
+    } catch (err) { alert("Error deleting product."); }
   };
 
   const updateProduct = async (id) => {
@@ -103,82 +82,84 @@ export default function AdminProducts() {
 
     try {
       const res = await API.put(`/admin/products/${id}`, formData, {
-        headers: { 
-          "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}` 
-        }
+        headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
-      setProducts((prev) => 
-        prev.map((p) => (p.id === id ? { ...p, ...res.data.updatedProduct } : p))
-      );
-      setEditingId(null);
-      setEditImageFile(null); 
-    } catch (err) {
-      alert("Error updating product.");
-    } finally {
-      setIsSaving(false);
-    }
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...res.data.updatedProduct } : p)));
+      setEditingId(null); setEditImageFile(null); 
+    } catch (err) { alert("Error updating product."); } 
+    finally { setIsSaving(false); }
   };
 
   return (
-    <div className="konga-admin-container">
+    <div className="admin-products-page">
       <nav className="konga-top-nav">
         <Link to="/admin/dashboard" className="konga-back-link">
           <span className="arrow">←</span> Back to Dashboard
         </Link>
       </nav>
 
-      <header className="konga-admin-header">
-        <div className="header-flex">
-          <h1>Product Management</h1>
-          <div className="item-badge">{products.length} Items</div>
-        </div>
-      </header>
-
-      <main className="konga-admin-content">
-        <section className="konga-form-card">
-          <h3>Add New Product</h3>
-          <form className="konga-inline-form" onSubmit={addProduct}>
-            <input type="text" placeholder="Product Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
-            <input type="number" placeholder="Price (₦)" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
-            <input type="file" className="file-input" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
+      <div className="admin-controls-container">
+        <h2 className="page-title">Product Management</h2>
+        
+        <section className="product-form-section">
+          <form className="controls-row" onSubmit={addProduct}>
+            <input type="text" placeholder="Product Name" className="search-input" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
+            <input type="number" placeholder="Price (₦)" className="filter-select" style={{flex: '0.5'}} value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
+            <input type="file" className="file-input-custom" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
             <button type="submit" className="konga-submit-btn">Add Product</button>
           </form>
         </section>
+      </div>
 
-        <div className="konga-product-grid">
-          {products.map((p) => (
-            <div key={p.id} className="konga-item-card">
-              {editingId === p.id ? (
-                <div className="edit-mode">
+      <div className="products-container">
+        <div className="item-count-label">{products.length} Products in Inventory</div>
+        
+        {products.map((p) => (
+          <div key={p.id} className="product-card">
+            {editingId === p.id ? (
+              <div className="edit-overlay-container">
+                <div className="edit-grid">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
                   <input type="file" onChange={(e) => setEditImageFile(e.target.files[0])} />
-                  <div className="edit-btns">
-                    <button className="save" onClick={() => updateProduct(p.id)}>{isSaving ? "..." : "Save"}</button>
-                    <button className="cancel" onClick={() => setEditingId(null)}>✕</button>
+                  <div className="edit-actions">
+                    <button className="save-btn-alt" onClick={() => updateProduct(p.id)}>{isSaving ? "..." : "Save Changes"}</button>
+                    <button className="cancel-btn-alt" onClick={() => setEditingId(null)}>Cancel</button>
                   </div>
                 </div>
-              ) : (
-                <>
-                  <div className="img-box">
+              </div>
+            ) : (
+              <div className="product-grid-layout">
+                {/* Section 1: Image */}
+                <div className="grid-section img-section">
+                  <div className="admin-img-box">
                     <img src={getImageUrl(p.image)} alt={p.name} />
-                    {p.syncing && <div className="loader">Syncing...</div>}
+                    {p.syncing && <div className="sync-tag">Uploading...</div>}
                   </div>
-                  <div className="item-details">
-                    <p className="name">{p.name}</p>
-                    <p className="price">₦{Number(p.price || 0).toLocaleString()}</p>
-                  </div>
-                  <div className="item-footer">
-                    <button className="edit-btn" onClick={() => { setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); }}>Edit</button>
-                    <button className="delete-btn" onClick={() => deleteProduct(p.id)}>Remove</button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      </main>
+                </div>
+
+                {/* Section 2: Details */}
+                <div className="grid-section info-section">
+                  <span className="label">PRODUCT NAME</span>
+                  <p className="p-name-display">{p.name}</p>
+                  <span className="label">BASE PRICE</span>
+                  <p className="p-price-display">₦{Number(p.price || 0).toLocaleString()}</p>
+                </div>
+
+                {/* Section 3: Actions */}
+                <div className="grid-section summary-section">
+                   <button className="edit-btn-action" onClick={() => { 
+                      setEditingId(p.id); 
+                      setEditName(p.name); 
+                      setEditPrice(p.price); 
+                    }}>Edit Product</button>
+                   <button className="del-btn" onClick={() => deleteProduct(p.id)}>Remove from Store</button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
-                                     }
+        }
