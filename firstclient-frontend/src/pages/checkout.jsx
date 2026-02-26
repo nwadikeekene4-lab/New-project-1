@@ -68,7 +68,16 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
     }
 
     setIsProcessing(true);
-    const detailsToSave = { ...customerDetails, selectedDate, shippingFee: shippingTotal, itemsTotal, totalAmount: orderTotal };
+
+    // ⭐ THE CRITICAL FIX: Include the 'cart' (items) in the details sent to Paystack and LocalStorage
+    const detailsToSave = { 
+        ...customerDetails, 
+        selectedDate, 
+        shippingFee: shippingTotal, 
+        itemsTotal, 
+        totalAmount: orderTotal,
+        items: cart // This ensures the items follow the user to the success page
+    };
 
     try {
       const response = await API.post("/paystack/init", {
@@ -79,6 +88,7 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       });
 
       if (response.data.status && response.data.data.authorization_url) {
+        // Save to localStorage so the SuccessPage can retrieve it even if the session resets
         localStorage.setItem("pendingCustomerDetails", JSON.stringify(detailsToSave));
         window.location.href = response.data.data.authorization_url;
       }
@@ -114,7 +124,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                       <div className="item-title">{cartItem.product?.name}</div>
                       <div className="item-meta">
                         
-                        {/* ENHANCED EDITABLE QUANTITY */}
                         <div className="qty-edit-wrapper">
                           <span>Qty: </span>
                           <input 
@@ -127,14 +136,14 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                             onChange={(e) => {
                               const val = e.target.value;
                               if (val === "") {
-                                updateCartQuantity(cartItem.id, ""); // Allows clearing entirely
+                                updateCartQuantity(cartItem.id, ""); 
                               } else {
                                 updateCartQuantity(cartItem.id, parseInt(val));
                               }
                             }}
                             onBlur={(e) => {
                               if (e.target.value === "") {
-                                updateCartQuantity(cartItem.id, 0); // Defaults to 0 if clicked away while empty
+                                updateCartQuantity(cartItem.id, 0); 
                               }
                             }}
                           />
@@ -226,4 +235,4 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       </div>
     </div>
   );
-      }
+}
