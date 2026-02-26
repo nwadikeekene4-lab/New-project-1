@@ -5,85 +5,83 @@ import "./adminDashboard.css";
 export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const handleLogout = () => {
-    const confirmLogout = window.confirm("Are you sure you want to log out?");
-    if (confirmLogout) {
+    if (window.confirm("Are you sure you want to log out?")) {
       localStorage.removeItem("adminToken");
       window.location.href = "/admin/login";
     }
   };
 
   useEffect(() => {
-    const auth = localStorage.getItem("adminToken");
-    if (!auth) {
+    if (!localStorage.getItem("adminToken")) {
       window.location.href = "/admin/login";
     }
   }, []);
 
   return (
-    // The "sidebar-active" class now pushes the content instead of just covering it
-    <div className={`essence-dash-wrapper ${isSidebarOpen ? "sidebar-active" : ""}`}>
-      
-      <div className="mobile-nav-bar">
-        <button onClick={toggleSidebar} className="menu-toggle">
+    <div className="essence-dash-wrapper">
+      {/* top fixed header */}
+      <div className="essence-mobile-nav">
+        <button onClick={toggleSidebar} className="essence-menu-toggle">
           {isSidebarOpen ? "✕" : "☰"}
         </button>
-        <span className="mobile-logo">Essence Admin</span>
+        <span className="essence-logo-text">Essence Admin</span>
       </div>
 
+      {/* Slide-out Sidebar */}
       <aside className={`essence-sidebar ${isSidebarOpen ? "open" : "closed"}`}>
-        <div className="sidebar-brand">
-          <h2 className="admin-logo">Essence Board</h2>
+        <div className="essence-sidebar-brand">
+          <h2>Essence Board</h2>
         </div>
-        <nav className="essence-nav">
-          <Link to="/admin/products" className="essence-nav-link">Manage Products</Link>
-          <Link to="/admin/orders" className="essence-nav-link">View Orders</Link>
-          <div className="nav-divider"></div>
-          <Link to="/" className="essence-nav-link store-link">Go to Store</Link>
-          <button onClick={handleLogout} className="essence-logout-btn">
-            Logout
-          </button>
+        <nav className="essence-nav-list">
+          <Link to="/admin/products" className="essence-nav-item">Manage Products</Link>
+          <Link to="/admin/orders" className="essence-nav-item">View Orders</Link>
+          <div className="essence-nav-spacer"></div>
+          <Link to="/" className="essence-nav-item store-link">Go to Store</Link>
+          <button onClick={handleLogout} className="essence-logout-btn">Logout</button>
         </nav>
       </aside>
 
-      {/* Overlay only active on mobile to dim the background */}
-      {isSidebarOpen && <div className="sidebar-overlay" onClick={toggleSidebar}></div>}
+      {/* Dim overlay for mobile only */}
+      {isSidebarOpen && <div className="essence-overlay" onClick={toggleSidebar}></div>}
 
-      <main className="essence-dash-main">
-        <header className="essence-dash-header">
-          <div className="header-greeting">
+      <main className={`essence-main-content ${isSidebarOpen ? "sidebar-is-open" : ""}`}>
+        <header className="essence-content-header">
+          <div className="essence-welcome">
             <h1>Essence Admin Board</h1>
-            <p>Welcome back, Admin</p>
+            <p>Overview of your store performance</p>
           </div>
-          <div className="quick-actions">
-             <Link to="/admin/products" className="essence-action-btn">+ New Product</Link>
+          <div className="essence-header-actions">
+             <Link to="/admin/products" className="essence-btn-primary">+ New Product</Link>
           </div>
         </header>
 
-        <section className="essence-stats-grid">
-          <div className="stat-card">
-            <div className="stat-info">
-              <h3>Products</h3>
-              <p>Inventory Control</p>
+        <section className="essence-grid">
+          <div className="essence-card">
+            <div className="card-top">
+              <div className="card-txt">
+                <h3>Products</h3>
+                <p>Inventory Control</p>
+              </div>
+              <div className="card-icon">📦</div>
             </div>
-            <div className="stat-icon">📦</div>
-            <Link to="/admin/products" className="stat-link">Manage Items</Link>
+            <Link to="/admin/products" className="card-footer-link">Manage Items</Link>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-info">
-              <h3>Orders</h3>
-              <p>Sales Tracking</p>
+          <div className="essence-card">
+            <div className="card-top">
+              <div className="card-txt">
+                <h3>Orders</h3>
+                <p>Sales Tracking</p>
+              </div>
+              <div className="card-icon">📜</div>
             </div>
-            <div className="stat-icon">📜</div>
-            <Link to="/admin/orders" className="stat-link">View Details</Link>
+            <Link to="/admin/orders" className="card-footer-link">View Details</Link>
           </div>
         </section>
       </main>
     </div>
   );
-      }
+    }
