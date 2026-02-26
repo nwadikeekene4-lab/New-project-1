@@ -100,7 +100,7 @@ export default function AdminProducts() {
         {/* Navigation & Search Area */}
         <header className="inventory-header">
           <div className="nav-top">
-            <Link to="/admin/dashboard" className="back-btn-minimal" title="Back to Dashboard">
+            <Link to="/admin" className="back-btn-minimal" title="Back to Dashboard">
               ←
             </Link>
             <h1 className="inventory-title">Manage Inventory</h1>
@@ -164,3 +164,4 @@ export default function AdminProducts() {
     </div>
   );
         }
+
