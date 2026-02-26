@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom"; // Ensure Link is imported
 import dayjs from "dayjs"; 
 import API from "../api";
 import './AdminOrders.css';
@@ -66,15 +67,19 @@ export default function AdminOrders() {
 
   return (
     <div className="admin-orders-page">
+      {/* Robust Minimal Arrow */}
+      <Link to="/admin" className="back-btn-minimal" title="Back to Dashboard">
+        ←
+      </Link>
+
       <div className="admin-controls-container">
         <h2 className="page-title">Manage Orders</h2>
         <div className="controls-row">
-          <input type="text" placeholder="Search..." className="search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <input type="text" placeholder="Search orders..." className="search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="All">All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="Processing">Processing</option>
-            {/* ❌ REMOVED: Shipped Option from filter */}
             <option value="Delivered">Delivered</option>
           </select>
           <button onClick={deleteAllOrders} className="bulk-delete-btn">Clear All History</button>
@@ -104,7 +109,6 @@ export default function AdminOrders() {
                     <select value={order.status || "Pending"} onChange={(e) => handleStatusChange(order.id, e.target.value)}>
                       <option value="Pending">Pending</option>
                       <option value="Processing">Processing</option>
-                      {/* ❌ REMOVED: Shipped Option from status update */}
                       <option value="Delivered">Delivered</option>
                     </select>
                   </div>
@@ -150,4 +154,4 @@ export default function AdminOrders() {
       </div>
     </div>
   );
-}
+            }
