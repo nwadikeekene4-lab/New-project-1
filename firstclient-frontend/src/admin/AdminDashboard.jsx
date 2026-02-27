@@ -38,6 +38,9 @@ export default function AdminDashboard() {
         <nav className="essence-nav-list">
           <Link to="/admin/products" className="essence-nav-item">Manage Products</Link>
           <Link to="/admin/orders" className="essence-nav-item">View Orders</Link>
+          <Link to="/admin/cms" className="essence-nav-item">
+     <span className="nav-icon">✍️</span> Page Content
+  </Link>
           <div className="essence-nav-spacer"></div>
           <Link to="/shop" className="essence-nav-item store-link">Go to Store</Link>
           <button onClick={handleLogout} className="essence-logout-btn">Logout</button>
@@ -85,4 +88,5 @@ export default function AdminDashboard() {
     </div>
   );
     }
+
 
