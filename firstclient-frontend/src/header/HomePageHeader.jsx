@@ -7,11 +7,9 @@ export function HomePageHeader({ cart = [], onSearch }) {
   const [isSearching, setIsSearching] = useState(false);
   const [isBouncing, setIsBouncing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const totalQuantity = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 
-  // Cart bounce effect
   useEffect(() => {
     if (totalQuantity > 0) {
       setIsBouncing(true);
@@ -20,15 +18,12 @@ export function HomePageHeader({ cart = [], onSearch }) {
     }
   }, [totalQuantity]);
 
-  // Live Search Logic with Pulse Trigger
   useEffect(() => {
     if (inputText.length > 0) setIsSearching(true);
-
     const delayDebounceFn = setTimeout(() => {
       if (onSearch) onSearch(inputText);
       setIsSearching(false);
     }, 400);
-
     return () => clearTimeout(delayDebounceFn);
   }, [inputText, onSearch]);
 
@@ -40,7 +35,7 @@ export function HomePageHeader({ cart = [], onSearch }) {
 
   return (
     <>
-      {/* Sidebar Drawer */}
+      {/* Sidebar Navigation */}
       <div className={`sidebar-container ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <span>Essence Menu</span>
@@ -57,10 +52,11 @@ export function HomePageHeader({ cart = [], onSearch }) {
 
       {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
 
-      <header className={`homepageheader-container ${isSearchFocused ? 'header-active' : ''}`}>
-        <div className="header-top-row">
-          {/* LEFT: Menu & Brand */}
-          <div className="left-section">
+      <header className="homepageheader-container">
+        <div className="header-main-layout">
+          
+          {/* BRANDING: Name + Logo */}
+          <div className="brand-section">
             <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>☰</button>
             <Link to="/" className="header-brand-group">
               <span className="company-name">Essence Creations</span>
@@ -68,7 +64,10 @@ export function HomePageHeader({ cart = [], onSearch }) {
             </Link>
           </div>
 
-          {/* MIDDLE: Premium Search Bar */}
+          {/* SLOGAN */}
+          <span className="header-expression">Savor the Essence</span>
+
+          {/* SEARCH BAR */}
           <div className="middle-section">
             <div className="search-bar-wrapper">
               <input 
@@ -77,8 +76,6 @@ export function HomePageHeader({ cart = [], onSearch }) {
                 placeholder="Search bakery treats..." 
                 value={inputText} 
                 onChange={(e) => setInputText(e.target.value)} 
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
               />
               {inputText && (
                 <button className="clear-search-btn" onClick={handleClearSearch}>×</button>
@@ -89,20 +86,24 @@ export function HomePageHeader({ cart = [], onSearch }) {
             </div>
           </div>
 
-          {/* RIGHT: Animated Slogan & Large Cart */}
+          {/* CART ICON & BADGE */}
           <div className="right-section">
-            <span className="header-expression">Savor the Essence</span>
             <Link to="/checkout" className="headercart-link">
-              <div className="cart-container">
-                <img className="cart-icon" src="images/cart-image.png" alt="cart" />
+              <div className="cart-wrapper">
+                <img 
+                  className="cart-main-icon" 
+                  src="images/cart-image.png" 
+                  alt="cart" 
+                />
                 {totalQuantity > 0 && (
-                  <div className={`item-quantity ${isBouncing ? 'cart-bounce' : ''}`}>
+                  <div className={`cart-badge-edge ${isBouncing ? 'cart-bounce' : ''}`}>
                     {totalQuantity}
                   </div>
                 )}
               </div>
             </Link>
           </div>
+
         </div>
       </header>
     </>
