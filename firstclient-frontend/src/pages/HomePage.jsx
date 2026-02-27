@@ -3,10 +3,10 @@ import API from '../api';
 import { HomePageHeader } from '../header/HomePageHeader';
 import './HomePage.css';
 
-export function HomePage({ cart, setCart, allProducts, globalLoading }) {
+// Added searchTerm and setSearchTerm as props to sync with App.jsx and Header
+export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm, setSearchTerm }) {
   const [visibleProducts, setVisibleProducts] = useState([]);
   const [quantities, setQuantities] = useState({}); 
-  const [searchText, setSearchText] = useState('');
   const [addedItemId, setAddedItemId] = useState(null);
 
   // Initial load and staggered animation effect
@@ -42,24 +42,28 @@ export function HomePage({ cart, setCart, allProducts, globalLoading }) {
     .catch(err => console.error("Error adding to cart:", err));
   };
 
-  // Improved Search: This now filters the products shown on screen
+  // Improved Search: Now updates the global state
   const handleSearch = (value) => {
-    setSearchText(value);
+    setSearchTerm(value);
   };
 
-  // Filter products based on search text
+  // Filter products based on global searchTerm prop
   const filteredProducts = allProducts.filter((p) => 
-    p.name?.toLowerCase().includes(searchText.toLowerCase())
+    p.name?.toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   const handleClearSearch = () => {
-    setSearchText('');
+    setSearchTerm('');
   };
 
   return (
     <div className="shop-layout">
-      {/* Header with Live Search capabilities */}
-      <HomePageHeader cart={cart} onSearch={handleSearch} />
+      {/* Header now receives searchTerm to keep the input box in sync */}
+      <HomePageHeader 
+        cart={cart} 
+        onSearch={handleSearch} 
+        searchTerm={searchTerm} 
+      />
 
       <main className="home-page-container">
         {globalLoading && allProducts.length === 0 ? (
@@ -136,8 +140,10 @@ export function HomePage({ cart, setCart, allProducts, globalLoading }) {
               /* PROFESSIONAL NO RESULTS STATE */
               <div className="no-results-container animate-fade-in">
                 <div className="no-results-icon">🧁</div>
-                <h3>No treats found for "{searchText}"</h3>
+                <h3>No treats found for "{searchTerm}"</h3>
                 <p>We couldn't find any products matching your search. Try a different keyword or browse our full collection.</p>
+                
+                {/* This button now triggers the global state reset */}
                 <button className="clear-results-btn" onClick={handleClearSearch}>
                   Browse All Products
                 </button>

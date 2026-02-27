@@ -22,11 +22,11 @@ function App () {
   const [cart, setCart] = useState([]);
   const [allProducts, setAllProducts] = useState([]); 
   const [globalLoading, setGlobalLoading] = useState(true);
+  // NEW: Lifted search state to sync Header and Product List
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // --- 1. REMOVE FROM CART ---
   const removeFromCart = (cartItemId) => {
     setCart((prev) => prev.filter(item => item.id !== cartItemId));
-
     API.delete(`/cart/${cartItemId}`)
       .catch(err => {
         console.error("Delete failed, rolling back:", err);
@@ -34,22 +34,15 @@ function App () {
       });
   };
 
-  // --- 2. UPDATED QUANTITY LOGIC (REMOVED BLOCKER) ---
   const updateCartQuantity = (cartItemId, newQuantity) => {
-    // We no longer return early if newQuantity < 1.
-    // This allows the user to clear the input or type 0.
-
     const itemToUpdate = cart.find(i => i.id === cartItemId);
     if (!itemToUpdate) return;
 
-    // Instant UI update for the state
     setCart((prev) => 
       prev.map(item => item.id === cartItemId ? { ...item, quantity: newQuantity } : item)
     );
 
-    // Sync with backend only if it's a number (use 0 for empty strings)
     const syncValue = newQuantity === "" ? 0 : newQuantity;
-
     API.post('/cart/add', { 
       productId: itemToUpdate.productId, 
       quantity: 0, 
@@ -80,7 +73,7 @@ function App () {
         <Route path="/" element={<WelcomeScreen />} />
         <Route path="/hub" element={<NavigationHub />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<AboutPage />} /> {/* Corrected to AboutPage or ContactPage as needed */}
+        <Route path="/contact" element={<AboutPage />} /> 
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/socials" element={<SocialMediaPage />} />
         
@@ -90,6 +83,8 @@ function App () {
             setCart={setCart} 
             allProducts={allProducts} 
             globalLoading={globalLoading} 
+            searchTerm={searchTerm}      /* PASS STATE */
+            setSearchTerm={setSearchTerm} /* PASS SETTER */
           />
         }/>
         

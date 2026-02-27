@@ -1,6 +1,6 @@
 /* HEADER CONTAINER - Professional Charcoal */
 .homepageheader-container {
-  background-color: #1c1c1c; /* Softer, high-end black */
+  background-color: #1c1c1c;
   border-bottom: 1px solid #333;
   position: fixed;
   top: 0;
@@ -22,13 +22,13 @@
 }
 
 /* BRANDING STYLES */
-.brand-section { display: flex; align-items: center; gap: 12px; }
+.brand-section { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .hamburger-menu { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
 .header-brand-group { text-decoration: none; display: flex; align-items: center; gap: 8px; }
 .company-name { color: white; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
 .logo-placeholder { background: #28a745; color: white; font-size: 10px; font-weight: 900; padding: 3px 7px; border-radius: 4px; }
 
-/* SLOGAN STYLES */
+/* SLOGAN STYLES - Tighter Gap */
 .header-expression {
   display: none; 
   font-size: 13px;
@@ -36,10 +36,15 @@
   color: #28a745; 
   font-style: italic;
   white-space: nowrap;
+  margin-left: 20px; /* Reduced space from brand to avoid big gaps */
 }
 
-/* SEARCH BAR STYLES */
-.middle-section { flex: 1; max-width: 420px; margin: 0 15px; }
+/* SEARCH BAR STYLES - FIXED SPACING */
+.middle-section { 
+  flex: 1; 
+  max-width: 380px; /* Reduced from 420px to close large gaps on desktop */
+  margin: 0 15px; 
+}
 .search-bar-wrapper {
   display: flex; background: white; border-radius: 6px; height: 38px; overflow: hidden;
 }
@@ -48,51 +53,27 @@
 .search-icon-svg { width: 18px; filter: brightness(0) invert(1); }
 .clear-search-btn { background: none; border: none; color: #999; font-size: 18px; cursor: pointer; padding: 0 8px; }
 
-/* CART & BADGE - THE FIXED PART */
-.right-section { display: flex; align-items: center; }
-
-.cart-wrapper {
-  position: relative; /* Anchor for the badge */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px; /* Space for the badge to sit on */
-}
-
-.cart-main-icon {
-  width: 32px; /* Professional size */
-  height: auto;
-  display: block;
-  /* FORCES ANY IMAGE TO BE PURE WHITE */
-   
-}
+/* CART & BADGE */
+.right-section { display: flex; align-items: center; flex-shrink: 0; }
+.cart-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 6px; }
+.cart-main-icon { width: 32px; height: auto; display: block;  }
 
 .cart-badge-edge {
   position: absolute; 
   top: 0; 
   right: 0; 
-  /* BACKGROUND: Using a bright Golden Yellow for maximum visibility */
-  background: #ffcc00; 
-  
-  /* TEXT COLOR: Black provides the sharpest contrast against Yellow */
+  background: #ffcc00; /* High visibility Yellow */
   color: #000000; 
-  
-  font-size: 11px; /* Slightly increased for better readability */
+  font-size: 11px; 
   font-weight: 900; 
-  min-width: 20px; /* Slightly wider to ensure it stays a perfect circle */
+  min-width: 20px; 
   height: 20px;
   border-radius: 50%; 
   display: flex; 
   justify-content: center; 
   align-items: center;
-  
-  /* BORDER: Matches your #1c1c1c background to make the badge "pop" */
   border: 2px solid #1c1c1c; 
-  
-  /* SHADOW: Increased slightly to give it a 3D effect on the black header */
   box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-  
-  /* Ensures the number is perfectly centered */
   line-height: 1;
   padding-bottom: 1px; 
 }
@@ -101,13 +82,14 @@
 @media (max-width: 850px) {
   .header-main-layout { flex-wrap: wrap; }
   .middle-section { order: 3; width: 100%; max-width: none; margin: 10px 0 0 0; }
-  .company-name { font-size: 18px; }
+  .header-expression { display: none; }
 }
+
 @media (min-width: 850px) {
   .header-expression { display: block; }
 }
 
-/* ANIMATIONS */
+/* ANIMATIONS & SIDEBAR */
 @keyframes cartBounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
 .cart-bounce { animation: cartBounce 0.4s ease-out; }
 
@@ -118,9 +100,9 @@
 }
 .searching-pulse { animation: pulseGreen 0.8s infinite; }
 
-/* SIDEBAR DRAWER */
 .sidebar-container { position: fixed; left: -280px; top: 0; width: 260px; height: 100%; background: white; z-index: 2000; transition: 0.3s ease; }
 .sidebar-container.open { left: 0; }
 .sidebar-header { padding: 20px; background: #1c1c1c; color: white; display: flex; justify-content: space-between; align-items: center; }
 .sidebar-links a { display: block; padding: 15px 25px; text-decoration: none; color: #333; font-weight: 600; border-bottom: 1px solid #f0f0f0; }
 .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1500; }
+.close-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }

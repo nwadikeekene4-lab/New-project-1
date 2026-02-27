@@ -2,13 +2,18 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import './homepageheader.css';
 
-export function HomePageHeader({ cart = [], onSearch }) {
-  const [inputText, setInputText] = useState('');
+export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
+  const [inputText, setInputText] = useState(searchTerm);
   const [isSearching, setIsSearching] = useState(false);
   const [isBouncing, setIsBouncing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const totalQuantity = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+
+  // Sync internal input with external search changes (fixes the "Browse All" bug)
+  useEffect(() => {
+    setInputText(searchTerm);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (totalQuantity > 0) {
@@ -19,23 +24,23 @@ export function HomePageHeader({ cart = [], onSearch }) {
   }, [totalQuantity]);
 
   useEffect(() => {
-    if (inputText.length > 0) setIsSearching(true);
     const delayDebounceFn = setTimeout(() => {
-      if (onSearch) onSearch(inputText);
+      // Only trigger search if the input actually changed from the current state
+      if (onSearch && inputText !== searchTerm) {
+        onSearch(inputText);
+      }
       setIsSearching(false);
     }, 400);
     return () => clearTimeout(delayDebounceFn);
-  }, [inputText, onSearch]);
+  }, [inputText, onSearch, searchTerm]);
 
   const handleClearSearch = () => {
     setInputText('');
-    setIsSearching(false);
     if (onSearch) onSearch('');
   };
 
   return (
     <>
-      {/* Sidebar Navigation */}
       <div className={`sidebar-container ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <span>Essence Menu</span>
@@ -55,7 +60,6 @@ export function HomePageHeader({ cart = [], onSearch }) {
       <header className="homepageheader-container">
         <div className="header-main-layout">
           
-          {/* BRANDING: Name + Logo */}
           <div className="brand-section">
             <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>☰</button>
             <Link to="/" className="header-brand-group">
@@ -64,10 +68,8 @@ export function HomePageHeader({ cart = [], onSearch }) {
             </Link>
           </div>
 
-          {/* SLOGAN */}
           <span className="header-expression">Savor the Essence</span>
 
-          {/* SEARCH BAR */}
           <div className="middle-section">
             <div className="search-bar-wrapper">
               <input 
@@ -75,7 +77,10 @@ export function HomePageHeader({ cart = [], onSearch }) {
                 type="text" 
                 placeholder="Search bakery treats..." 
                 value={inputText} 
-                onChange={(e) => setInputText(e.target.value)} 
+                onChange={(e) => {
+                  setInputText(e.target.value);
+                  setIsSearching(true);
+                }} 
               />
               {inputText && (
                 <button className="clear-search-btn" onClick={handleClearSearch}>×</button>
@@ -86,15 +91,10 @@ export function HomePageHeader({ cart = [], onSearch }) {
             </div>
           </div>
 
-          {/* CART ICON & BADGE */}
           <div className="right-section">
             <Link to="/checkout" className="headercart-link">
               <div className="cart-wrapper">
-                <img 
-                  className="cart-main-icon" 
-                  src="images/cart-image.png" 
-                  alt="cart" 
-                />
+                <img className="cart-main-icon" src="images/cart-image.png" alt="cart" />
                 {totalQuantity > 0 && (
                   <div className={`cart-badge-edge ${isBouncing ? 'cart-bounce' : ''}`}>
                     {totalQuantity}
