@@ -14,25 +14,29 @@ const WelcomeScreen = () => {
 
       <div className="video-overlay"></div>
 
-      <div className="welcome-card">
+      <div className="welcome-card animate-slide-up">
         <header className="welcome-header">
-          <h1 className="welcome-title fade-in">Heritage Hub</h1>
-          <p className="welcome-subtitle">Quality you can trust. Freshness you can taste.</p>
+          <div className="title-container">
+            <h1 className="welcome-title pulse-glow">Essence Creations</h1>
+            <span className="emoji-sparkle right">🧁</span>
+          </div>
+          
+          <p className="welcome-subtitle">Savor the Essence</p>
           <div className="welcome-divider"></div>
-          <p className="intro-text fade-in-delay">
-            Your home for oven-fresh bakery delights and premium daily provisions. 
-            We are dedicated to bringing the finest quality essentials to your table.
+          
+          <p className="intro-text">
+            Explore our world of sweet treats, baking essentials, and thoughtful gifts. 
+            Freshly baked goodness, just for you. Shop now and make every moment a celebration.
           </p>
         </header>
 
         <div className="welcome-actions">
-          {/* Top Grid: Two buttons with orange borders */}
           <div className="top-grid-actions">
             <button className="option-btn grid-btn" onClick={() => navigate('/hub')}>
               Want to know more?
             </button>
-            <button className="option-btn grid-btn" onClick={() => navigate('/shop')}>
-              Purchase a product
+            <button className="option-btn grid-btn primary-shop-btn" onClick={() => navigate('/shop')}>
+              Purchase a product 🥖
             </button>
           </div>
 
@@ -40,9 +44,8 @@ const WelcomeScreen = () => {
             <span>explore more</span>
           </div>
 
-          {/* Bottom Button: Solid black, hovers green */}
           <button className="option-btn catering-btn" onClick={() => navigate('/catering')}>
-            View our pastry services
+            View our pastry services 🎂
           </button>
         </div>
       </div>

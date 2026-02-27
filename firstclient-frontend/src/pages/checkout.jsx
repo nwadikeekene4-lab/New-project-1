@@ -5,9 +5,23 @@ import API from '../api';
 import './checkout.css';
 
 export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantity }) {
-  const getWorkDay = (daysToAdd) => {
-    let targetDate = dayjs().add(daysToAdd, 'day');
-    if (targetDate.day() === 0) targetDate = targetDate.add(1, 'day');
+  
+  // --- UPDATED: FIXED DUPLICATE DATE LOGIC ---
+  const getWorkDay = (index) => {
+    let daysAdded = 0;
+    let targetDate = dayjs();
+
+    // Loop until we have added the requested number of "work days"
+    while (daysAdded < index) {
+      targetDate = targetDate.add(1, 'day');
+      
+      // If the day is Sunday (0), we skip it and don't increment our counter
+      if (targetDate.day() === 0) {
+        continue;
+      }
+      daysAdded++;
+    }
+    
     return targetDate.format("dddd, MMMM D");
   };
 
@@ -16,6 +30,7 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
     { date: getWorkDay(2) },
     { date: getWorkDay(3) }
   ];
+  // ------------------------------------------
 
   const [selectedDate, setSelectedDate] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -43,7 +58,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
     }
   };
 
-  // --- SAFETY LOGIC: Check for zero or empty quantities ---
   const hasInvalidQuantity = cart.some(item => item.quantity === "" || item.quantity <= 0);
 
   const itemsTotal = cart.reduce((sum, item) => sum + (item.product?.price || 0) * (Number(item.quantity) || 0), 0);
@@ -69,14 +83,13 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
 
     setIsProcessing(true);
 
-    // ⭐ THE CRITICAL FIX: Include the 'cart' (items) in the details sent to Paystack and LocalStorage
     const detailsToSave = { 
         ...customerDetails, 
         selectedDate, 
         shippingFee: shippingTotal, 
         itemsTotal, 
         totalAmount: orderTotal,
-        items: cart // This ensures the items follow the user to the success page
+        items: cart 
     };
 
     try {
@@ -88,7 +101,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       });
 
       if (response.data.status && response.data.data.authorization_url) {
-        // Save to localStorage so the SuccessPage can retrieve it even if the session resets
         localStorage.setItem("pendingCustomerDetails", JSON.stringify(detailsToSave));
         window.location.href = response.data.data.authorization_url;
       }
@@ -123,7 +135,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                     <div className="checkout-item-info">
                       <div className="item-title">{cartItem.product?.name}</div>
                       <div className="item-meta">
-                        
                         <div className="qty-edit-wrapper">
                           <span>Qty: </span>
                           <input 
@@ -154,7 +165,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                           </datalist>
                           <span className="unit-price"> • ₦{Number(cartItem.product?.price).toLocaleString()}</span>
                         </div>
-
                       </div>
                       <button className="delete-btn" onClick={() => removeFromCart(cartItem.id)}>Remove</button>
                     </div>

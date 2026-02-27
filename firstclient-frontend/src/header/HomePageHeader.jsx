@@ -4,17 +4,14 @@ import './homepageheader.css';
 
 export function HomePageHeader({ cart = [], onSearch }) {
   const [inputText, setInputText] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [isBouncing, setIsBouncing] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  // Calculate total quantity for the cart badge
-  let totalQuantity = 0;
-  cart.forEach((cartItem) => {
-    totalQuantity += cartItem.quantity;
-  });
+  const totalQuantity = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 
-  // Bounce effect when items are added
+  // Cart bounce effect
   useEffect(() => {
     if (totalQuantity > 0) {
       setIsBouncing(true);
@@ -23,79 +20,88 @@ export function HomePageHeader({ cart = [], onSearch }) {
     }
   }, [totalQuantity]);
 
-  const handleButtonClick = () => {
-    if (onSearch) onSearch(inputText);
-  };
+  // Live Search Logic with Pulse Trigger
+  useEffect(() => {
+    if (inputText.length > 0) setIsSearching(true);
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && onSearch) {
-      onSearch(e.target.value);
-    }
+    const delayDebounceFn = setTimeout(() => {
+      if (onSearch) onSearch(inputText);
+      setIsSearching(false);
+    }, 400);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [inputText, onSearch]);
+
+  const handleClearSearch = () => {
+    setInputText('');
+    setIsSearching(false);
+    if (onSearch) onSearch('');
   };
 
   return (
     <>
-      {/* --- RESTORED SIDEBAR DRAWER --- */}
+      {/* Sidebar Drawer */}
       <div className={`sidebar-container ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <span>Menu</span>
+          <span>Essence Menu</span>
           <button className="close-btn" onClick={() => setIsSidebarOpen(false)}>×</button>
         </div>
         <nav className="sidebar-links">
           <Link to="/" onClick={() => setIsSidebarOpen(false)}>Welcome</Link>
+          <Link to="/shop" onClick={() => setIsSidebarOpen(false)}>Shop Products</Link>
+          <Link to="/catering" onClick={() => setIsSidebarOpen(false)}>Pastry Services</Link>
           <Link to="/hub" onClick={() => setIsSidebarOpen(false)}>Heritage Hub</Link>
-          <Link to="/about" onClick={() => setIsSidebarOpen(false)}>About</Link>
-          <Link to="/socials" onClick={() => setIsSidebarOpen(false)}>Contact</Link>
-          <Link to="/orderpage" onClick={() => setIsSidebarOpen(false)}>Orders</Link>
-          <Link to="/catering" onClick={() => setIsSidebarOpen(false)}>Catering</Link>
+          <Link to="/socials" onClick={() => setIsSidebarOpen(false)}>Contact Us</Link>
         </nav>
       </div>
 
-      {/* Overlay to close sidebar when clicking outside */}
       {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
 
-      <header className={`homepageheader-container ${isSearchFocused ? 'search-active' : ''}`}>
-        {/* TOP ROW: Branding and Cart */}
+      <header className={`homepageheader-container ${isSearchFocused ? 'header-active' : ''}`}>
         <div className="header-top-row">
+          {/* LEFT: Menu & Brand */}
           <div className="left-section">
-            <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>
-              ☰
-            </button>
+            <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>☰</button>
             <Link to="/" className="header-brand-group">
-              <span className="company-name">Heritage Hub</span>
-              <span className="logo-placeholder">LOGO</span>
+              <span className="company-name">Essence Creations</span>
+              <span className="logo-placeholder">EC</span>
             </Link>
           </div>
 
+          {/* MIDDLE: Premium Search Bar */}
+          <div className="middle-section">
+            <div className="search-bar-wrapper">
+              <input 
+                className="input" 
+                type="text" 
+                placeholder="Search bakery treats..." 
+                value={inputText} 
+                onChange={(e) => setInputText(e.target.value)} 
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+              />
+              {inputText && (
+                <button className="clear-search-btn" onClick={handleClearSearch}>×</button>
+              )}
+              <button className={`search-submit-btn ${isSearching ? 'searching-pulse' : ''}`} onClick={() => onSearch(inputText)}>
+                <img className="search-icon-svg" src="images/search-icon.png" alt="search" />
+              </button>
+            </div>
+          </div>
+
+          {/* RIGHT: Animated Slogan & Large Cart */}
           <div className="right-section">
-            <span className="header-expression">We sell good products</span>
+            <span className="header-expression">Savor the Essence</span>
             <Link to="/checkout" className="headercart-link">
               <div className="cart-container">
                 <img className="cart-icon" src="images/cart-image.png" alt="cart" />
-                <div className={`item-quantity ${isBouncing ? 'cart-bounce' : ''}`}>
-                  {totalQuantity}
-                </div>
+                {totalQuantity > 0 && (
+                  <div className={`item-quantity ${isBouncing ? 'cart-bounce' : ''}`}>
+                    {totalQuantity}
+                  </div>
+                )}
               </div>
             </Link>
-          </div>
-        </div>
-
-        {/* BOTTOM ROW: Search Bar (Full width on mobile) */}
-        <div className="middle-section">
-          <div className="search-bar-wrapper">
-            <input 
-              className="input" 
-              type="text" 
-              placeholder="Search products..." 
-              value={inputText} 
-              onChange={(e) => setInputText(e.target.value)} 
-              onKeyPress={handleKeyPress}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-            />
-            <button className="enter" onClick={handleButtonClick}>
-              <img className="search-icon" src="images/search-icon.png" alt="search" />
-            </button>
           </div>
         </div>
       </header>

@@ -1,17 +1,17 @@
-/* homepageheader.css */
-
-/* ROOT RESET FOR HEADER */
+/* ROOT HEADER CONTAINER */
 .homepageheader-container {
   background-color: #1a1a1a;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  box-sizing: border-box; /* Ensures padding doesn't push the header off-screen */
+  box-sizing: border-box; 
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  padding: 10px 15px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  transition: all 0.3s ease;
 }
 
 .header-top-row {
@@ -19,20 +19,22 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* BRANDING STYLE */
+/* LEFT SECTION: Menu & Brand */
 .left-section {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .hamburger-menu {
   background: none;
   border: none;
   color: white;
-  font-size: 24px;
+  font-size: 26px;
   cursor: pointer;
   padding: 0;
 }
@@ -41,71 +43,120 @@
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .company-name {
   color: white;
   font-weight: 800;
-  font-size: 18px;
-  white-space: nowrap;
+  font-size: 22px;
+  letter-spacing: -0.5px;
 }
 
 .logo-placeholder {
-  background: #ff9800;
-  color: black;
-  font-size: 9px;
+  background: #28a745; /* Success Green instead of Orange */
+  color: white;
+  font-size: 11px;
   font-weight: 900;
-  padding: 2px 5px;
-  border-radius: 3px;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
-/* SEARCH BAR STYLE */
+/* MIDDLE SECTION: Premium Search Bar */
 .middle-section {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .search-bar-wrapper {
   display: flex;
-  background: white;
-  border-radius: 4px;
-  height: 38px;
+  background: #ffffff;
+  border-radius: 8px;
+  height: 46px; /* Taller, more professional feel */
   width: 100%;
   overflow: hidden;
+  border: 1px solid #444;
+  transition: border-color 0.3s;
+  position: relative;
+  align-items: center;
+}
+
+.search-bar-wrapper:focus-within {
+  border-color: #28a745;
 }
 
 .input {
   flex: 1;
   border: none;
-  padding: 0 12px;
-  font-size: 14px;
+  background: transparent;
+  padding: 0 15px;
+  font-size: 15px;
   outline: none;
+  color: #1a1a1a;
+  padding-right: 5px;
 }
 
-.enter {
-  background: #ff9800;
+.clear-search-btn {
+  background: none;
   border: none;
-  width: 45px;
+  color: #999;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+}
+
+.clear-search-btn:hover {
+  color: #cc0000;
+}
+
+/* THE PREMIUM SEARCH BUTTON (Matches your search-submit-btn class) */
+.search-submit-btn {
+  background-color: #2c2c2c; /* Professional Charcoal */
+  border: none;
+  width: 65px;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  transition: background 0.3s;
 }
 
-.search-icon {
-  width: 18px;
-  filter: brightness(0);
+.search-submit-btn:hover {
+  background-color: #28a745; /* Blends to green on hover */
 }
 
-/* CART STYLE */
+.search-icon-svg {
+  width: 22px;
+  filter: brightness(0) invert(1); /* Forces icon to be White */
+}
+
+/* RIGHT SECTION: Animated Slogan & Large Cart */
 .right-section {
   display: flex;
   align-items: center;
 }
 
+/* SLOGAN WITH SHIMMER ANIMATION */
 .header-expression {
   display: none; /* Desktop only */
+  font-size: 16px;
+  font-weight: 700;
+  margin-right: 20px;
+  white-space: nowrap;
+  background: linear-gradient(90deg, #28a745, #8ee0a1, #28a745);
+  background-size: 200% auto;
+  color: #28a745;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
 }
 
 .cart-container {
@@ -115,20 +166,25 @@
 }
 
 .cart-icon {
-  width: 28px;
+  width: 38px; /* Enlarged as requested */
   height: auto;
+  transition: transform 0.2s;
+}
+
+.cart-container:hover .cart-icon {
+  transform: scale(1.1);
 }
 
 .item-quantity {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #228b22;
+  top: -5px;
+  right: -5px;
+  background: #28a745;
   color: white;
-  font-size: 10px;
-  font-weight: 800;
-  width: 18px;
-  height: 18px;
+  font-size: 11px;
+  font-weight: 900;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -136,7 +192,7 @@
   border: 2px solid #1a1a1a;
 }
 
-/* SIDEBAR RE-STYLING */
+/* SIDEBAR DRAWER */
 .sidebar-container {
   position: fixed;
   left: -280px;
@@ -149,9 +205,7 @@
   box-shadow: 5px 0 15px rgba(0,0,0,0.3);
 }
 
-.sidebar-container.open {
-  left: 0;
-}
+.sidebar-container.open { left: 0; }
 
 .sidebar-header {
   padding: 20px;
@@ -163,11 +217,7 @@
   font-weight: 700;
 }
 
-.sidebar-links {
-  display: flex;
-  flex-direction: column;
-  padding: 10px 0;
-}
+.sidebar-links { display: flex; flex-direction: column; }
 
 .sidebar-links a {
   text-decoration: none;
@@ -177,57 +227,54 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-.sidebar-links a:hover {
-  background: #f9f9f9;
-  color: #228b22;
-}
+.sidebar-links a:hover { background: #f9f9f9; color: #28a745; }
 
 .sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 1500;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 1500;
 }
 
-/* RESPONSIVE DESKTOP VIEW */
+.close-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; }
+
+/* RESPONSIVE DESKTOP (850px+) */
 @media (min-width: 850px) {
   .homepageheader-container {
     flex-direction: row;
-    height: 70px;
+    height: 85px;
     padding: 0 5%;
     align-items: center;
   }
 
-  .header-top-row {
-    width: auto;
-  }
-
   .middle-section {
     margin-top: 0;
-    max-width: 500px;
-    margin: 0 30px;
+    max-width: 600px;
+    margin: 0 auto;
     flex: 1;
+    padding: 0 40px;
   }
 
   .header-expression {
     display: block;
-    color: #999;
-    font-size: 12px;
-    margin-right: 20px;
-    white-space: nowrap;
   }
 }
 
-/* Animation for the Cart */
+/* ANIMATIONS */
 @keyframes cartBounce {
-  0% { transform: scale(1); }
+  0%, 100% { transform: scale(1); }
   50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
 }
 
 .cart-bounce {
   animation: cartBounce 0.4s ease-out;
+}
+
+/* SEARCHING LOADING PULSE (Green/Charcoal Glow) */
+@keyframes searchGlow {
+  0% { background-color: #2c2c2c; }
+  50% { background-color: #3d3d3d; box-shadow: inset 0 0 10px rgba(40, 167, 69, 0.5); }
+  100% { background-color: #2c2c2c; }
+}
+
+.searching-pulse {
+  animation: searchGlow 0.8s ease-in-out infinite;
 }
