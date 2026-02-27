@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; // Ensure Link is imported
+import { Link } from "react-router-dom"; 
 import dayjs from "dayjs"; 
 import API from "../api";
 import './AdminOrders.css';
@@ -12,8 +12,8 @@ export default function AdminOrders() {
   useEffect(() => { fetchOrders(); }, []);
 
   const fetchOrders = () => {
-    const token = localStorage.getItem("adminToken");
-    API.get("/orders", { headers: { Authorization: `Bearer ${token}` } })
+    // Header is now handled automatically by api.js interceptor
+    API.get("/orders")
       .then(res => {
         const sanitizedOrders = res.data.map(order => {
           let parsedItems = [];
@@ -29,9 +29,8 @@ export default function AdminOrders() {
 
   const deleteOrder = async (orderId) => {
     if (window.confirm("Are you sure?")) {
-      const token = localStorage.getItem("adminToken");
       try {
-        await API.delete(`/orders/${orderId}`, { headers: { Authorization: `Bearer ${token}` } });
+        await API.delete(`/orders/${orderId}`);
         setOrders(orders.filter(order => order.id !== orderId));
       } catch (err) { alert("Error deleting order."); }
     }
@@ -39,20 +38,16 @@ export default function AdminOrders() {
 
   const deleteAllOrders = async () => {
     if (window.confirm("CRITICAL: Delete ALL orders?")) {
-      const token = localStorage.getItem("adminToken");
       try {
-        await API.delete("/orders/all/bulk", { headers: { Authorization: `Bearer ${token}` } });
+        await API.delete("/orders/all/bulk");
         setOrders([]);
       } catch (err) { alert("Error clearing orders."); }
     }
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
-    const token = localStorage.getItem("adminToken");
     try {
-      await API.patch(`/orders/${orderId}`, { status: newStatus }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await API.patch(`/orders/${orderId}`, { status: newStatus });
       setOrders(orders.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
     } catch (err) { alert("Error updating status"); }
   };
@@ -67,7 +62,6 @@ export default function AdminOrders() {
 
   return (
     <div className="admin-orders-page">
-      {/* Robust Minimal Arrow */}
       <Link to="/admin" className="back-btn-minimal" title="Back to Dashboard">
         ←
       </Link>
@@ -154,4 +148,4 @@ export default function AdminOrders() {
       </div>
     </div>
   );
-            }
+}
