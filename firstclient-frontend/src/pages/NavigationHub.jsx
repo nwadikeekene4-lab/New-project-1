@@ -41,7 +41,7 @@ const NavigationHub = () => {
           ))}
         </div>
         
-        <button className="mobile-home-btn" onClick={() => navigate('/')}>
+        <button className="mobile-home-btn" onClick={() => navigate('/shop')}>
           Return to Shopping
         </button>
       </div>
