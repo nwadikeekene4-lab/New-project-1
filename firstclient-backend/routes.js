@@ -16,6 +16,7 @@ const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
 const Product = require("./models");
+const CMS = require("./cms"); // 
 const { CartItem } = require("./cart");
 const Order = require("./order");
 const Admin = require("./Admin"); 
@@ -310,3 +311,4 @@ router.post("/orders/verify", async (req, res) => {
 
 
 module.exports = router;
+
