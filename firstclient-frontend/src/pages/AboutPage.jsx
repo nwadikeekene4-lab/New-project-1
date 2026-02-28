@@ -5,7 +5,6 @@ import './AboutPage.css';
 
 const AboutPage = () => {
   const navigate = useNavigate();
-  // Start with null so we know we are still "Loading"
   const [cmsContent, setCmsContent] = useState(null);
 
   useEffect(() => {
@@ -14,7 +13,6 @@ const AboutPage = () => {
         if (res.data && res.data.title) {
           setCmsContent(res.data);
         } else {
-          // Fallback if DB is empty
           setCmsContent({
             title: 'Essence Creations',
             description: `Welcome to Essence Creations! Your one-stop destination for all things sweet and delightful...`
@@ -22,7 +20,6 @@ const AboutPage = () => {
         }
       })
       .catch(() => {
-        // Fallback if API fails
         setCmsContent({
           title: 'Essence Creations',
           description: `Welcome to Essence Creations!...`
@@ -30,7 +27,6 @@ const AboutPage = () => {
       });
   }, []);
 
-  // Show nothing or a simple spinner until the data arrives
   if (!cmsContent) return <div className="about-loading">Loading...</div>;
 
   return (
@@ -48,9 +44,15 @@ const AboutPage = () => {
             <div className="about-divider"></div>
           </header>
 
+          {/* IMAGE REFLECTS HERE: BETWEEN TITLE AND WRITE-UP */}
+          {cmsContent.image && (
+            <div className="about-image-frame">
+              <img src={cmsContent.image} alt="About Essence Creations" className="about-main-img" />
+            </div>
+          )}
+
           <div className="about-text-section">
             <p className="about-description">
-              {/* Prioritize 'description' over 'legacy' */}
               {cmsContent.description || cmsContent.legacy}
             </p>
           </div>
