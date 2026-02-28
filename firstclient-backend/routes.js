@@ -312,33 +312,42 @@ router.post("/orders/verify", async (req, res) => {
 // ... (all your existing code for products, orders, etc.)
 
 
-// 9.  --- CMS ROUTES ---
-router.get("/cms/:page", async (req, res) => {
-  try {
-    const page = await CMS.findOne({ where: { page_name: req.params.page } });
-    res.json(page ? page.content : {});
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
+// 🛡️ 9. --- CMS ROUTES (FIXED FOR IMAGES) ---
 router.post("/cms/update", verifyToken, async (req, res) => {
   try {
-    const { page_name, data } = sanitizeInput(req.body);
+    const { page_name, data } = req.body; // Don't sanitize the whole object yet
+
+    // Manually sanitize ONLY the text fields to keep the Image URL safe
+    const sanitizedData = {
+      ...data,
+      title: sanitizeInput(data.title),
+      legacy: sanitizeInput(data.legacy || data.description),
+      // We do NOT sanitize the image URL string
+      image: data.image 
+    };
+
     const [page, created] = await CMS.findOrCreate({
       where: { page_name },
-      defaults: { content: data }
+      defaults: { content: sanitizedData }
     });
 
     if (!created) {
-      page.content = data;
+      page.content = sanitizedData;
+      // Tell Sequelize the JSON has changed so it actually saves
+      page.changed('content', true); 
       await page.save();
     }
+
     res.json({ success: true, message: "Website updated!" });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { 
+    console.error("CMS Update Error:", err);
+    res.status(500).json({ error: err.message }); 
+  }
 });
 
 
-
 module.exports = router;
+
 
 
 
