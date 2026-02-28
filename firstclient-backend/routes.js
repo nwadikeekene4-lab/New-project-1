@@ -309,6 +309,36 @@ router.post("/orders/verify", async (req, res) => {
   }
 });
 
+// ... (all your existing code for products, orders, etc.)
+
+
+// 9.  --- CMS ROUTES ---
+router.get("/cms/:page", async (req, res) => {
+  try {
+    const page = await CMS.findOne({ where: { page_name: req.params.page } });
+    res.json(page ? page.content : {});
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post("/cms/update", verifyToken, async (req, res) => {
+  try {
+    const { page_name, data } = sanitizeInput(req.body);
+    const [page, created] = await CMS.findOrCreate({
+      where: { page_name },
+      defaults: { content: data }
+    });
+
+    if (!created) {
+      page.content = data;
+      await page.save();
+    }
+    res.json({ success: true, message: "Website updated!" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// THIS MUST BE THE VERY LAST LINE
+module.exports = router;
 
 module.exports = router;
+
 
