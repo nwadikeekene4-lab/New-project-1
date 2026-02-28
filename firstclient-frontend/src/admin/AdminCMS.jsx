@@ -8,7 +8,6 @@ const AdminCMS = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Fetch data when the page loads
   const fetchContent = () => {
     API.get('/cms/about').then(res => {
       if (res.data) {
@@ -28,9 +27,10 @@ const AdminCMS = () => {
   const handleSaveAbout = async () => {
     try {
       await API.post('/cms/update', { page_name: 'about', data: aboutData });
-      alert("🚀 Website Updated!");
-      setIsEditing(false); // Close the editor and show the updated card
-      fetchContent(); // Refresh the data
+      alert("🚀 Website Updated Successfully!");
+      setIsEditing(false);
+      setAboutData({ title: '', legacy: '', image: '' }); // Clears text boxes
+      fetchContent(); // Reloads live card from DB
     } catch (err) { alert("Error saving changes"); }
   };
 
@@ -44,39 +44,49 @@ const AdminCMS = () => {
       <main className="cms-main-content">
         {activeTab === 'pages' && (
           <div className="cms-section-card">
-            <h3>About Page Management</h3>
+            <div className="preview-header-main">
+               <h3>About Page Settings</h3>
+               {!isEditing && <button className="edit-toggle-btn" onClick={() => setIsEditing(true)}>Edit Page Content</button>}
+            </div>
             
             {!isEditing ? (
-              /* --- LIVE VIEW MODE --- */
               <div className="cms-live-preview">
-                <div className="preview-header">
-                  <span>Current Live Content</span>
-                  <button className="edit-toggle-btn" onClick={() => setIsEditing(true)}>Edit Content</button>
-                </div>
                 <div className="preview-body">
-                  {aboutData.image && <img src={aboutData.image} alt="Live" className="cms-preview-img" />}
-                  <h4>{aboutData.title}</h4>
-                  <p>{aboutData.legacy}</p>
+                  <div className="preview-item">
+                    <label className="preview-label">Live Title</label>
+                    <h4 className="preview-title-text">{aboutData.title}</h4>
+                  </div>
+                  
+                  <div className="preview-item">
+                    <label className="preview-label">Live Image</label>
+                    {aboutData.image ? <img src={aboutData.image} alt="Live" className="cms-preview-img" /> : <p>No image set</p>}
+                  </div>
+                  
+                  <div className="preview-item">
+                    <label className="preview-label">Live Write-up</label>
+                    <p className="preview-body-text">{aboutData.legacy}</p>
+                  </div>
                 </div>
               </div>
             ) : (
-              /* --- EDIT MODE --- */
               <div className="form-group">
-                <label>Hero Title</label>
+                <label>Update Title</label>
                 <input value={aboutData.title} onChange={(e) => setAboutData({...aboutData, title: e.target.value})} />
                 
-                <label>About Text</label>
-                <textarea rows="8" value={aboutData.legacy} onChange={(e) => setAboutData({...aboutData, legacy: e.target.value})} />
-                
-                <label>Change Image</label>
+                <label>Update Image</label>
                 <input type="file" onChange={async (e) => {
                   const formData = new FormData();
                   formData.append('image', e.target.files[0]);
                   setUploading(true);
-                  const res = await API.post('/admin/products', formData);
-                  setAboutData({...aboutData, image: res.data.image});
-                  setUploading(false);
+                  try {
+                    const res = await API.post('/admin/products', formData);
+                    setAboutData({...aboutData, image: res.data.image});
+                  } finally { setUploading(false); }
                 }} />
+                {uploading && <p className="uploading-text">Uploading image...</p>}
+                
+                <label>Update Content</label>
+                <textarea rows="10" value={aboutData.legacy} onChange={(e) => setAboutData({...aboutData, legacy: e.target.value})} />
                 
                 <div className="edit-actions">
                   <button className="essence-save-btn" onClick={handleSaveAbout}>Publish Changes</button>
