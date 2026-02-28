@@ -13,13 +13,13 @@ const AdminCMS = () => {
       if (res.data) {
         setAboutData({
           title: res.data.title || '',
-          description: res.data.description || res.data.legacy || '',
-          image: res.data.image || ''
+          description: res.data.description || '', // Direct field
+          image: res.data.image || ''             // Direct field
         });
       }
     });
   };
-
+  
   useEffect(() => {
     if (activeTab === 'pages') fetchContent();
   }, [activeTab]);
