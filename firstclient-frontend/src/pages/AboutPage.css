@@ -138,3 +138,24 @@
   color: #d4af37; /* Matches your gold accent */
   font-weight: 600;
   }
+/* Add this to your existing AboutPage.css */
+.about-image-frame {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 35px;
+}
+
+.about-main-img {
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border: 1px solid #eee;
+}
+
+/* Ensure description has space from image */
+.about-description {
+  margin-top: 10px;
+}
