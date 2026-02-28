@@ -87,7 +87,17 @@ function App () {
             setSearchTerm={setSearchTerm} /* PASS SETTER */
           />
         }/>
-        
+
+    
+
+<Route 
+  path="/admin/cms" 
+  element={
+    <ProtectedRoute>
+      <AdminCMS />
+    </ProtectedRoute>
+  } 
+/>
         <Route path="/checkout" element={
           <Checkout 
             cart={cart} 
