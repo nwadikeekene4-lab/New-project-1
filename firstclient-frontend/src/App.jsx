@@ -74,7 +74,7 @@ function App () {
         <Route path="/" element={<WelcomeScreen />} />
         <Route path="/hub" element={<NavigationHub />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<AboutPage />} /> 
+        <Route path="/contact" element={<ContactPage />} /> 
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/socials" element={<SocialMediaPage />} />
         
