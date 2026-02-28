@@ -16,7 +16,7 @@ const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
 const Product = require("./models");
-const CMS = require("./cms"); // 
+const CMS = require("./cms"); 
 const { CartItem } = require("./cart");
 const Order = require("./order");
 const Admin = require("./Admin"); 
@@ -250,40 +250,23 @@ router.post("/admin/emergency-reset", async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: "Update failed" }); }
 });
 
-// 🛡️ 8. PAYMENT VERIFICATION ROUTE (FIXED & ROBUST)
+// 🛡️ 8. PAYMENT VERIFICATION ROUTE
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
-
-    // 1. Check if order already exists (Idempotency)
     const existingOrder = await Order.findOne({ where: { reference } });
-    if (existingOrder) {
-      return res.json({ success: true, message: "Payment already verified!", order: existingOrder });
-    }
+    if (existingOrder) return res.json({ success: true, order: existingOrder });
     
-    // 2. Verify with Paystack
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
     });
 
     if (response.data.data.status === 'success') {
-      
-      // 3. GET ITEMS: Prefer the items sent from frontend, fallback to DB if missing
-      let itemsToSave;
-      if (customerDetails?.items && customerDetails.items.length > 0) {
-        itemsToSave = customerDetails.items;
-      } else {
-        // Fallback: Try to grab from CartItem table if frontend didn't send them
-        itemsToSave = await CartItem.findAll({ 
-          include: [{ model: Product, as: "product" }] 
-        });
-      }
-
-      // 4. Create the Order
+      let itemsToSave = customerDetails?.items || [];
       const newOrder = await Order.create({
         reference: reference,
         amount: response.data.data.amount / 100,
-        status: 'Pending', // Changed 'Paid' to 'Pending' so it shows up in your "Pending" filter
+        status: 'Pending',
         items: JSON.stringify(itemsToSave), 
         customerName: customerDetails?.name || "Unknown Customer",
         address: customerDetails?.address || "No Address Provided",
@@ -292,38 +275,25 @@ router.post("/orders/verify", async (req, res) => {
         country: customerDetails?.country || 'Nigeria',
         selectedDate: customerDetails?.selectedDate || "Standard Delivery"
       });
-
-      // 5. Clear the Cart table now that the order is safely recorded
       await CartItem.destroy({ where: {} });
-
-      return res.json({ success: true, message: "Order saved successfully!", order: newOrder });
+      return res.json({ success: true, order: newOrder });
     }
-    
-    res.status(400).json({ success: false, message: "Paystack verification failed" });
+    res.status(400).json({ success: false });
   } catch (err) {
-    if (err.name === 'SequelizeUniqueConstraintError') {
-      return res.json({ success: true, message: "Already processed" });
-    }
-    console.error("❌ Verify Error:", err.message);
-    res.status(500).json({ error: "Server Error: " + err.message });
+    res.status(500).json({ error: err.message });
   }
 });
-
-// ... (all your existing code for products, orders, etc.)
-
 
 // 🛡️ 9. --- CMS ROUTES (FIXED FOR IMAGES) ---
 router.post("/cms/update", verifyToken, async (req, res) => {
   try {
-    const { page_name, data } = req.body; // Don't sanitize the whole object yet
+    const { page_name, data } = req.body; 
 
-    // Manually sanitize ONLY the text fields to keep the Image URL safe
+    // Targeted Sanitization: Protects text boxes but keeps Cloudinary URLs untouched
     const sanitizedData = {
-      ...data,
-      title: sanitizeInput(data.title),
-      legacy: sanitizeInput(data.legacy || data.description),
-      // We do NOT sanitize the image URL string
-      image: data.image 
+      title: sanitizeInput(data.title) || "Essence Creations",
+      description: sanitizeInput(data.description || data.legacy), 
+      image: data.image || "" 
     };
 
     const [page, created] = await CMS.findOrCreate({
@@ -333,21 +303,21 @@ router.post("/cms/update", verifyToken, async (req, res) => {
 
     if (!created) {
       page.content = sanitizedData;
-      // Tell Sequelize the JSON has changed so it actually saves
-      page.changed('content', true); 
+      page.changed('content', true); // Forces Sequelize to save the JSON update
       await page.save();
     }
 
-    res.json({ success: true, message: "Website updated!" });
+    res.json({ success: true, message: "Website updated!", data: sanitizedData });
   } catch (err) { 
-    console.error("CMS Update Error:", err);
     res.status(500).json({ error: err.message }); 
   }
 });
 
+router.get("/cms/:page", async (req, res) => {
+  try {
+    const page = await CMS.findOne({ where: { page_name: req.params.page } });
+    res.json(page ? page.content : {});
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 module.exports = router;
-
-
-
-
