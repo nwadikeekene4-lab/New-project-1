@@ -284,40 +284,57 @@ router.post("/orders/verify", async (req, res) => {
   }
 });
 
-// 🛡️ 9. --- CMS ROUTES (FIXED FOR IMAGES) ---
+// 🛡️ 9. --- CMS ROUTES (THE PRODUCT-STYLE FIX) ---
 router.post("/cms/update", verifyToken, async (req, res) => {
   try {
-    const { page_name, data } = req.body; 
+    const { page_name, data } = req.body;
 
-    // Targeted Sanitization: Protects text boxes but keeps Cloudinary URLs untouched
-    const sanitizedData = {
-      title: sanitizeInput(data.title) || "Essence Creations",
-      description: sanitizeInput(data.description || data.legacy), 
-      image: data.image || "" 
-    };
+    // 1. Sanitize text only
+    const cleanTitle = sanitizeInput(data.title);
+    const cleanDesc = sanitizeInput(data.description || data.legacy);
+    const imageUrl = data.image; // Raw URL from Cloudinary
 
+    // 2. Find and Update or Create (Product-style logic)
     const [page, created] = await CMS.findOrCreate({
       where: { page_name },
-      defaults: { content: sanitizedData }
+      defaults: { 
+        title: cleanTitle, 
+        description: cleanDesc, 
+        image: imageUrl,
+        content: data // Backup
+      }
     });
 
     if (!created) {
-      page.content = sanitizedData;
-      page.changed('content', true); // Forces Sequelize to save the JSON update
+      // Direct column updates (much more reliable than JSON updates)
+      page.title = cleanTitle;
+      page.description = cleanDesc;
+      page.image = imageUrl;
+      page.content = data;
+      
       await page.save();
     }
 
-    res.json({ success: true, message: "Website updated!", data: sanitizedData });
-  } catch (err) { 
-    res.status(500).json({ error: err.message }); 
+    res.json({ success: true, message: "Website updated!", image: imageUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
 router.get("/cms/:page", async (req, res) => {
   try {
     const page = await CMS.findOne({ where: { page_name: req.params.page } });
-    res.json(page ? page.content : {});
+    if (!page) return res.json({});
+    
+    // Return a combined object so your frontend doesn't break
+    res.json({
+      title: page.title,
+      description: page.description,
+      image: page.image,
+      ...page.content
+    });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;
+
