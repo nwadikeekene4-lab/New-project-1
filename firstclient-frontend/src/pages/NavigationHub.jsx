@@ -20,7 +20,7 @@ const NavigationHub = () => {
         </nav>
 
         <header className="hub-header">
-          <h1 className="hub-title">Essential Creations</h1>
+          <h1 className="hub-title">Essence Creations</h1>
           <p className="hub-subtitle">Service and Information Center</p>
         </header>
 
@@ -51,4 +51,5 @@ const NavigationHub = () => {
 
 
 export default NavigationHub;
+
 
