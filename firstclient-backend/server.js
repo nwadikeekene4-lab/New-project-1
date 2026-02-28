@@ -8,6 +8,7 @@ require("dotenv").config();
 const Product = require("./models");
 const Order = require("./order");
 const Admin = require("./Admin"); 
+const CMS = require("./cms");
 const { CartItem } = require("./cart");
 const { DeliveryOption = { sync: () => Promise.resolve() } } = require("./deliveryoptions");
 const routes = require("./routes"); 
@@ -102,3 +103,4 @@ async function startServer() {
 }
 
 startServer();
+
