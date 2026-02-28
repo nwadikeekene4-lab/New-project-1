@@ -1,150 +1,39 @@
-/* --- CORE LAYOUT (From your old CSS) --- */
-.essence-cms-container { 
-  padding: 20px; 
-  color: #333; 
-  max-width: 1000px; 
-  margin: 0 auto; 
-}
-
-.cms-tab-bar { 
-  display: flex; 
-  gap: 10px; 
-  margin-bottom: 20px; 
-}
-
-.cms-tab-bar button { 
-  padding: 10px 20px; 
-  border: 1px solid #ddd; 
-  border-radius: 5px; 
-  background: white; 
-  cursor: pointer; 
-  font-weight: 600;
-  transition: 0.3s;
-}
-
-.cms-tab-bar button.active { 
-  background: #1a1a1a; 
-  color: white; 
-  border-color: #1a1a1a; 
-}
-
-.cms-section-card { 
-  background: white; 
-  padding: 25px; 
-  border-radius: 10px; 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-}
-
-/* --- FORM STYLES --- */
-.form-group { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 15px; 
-}
-
-.form-group label {
-  font-weight: bold;
-  font-size: 14px;
-  color: #555;
-}
-
-.form-group input, .form-group textarea { 
-  padding: 12px; 
-  border: 1px solid #ccc; 
-  border-radius: 5px; 
-  width: 100%; 
-  font-size: 16px; 
-}
-
-/* --- LIVE PREVIEW CARD (The Professional Look) --- */
-.cms-live-preview {
-  background: #fdfdfd;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-top: 15px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.preview-header {
-  background: #1a1a1a;
-  color: #fff;
-  padding: 15px 20px;
+/* Add these to your AdminCMS.css */
+.preview-header-main {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
-.edit-toggle-btn {
-  background: #d4af37;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 5px;
-  font-weight: bold;
-  cursor: pointer;
-  color: #000;
-  transition: 0.3s;
+.preview-item {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.preview-body {
-  padding: 25px;
+.preview-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #d4af37;
+  font-weight: 800;
+  margin-bottom: 8px;
 }
 
-.preview-body h4 {
-  font-size: 24px;
-  margin-bottom: 15px;
+.preview-title-text {
+  font-size: 20px;
   color: #1a1a1a;
 }
 
-.preview-body p {
-  line-height: 1.7;
+.preview-body-text {
+  font-size: 15px;
   color: #555;
   white-space: pre-line;
 }
 
-/* --- ACTION BUTTONS --- */
-.edit-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 25px;
-}
-
-.essence-save-btn { 
-  flex: 2;
-  background: #1a1a1a; 
-  color: #d4af37; 
-  font-weight: bold; 
-  padding: 18px; 
-  border: 2px solid #d4af37; 
-  border-radius: 8px; 
-  cursor: pointer; 
-  text-transform: uppercase;
-  transition: 0.4s;
-}
-
-.essence-save-btn:hover {
-  background: #d4af37;
-  color: #1a1a1a;
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
-}
-
-.cancel-btn {
-  flex: 1;
-  background: #f4f4f4;
-  border: 1px solid #ddd;
-  padding: 15px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  color: #666;
-}
-
-/* --- IMAGE PREVIEW --- */
-.cms-preview-img {
-  width: 100%;
-  max-height: 250px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  border: 1px solid #eee;
+.uploading-text {
+  font-size: 12px;
+  color: #228b22;
+  font-weight: 700;
 }
