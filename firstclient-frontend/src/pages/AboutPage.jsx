@@ -44,10 +44,10 @@ const AboutPage = () => {
             <div className="about-divider"></div>
           </header>
 
-          {/* IMAGE REFLECTS HERE: BETWEEN TITLE AND WRITE-UP */}
+          {/* IMAGE PLACEMENT: BETWEEN TITLE AND WRITE-UP */}
           {cmsContent.image && (
-            <div className="about-image-frame">
-              <img src={cmsContent.image} alt="About Essence Creations" className="about-main-img" />
+            <div className="about-image-wrapper">
+              <img src={cmsContent.image} alt="Essence" className="about-display-img" />
             </div>
           )}
 
