@@ -125,3 +125,16 @@
   .about-title { font-size: 28px; }
   .about-description { font-size: 15px; text-align: left; } /* Left align on mobile for better reading */
 }
+
+/* Style for the Loading state */
+.about-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f4f4f4;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 18px;
+  color: #d4af37; /* Matches your gold accent */
+  font-weight: 600;
+  }
