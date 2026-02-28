@@ -336,9 +336,9 @@ router.post("/cms/update", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// THIS MUST BE THE VERY LAST LINE
-module.exports = router;
+
 
 module.exports = router;
+
 
 
