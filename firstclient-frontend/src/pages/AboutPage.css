@@ -1,5 +1,3 @@
-/* AboutPage.css */
-
 .about-wrapper {
   background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
               url('/images/backgroundimage.png');
@@ -15,11 +13,10 @@
 }
 
 .about-container {
-  max-width: 900px; /* Narrowed slightly for better readability of single text block */
+  max-width: 900px;
   width: 100%;
 }
 
-/* NAVIGATION SECTION */
 .nav-section {
   background: #ffffff;
   padding: 15px 25px;
@@ -43,14 +40,11 @@
   transition: 0.3s;
 }
 
-.nav-back-btn .arrow-icon { color: #ffeb3b; }
-
 .nav-back-btn:hover {
   background-color: #228b22;
   transform: translateX(-3px);
 }
 
-/* MAIN CONTENT CARD */
 .about-content {
   background: #ffffff;
   padding: 50px 40px;
@@ -64,7 +58,7 @@
 }
 
 .about-title {
-  font-size: 36px; /* Slightly larger for the main heading */
+  font-size: 36px;
   font-weight: 800;
   color: #1a1a1a;
   margin-bottom: 5px;
@@ -73,29 +67,40 @@
 .about-divider {
   width: 60px;
   height: 4px;
-  background: #d4af37; /* Gold accent to match your brand */
+  background: #d4af37;
   margin: 15px auto 0;
 }
 
-/* NEW: TEXT SECTION (Replaces the Info Grid) */
-.about-text-section {
-  margin-bottom: 40px;
+/* IMAGE STYLES */
+.about-image-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 20px 0 35px 0;
+}
+
+.about-display-img {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  object-fit: cover;
+  border: 1px solid #eee;
 }
 
 .about-description {
   font-size: 17px;
   line-height: 1.8;
   color: #444;
-  text-align: center; /* Center aligned for a professional look */
-  white-space: pre-line; /* CRITICAL: Respects the paragraphs you type in Admin Dashboard */
+  text-align: center;
+  white-space: pre-line;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 0 auto 40px;
 }
 
-/* CALL TO ACTION */
 .cta-section {
   display: flex;
-  gap: 15px;
   justify-content: center;
 }
 
@@ -112,76 +117,21 @@
   color: white;
 }
 
-.action-btn:hover {
-  background: #d4af37;
-  color: #000;
-}
+.action-btn:hover { background: #d4af37; color: #000; }
 
-/* MOBILE VIEW */
 @media (max-width: 600px) {
   .about-wrapper { padding: 0; }
   .nav-section, .about-content { border-radius: 0; }
   .about-content { padding: 40px 20px; }
   .about-title { font-size: 28px; }
-  .about-description { font-size: 15px; text-align: left; } /* Left align on mobile for better reading */
+  .about-description { font-size: 15px; text-align: left; }
 }
 
-/* Style for the Loading state */
 .about-loading {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f4f4f4;
-  font-family: 'Segoe UI', sans-serif;
-  font-size: 18px;
-  color: #d4af37; /* Matches your gold accent */
+  color: #d4af37;
   font-weight: 600;
-  }
-/* Add this to your existing AboutPage.css */
-.about-image-frame {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 35px;
-}
-
-.about-main-img {
-  width: 100%;
-  max-width: 700px;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  border: 1px solid #eee;
-}
-
-/* Ensure description has space from image */
-.about-description {
-  margin-top: 10px;
-}
-/* Keep your existing CSS and ADD these specific classes */
-.about-image-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin: 20px 0 30px 0;
-}
-
-.about-display-img {
-  width: 100%;
-  max-width: 800px;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  object-fit: cover;
-}
-
-/* Ensure the loading state looks centered */
-.about-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-weight: bold;
-  color: #228b22;
 }
