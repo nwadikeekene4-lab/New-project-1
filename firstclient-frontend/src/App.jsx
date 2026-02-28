@@ -17,6 +17,7 @@ import ContactPage from './pages/ContactPage';
 import SocialMediaPage from './pages/SocialMediaPage';
 import ReviewsPage from './pages/ReviewsPage';
 import { SuccessPage } from './pages/SuccessPage';
+import AdminCMS from './admin/AdminCMS';
 
 function App () {
   const [cart, setCart] = useState([]);
