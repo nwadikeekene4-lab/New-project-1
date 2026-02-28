@@ -1,7 +1,6 @@
 /* AboutPage.css */
 
 .about-wrapper {
-  /* THE BACKGROUND LOGIC */
   background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
               url('/images/backgroundimage.png');
   background-size: cover;
@@ -16,7 +15,7 @@
 }
 
 .about-container {
-  max-width: 1100px; /* Konga standard width */
+  max-width: 900px; /* Narrowed slightly for better readability of single text block */
   width: 100%;
 }
 
@@ -61,61 +60,36 @@
 
 .about-header-area {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .about-title {
-  font-size: 32px;
+  font-size: 36px; /* Slightly larger for the main heading */
   font-weight: 800;
   color: #1a1a1a;
   margin-bottom: 5px;
 }
 
-.about-subtitle {
-  color: #228b22;
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: uppercase;
-}
-
 .about-divider {
-  width: 50px;
+  width: 60px;
   height: 4px;
-  background: #ff9800;
-  margin: 20px auto 0;
+  background: #d4af37; /* Gold accent to match your brand */
+  margin: 15px auto 0;
 }
 
-/* INFO GRID */
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 25px;
-  margin-bottom: 50px;
+/* NEW: TEXT SECTION (Replaces the Info Grid) */
+.about-text-section {
+  margin-bottom: 40px;
 }
 
-.info-card {
-  padding: 25px;
-  background: #fcfcfc;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  transition: 0.3s;
-}
-
-.info-card:hover {
-  border-color: #ff9800;
-  transform: translateY(-5px);
-}
-
-.info-card h3 {
-  font-size: 18px;
-  color: #1a1a1a;
-  margin-bottom: 12px;
-}
-
-.info-card p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #555;
+.about-description {
+  font-size: 17px;
+  line-height: 1.8;
+  color: #444;
+  text-align: center; /* Center aligned for a professional look */
+  white-space: pre-line; /* CRITICAL: Respects the paragraphs you type in Admin Dashboard */
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 /* CALL TO ACTION */
@@ -126,37 +100,28 @@
 }
 
 .action-btn {
-  padding: 14px 25px;
+  padding: 14px 35px;
   border-radius: 6px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   text-transform: uppercase;
   cursor: pointer;
   transition: 0.3s;
   border: none;
-}
-
-.action-btn:not(.outline) {
   background: #1a1a1a;
   color: white;
 }
 
-.action-btn.outline {
-  background: transparent;
-  border: 2px solid #228b22;
-  color: #228b22;
-}
-
 .action-btn:hover {
-  background: #228b22;
-  color: white;
-  border-color: #228b22;
+  background: #d4af37;
+  color: #000;
 }
 
 /* MOBILE VIEW */
 @media (max-width: 600px) {
   .about-wrapper { padding: 0; }
   .nav-section, .about-content { border-radius: 0; }
-  .about-content { padding: 30px 20px; }
-  .cta-section { flex-direction: column; }
+  .about-content { padding: 40px 20px; }
+  .about-title { font-size: 28px; }
+  .about-description { font-size: 15px; text-align: left; } /* Left align on mobile for better reading */
 }
