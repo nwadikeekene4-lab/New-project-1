@@ -1,39 +1,163 @@
-/* Add these to your AdminCMS.css */
-.preview-header-main {
+/* --- CORE LAYOUT & TABS (Your Original Structure) --- */
+.essence-cms-container { 
+  padding: 20px; 
+  color: #333; 
+  max-width: 1000px; 
+  margin: 0 auto; 
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.cms-tab-bar { 
+  display: flex; 
+  gap: 10px; 
+  margin-bottom: 20px; 
+}
+
+.cms-tab-bar button { 
+  padding: 10px 20px; 
+  border: 1px solid #ddd; 
+  border-radius: 5px; 
+  background: white; 
+  cursor: pointer; 
+  font-weight: 600;
+}
+
+.cms-tab-bar button.active { 
+  background: #1a1a1a; 
+  color: white; 
+  border-color: #1a1a1a; 
+}
+
+/* --- MASTER CARD & PREVIEW SECTION --- */
+.cms-section-card { 
+  background: white; 
+  padding: 25px; 
+  border-radius: 10px; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+}
+
+.cms-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  border-bottom: 2px solid #f4f4f4;
+  padding-bottom: 10px;
 }
 
-.preview-item {
-  margin-bottom: 25px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #f0f0f0;
+.cms-edit-btn {
+  background: #228b22;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-.preview-label {
-  display: block;
+.cms-edit-btn:hover {
+  background: #1a6b1a;
+}
+
+.cms-master-preview {
+  background: #fdfdfd;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.cms-label {
   font-size: 11px;
   text-transform: uppercase;
   color: #d4af37;
   font-weight: 800;
-  margin-bottom: 8px;
+  margin-top: 20px;
+  display: block;
 }
 
-.preview-title-text {
-  font-size: 20px;
-  color: #1a1a1a;
+.cms-preview-img {
+  width: 100%;
+  max-width: 400px; /* Professional size for admin preview */
+  height: auto;
+  border-radius: 8px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
 }
 
-.preview-body-text {
-  font-size: 15px;
-  color: #555;
+.cms-text-preview {
   white-space: pre-line;
+  color: #444;
+  line-height: 1.6;
+  margin-top: 5px;
 }
 
-.uploading-text {
-  font-size: 12px;
+/* --- EDIT FORM STYLES --- */
+.form-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 15px; 
+}
+
+.form-group label {
+  font-weight: bold;
+  font-size: 14px;
+  color: #555;
+}
+
+.form-group input, .form-group textarea { 
+  padding: 12px; 
+  border: 1px solid #ccc; 
+  border-radius: 5px; 
+  width: 100%; 
+  font-size: 16px; 
+}
+
+/* --- ACTION BUTTONS --- */
+.edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.essence-save-btn {
+  background: #1a1a1a;
+  color: #d4af37;
+  border: 2px solid #d4af37;
+  padding: 15px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  flex: 2;
+  transition: 0.4s ease;
+}
+
+.essence-save-btn:hover {
+  background: #d4af37;
+  color: #1a1a1a;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+.cancel-btn {
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  padding: 15px;
+  cursor: pointer;
+  flex: 1;
+  font-weight: bold;
+  color: #666;
+}
+
+.upload-notice {
+  font-size: 13px;
   color: #228b22;
-  font-weight: 700;
+  font-weight: bold;
+}
+
+/* --- RESPONSIVE FIXES --- */
+@media (max-width: 600px) {
+  .essence-cms-container { padding: 10px; }
+  .cms-tab-bar { flex-direction: column; }
+  .cms-card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .edit-actions { flex-direction: column; }
 }
