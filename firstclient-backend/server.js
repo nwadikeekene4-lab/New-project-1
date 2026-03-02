@@ -18,16 +18,19 @@ const app = express();
 // --- 🛡️ SECURITY & PRODUCTION CONFIG ---
 app.set('trust proxy', 1); 
 app.disable('x-powered-by');
+
 app.use(helmet({
   crossOriginResourcePolicy: false,
+  // This allows the browser to load images from Cloudinary even if the site is on Render
+  crossOriginEmbedderPolicy: false, 
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      // UPDATED connectSrc to include your new frontend URL
       connectSrc: ["'self'", "https://api.paystack.co", "https://firstclient-frontend.onrender.com"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+      // ✅ ALLOWED CLOUDINARY IMAGES
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "*.cloudinary.com"],
     },
   },
 })); 
@@ -42,9 +45,8 @@ const limiter = rateLimit({
 app.use(limiter); 
 
 // --- 1. DYNAMIC CORS ---
-// UPDATED with your actual frontend URL
 const allowedOrigins = [
-  "https://firstclient-frontend.onrender.com", // Your new frontend
+  "https://firstclient-frontend.onrender.com",
   "http://localhost:3000",
   "http://localhost:5173", 
   "http://localhost:5000"
@@ -83,8 +85,9 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 async function startServer() {
   try {
+    // Syncing models with 'alter: true' to ensure the 'image' column exists in CMS table
     await Product.sync({ alter: true }); 
-    await Admin.sync({alter: true }); 
+    await Admin.sync({ alter: true }); 
     if (DeliveryOption.sync) await DeliveryOption.sync();
     await CartItem.sync({ alter: true });
     await Order.sync({ alter: true }); 
@@ -104,5 +107,3 @@ async function startServer() {
 }
 
 startServer();
-
-
