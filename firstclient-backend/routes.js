@@ -68,7 +68,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// ... [PAYSTACK WEBHOOK & ADMIN LOGIN - Kept the same as your source]
+// --- AUTH & WEBHOOKS ---
 
 router.post("/paystack/webhook", async (req, res) => {
   try {
@@ -102,16 +102,36 @@ router.post("/admin/login", async (req, res) => {
   }
 });
 
+// --- PRODUCT ROUTES (SAFEGUARDED) ---
+
 router.post("/admin/products", verifyToken, upload.single("image"), async (req, res) => {
   try {
+    const imageUrl = req.file ? (req.file.path || req.file.secure_url) : null;
+    
+    // Safety check: if no name is provided, treat it as a raw image upload
+    if (!req.body.name) {
+       return res.json({ image: imageUrl });
+    }
+
     const product = await Product.create({
       name: sanitizeInput(req.body.name),
-      price: parseFloat(req.body.price),
-      image: req.file ? (req.file.path || req.file.secure_url) : null, 
+      price: parseFloat(req.body.price) || 0, // Fallback to 0 to prevent crash
+      image: imageUrl, 
       rating: { stars: 0, count: 0 }
     });
     res.json(product);
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// NEW DEDICATED UPLOAD ROUTE (For CMS/Mobile reliability)
+router.post("/admin/upload-image", verifyToken, upload.single("image"), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    const imageUrl = req.file.path || req.file.secure_url;
+    res.json({ image: imageUrl });
+  } catch (err) {
+    res.status(500).json({ error: "Upload failed" });
+  }
 });
 
 router.get("/products", async (req, res) => {
@@ -121,7 +141,7 @@ router.get("/products", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ... [CART, PAYMENT, & ORDER ROUTES - Kept the same as your source]
+// --- CART, PAYMENT, & ORDER ROUTES (UNTOUCHED) ---
 
 router.get("/cart", async (req, res) => {
   try {
@@ -257,14 +277,10 @@ router.post("/orders/verify", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 🛡️ 9. --- CMS ROUTES (WITH RENDER DIAGNOSTICS) ---
+// --- CMS ROUTES ---
 router.post("/cms/update", verifyToken, async (req, res) => {
   try {
     const { page_name, data } = req.body;
-
-    console.log(`--- CMS UPDATE ATTEMPT: ${page_name} ---`);
-    console.log("INCOMING IMAGE URL:", data.image);
-
     const cleanTitle = sanitizeInput(data.title);
     const cleanDesc = sanitizeInput(data.description || data.legacy);
     const imageUrl = data.image; 
@@ -285,14 +301,10 @@ router.post("/cms/update", verifyToken, async (req, res) => {
       page.image = imageUrl;
       page.content = data;
       await page.save();
-      console.log("✅ DATABASE UPDATED SUCCESSFULLY");
-    } else {
-      console.log("✅ NEW DATABASE ROW CREATED");
     }
 
     res.json({ success: true, message: "Website updated!", image: imageUrl });
   } catch (err) {
-    console.error("❌ CMS UPDATE ERROR:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -300,16 +312,7 @@ router.post("/cms/update", verifyToken, async (req, res) => {
 router.get("/cms/:page", async (req, res) => {
   try {
     const page = await CMS.findOne({ where: { page_name: req.params.page } });
-    
-    console.log(`--- CMS FETCH: ${req.params.page} ---`);
-    if (page) {
-        console.log("IMAGE STORED IN DB:", page.image);
-    } else {
-        console.log("❌ PAGE NOT FOUND IN DB");
-    }
-
     if (!page) return res.json({});
-    
     res.json({
       title: page.title,
       description: page.description,
@@ -317,7 +320,6 @@ router.get("/cms/:page", async (req, res) => {
       ...page.content
     });
   } catch (err) { 
-    console.error("❌ CMS GET ERROR:", err.message);
     res.status(500).json({ error: err.message }); 
   }
 });
