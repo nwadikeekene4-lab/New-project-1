@@ -15,14 +15,14 @@ const AboutPage = () => {
         } else {
           setCmsContent({
             title: 'Essence Creations',
-            description: `Welcome to Essence Creations! Your one-stop destination for all things sweet and delightful...`
+            description: `Welcome to Essence Creations!`
           });
         }
       })
       .catch(() => {
         setCmsContent({
           title: 'Essence Creations',
-          description: `Welcome to Essence Creations!...`
+          description: `Welcome to Essence Creations!`
         });
       });
   }, []);
@@ -44,7 +44,7 @@ const AboutPage = () => {
             <div className="about-divider"></div>
           </header>
 
-          {/* IMAGE PLACEMENT: BETWEEN TITLE AND WRITE-UP */}
+          {/* This is the key section for the image display */}
           {cmsContent.image && (
             <div className="about-image-wrapper">
               <img src={cmsContent.image} alt="Essence" className="about-display-img" />
@@ -53,7 +53,7 @@ const AboutPage = () => {
 
           <div className="about-text-section">
             <p className="about-description">
-              {cmsContent.description || cmsContent.legacy}
+              {cmsContent.description}
             </p>
           </div>
 
