@@ -89,15 +89,16 @@ export default function AdminProducts() {
     finally { setIsSaving(false); }
   };
 
+  // --- SAFE FILTER LOGIC ---
+  // We check if p.name exists before calling toLowerCase() to prevent crashing
   const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    p.name && typeof p.name === 'string' && p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="admin-inventory-wrapper">
       <div className="admin-container-max">
         
-        {/* Navigation & Search Area */}
         <header className="inventory-header">
           <div className="nav-top">
             <Link to="/admin" className="back-btn-minimal" title="Back to Dashboard">
@@ -128,40 +129,45 @@ export default function AdminProducts() {
           </div>
         </header>
 
-        {/* Dynamic Responsive Grid */}
         <main className="inventory-grid">
-          {filteredProducts.map((p) => (
-            <div key={p.id} className="inventory-item">
-              {editingId === p.id ? (
-                <div className="grid-edit-form">
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                  <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                  <div className="edit-grid-btns">
-                    <button className="grid-btn-save" onClick={() => updateProduct(p.id)}>{isSaving ? "..." : "Save"}</button>
-                    <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
-                  </div>
-                </div>
-              ) : (
-                <div className="item-inner">
-                  <div className="item-img-container">
-                    <img src={getImageUrl(p.image)} alt={p.name} loading="lazy" />
-                    {p.syncing && <div className="sync-overlay"><span>Syncing...</span></div>}
-                  </div>
-                  <div className="item-details">
-                    <h3 className="item-name">{p.name}</h3>
-                    <p className="item-price">₦{Number(p.price || 0).toLocaleString()}</p>
-                  </div>
-                  <div className="item-footer-actions">
-                    <button className="action-link edit" onClick={() => { setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); }}>Edit</button>
-                    <button className="action-link delete" onClick={() => deleteProduct(p.id)}>Delete</button>
-                  </div>
-                </div>
-              )}
+          {filteredProducts.length === 0 ? (
+            <div style={{ color: 'white', textAlign: 'center', gridColumn: '1/-1', padding: '40px' }}>
+              No valid products found.
             </div>
-          ))}
+          ) : (
+            filteredProducts.map((p) => (
+              <div key={p.id} className="inventory-item">
+                {editingId === p.id ? (
+                  <div className="grid-edit-form">
+                    <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                    <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+                    <div className="edit-grid-btns">
+                      <button className="grid-btn-save" onClick={() => updateProduct(p.id)}>{isSaving ? "..." : "Save"}</button>
+                      <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="item-inner">
+                    <div className="item-img-container">
+                      <img src={getImageUrl(p.image)} alt={p.name || "Product"} loading="lazy" />
+                      {p.syncing && <div className="sync-overlay"><span>Syncing...</span></div>}
+                    </div>
+                    <div className="item-details">
+                      {/* Safety fallback for missing names/prices */}
+                      <h3 className="item-name">{p.name || "Untitled Product"}</h3>
+                      <p className="item-price">₦{Number(p.price || 0).toLocaleString()}</p>
+                    </div>
+                    <div className="item-footer-actions">
+                      <button className="action-link edit" onClick={() => { setEditingId(p.id); setEditName(p.name || ""); setEditPrice(p.price || 0); }}>Edit</button>
+                      <button className="action-link delete" onClick={() => deleteProduct(p.id)}>Delete</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </main>
       </div>
     </div>
   );
-        }
-
+      }
