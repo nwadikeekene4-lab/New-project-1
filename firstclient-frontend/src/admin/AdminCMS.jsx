@@ -25,46 +25,43 @@ const AdminCMS = () => {
   }, [activeTab]);
 
   const handleSaveAbout = async () => {
-    // Basic validation to prevent saving "null"
     if (!aboutData.image && !window.confirm("No image selected. Save anyway?")) return;
 
     try {
-      console.log("Saving Data:", aboutData); // Verify in browser console
       await API.post('/cms/update', { page_name: 'about', data: aboutData });
       alert("🚀 Website Updated Successfully!");
       setIsEditing(false);
       fetchContent(); 
     } catch (err) { 
-      console.error("Save Error:", err);
       alert("Error saving changes"); 
     }
   };
 
-  // Helper function to handle the image upload specifically
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('image', file);
+    // Explicitly naming the file helps mobile OS (iOS/Android) pass it correctly
+    const fileName = file.name || `cms-${Date.now()}.jpg`;
+    formData.append('image', file, fileName);
     
     setUploading(true);
     try {
-      // We use the product upload route because it's already connected to Cloudinary
-      const res = await API.post('/admin/products', formData);
+      // Using the NEW dedicated upload route we added to routes.js
+      const res = await API.post('/admin/upload-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       
-      // FIX: Check if your backend returns 'image' or 'path'
-      const imageUrl = res.data.image || res.data.path;
+      const imageUrl = res.data.image;
       
       if (imageUrl) {
         setAboutData(prev => ({ ...prev, image: imageUrl }));
-        console.log("Cloudinary URL Received:", imageUrl);
       } else {
-        alert("Upload failed: No URL returned from server.");
+        alert("Upload failed: Server did not return the image link.");
       }
     } catch (err) {
-      console.error("Upload Error:", err);
-      alert("Error uploading image");
+      alert("Upload failed. Try a smaller image or check your connection.");
     } finally {
       setUploading(false);
     }
@@ -98,46 +95,29 @@ const AdminCMS = () => {
                 )}
                 
                 <p className="cms-label">Live Write-up</p>
-                <p className="cms-text-preview">{aboutData.description || "No description provided."}</p>
+                <p className="cms-text-preview">{aboutData.description}</p>
               </div>
             ) : (
               <div className="form-group">
                 <label>Update Title</label>
-                <input 
-                  value={aboutData.title} 
-                  onChange={(e) => setAboutData({...aboutData, title: e.target.value})} 
-                  placeholder="Enter page title..."
-                />
+                <input value={aboutData.title} onChange={(e) => setAboutData({...aboutData, title: e.target.value})} />
                 
                 <label>Update Image</label>
                 <input type="file" accept="image/*" onChange={handleImageUpload} />
-                
-                {uploading && <p className="upload-notice">⏳ Uploading to Cloudinary... please wait.</p>}
+                {uploading && <p className="upload-notice">⏳ Uploading...</p>}
                 
                 {aboutData.image && (
-                    <div className="image-preview-container" style={{marginTop: '15px', border: '1px dashed #ccc', padding: '10px', textAlign: 'center'}}>
+                    <div className="image-preview-container" style={{marginTop: '15px', border: '1px dashed #ccc', padding: '10px'}}>
                         <p className="cms-label" style={{color: 'green'}}>✅ Ready to Save:</p>
-                        <img src={aboutData.image} alt="New Preview" className="cms-preview-img" style={{maxHeight: '200px', borderRadius: '8px'}} />
-                        <p style={{fontSize: '10px', wordBreak: 'break-all'}}>{aboutData.image}</p>
+                        <img src={aboutData.image} alt="Preview" className="cms-preview-img" style={{maxHeight: '150px'}} />
                     </div>
                 )}
                 
                 <label style={{marginTop: '20px'}}>Update Write-up</label>
-                <textarea 
-                  rows="8" 
-                  value={aboutData.description} 
-                  onChange={(e) => setAboutData({...aboutData, description: e.target.value})} 
-                  placeholder="Write your about content here..."
-                />
+                <textarea rows="8" value={aboutData.description} onChange={(e) => setAboutData({...aboutData, description: e.target.value})} />
                 
                 <div className="edit-actions">
-                  <button 
-                    className="essence-save-btn" 
-                    onClick={handleSaveAbout}
-                    disabled={uploading}
-                  >
-                    {uploading ? "Wait for Upload..." : "Update Website"}
-                  </button>
+                  <button className="essence-save-btn" onClick={handleSaveAbout} disabled={uploading}>Update Website</button>
                   <button className="cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
                 </div>
               </div>
