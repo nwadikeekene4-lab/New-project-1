@@ -14,7 +14,8 @@ const { JSDOM } = require('jsdom');
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
-const Product = require("./models");
+// UPDATED: Import both Product and Message from models
+const { Product, Message } = require("./models");
 const CMS = require("./cms"); 
 const { CartItem } = require("./cart");
 const Order = require("./order");
@@ -102,20 +103,47 @@ router.post("/admin/login", async (req, res) => {
   }
 });
 
+// --- INBOX & CONTACT ROUTES (NEW) ---
+
+router.post("/contact", async (req, res) => {
+  try {
+    const { name, email, message } = sanitizeInput(req.body);
+    const newMessage = await Message.create({ name, email, message });
+    res.json({ success: true, message: "Message sent successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save message" });
+  }
+});
+
+router.get("/admin/messages", verifyToken, async (req, res) => {
+  try {
+    const messages = await Message.findAll({ order: [['createdAt', 'DESC']] });
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete("/admin/messages/:id", verifyToken, async (req, res) => {
+  try {
+    await Message.destroy({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- PRODUCT ROUTES (SAFEGUARDED) ---
 
 router.post("/admin/products", verifyToken, upload.single("image"), async (req, res) => {
   try {
     const imageUrl = req.file ? (req.file.path || req.file.secure_url) : null;
-    
-    // Safety check: if no name is provided, treat it as a raw image upload
     if (!req.body.name) {
        return res.json({ image: imageUrl });
     }
-
     const product = await Product.create({
       name: sanitizeInput(req.body.name),
-      price: parseFloat(req.body.price) || 0, // Fallback to 0 to prevent crash
+      price: parseFloat(req.body.price) || 0,
       image: imageUrl, 
       rating: { stars: 0, count: 0 }
     });
@@ -123,7 +151,6 @@ router.post("/admin/products", verifyToken, upload.single("image"), async (req, 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// NEW DEDICATED UPLOAD ROUTE (For CMS/Mobile reliability)
 router.post("/admin/upload-image", verifyToken, upload.single("image"), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
@@ -141,7 +168,7 @@ router.get("/products", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- CART, PAYMENT, & ORDER ROUTES (UNTOUCHED) ---
+// --- CART, PAYMENT, & ORDER ROUTES ---
 
 router.get("/cart", async (req, res) => {
   try {
