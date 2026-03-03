@@ -24,22 +24,5 @@ const Product = sequelize.define("Product", {
   }
 });
 
-// NEW: Message Model for Contact Form
-const Message = sequelize.define("Message", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
-  },
-  name: DataTypes.STRING,
-  email: DataTypes.STRING,
-  message: DataTypes.TEXT,
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: "unread"
-  }
-}, {
-  timestamps: true
-});
-
-module.exports = { Product, Message };
+// We export ONLY Product directly so cart.js and order.js stay happy.
+module.exports = Product;
