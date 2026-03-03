@@ -5,6 +5,7 @@ import './AdminCMS.css';
 const AdminCMS = () => {
   const [activeTab, setActiveTab] = useState('pages'); 
   const [aboutData, setAboutData] = useState({ title: '', description: '', image: '' });
+  const [messages, setMessages] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -19,81 +20,77 @@ const AdminCMS = () => {
       }
     });
   };
+
+  const fetchMessages = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await API.get('/admin/messages', {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      setMessages(res.data);
+    } catch (err) { console.error("Inbox load error", err); }
+  };
   
   useEffect(() => {
     if (activeTab === 'pages') fetchContent();
+    if (activeTab === 'messages') fetchMessages();
   }, [activeTab]);
 
   const handleSaveAbout = async () => {
-    if (!aboutData.image && !window.confirm("No image selected. Save anyway?")) return;
-
     try {
       await API.post('/cms/update', { page_name: 'about', data: aboutData });
       alert("🚀 Website Updated Successfully!");
       setIsEditing(false);
       fetchContent(); 
-    } catch (err) { 
-      alert("Error saving changes"); 
-    }
+    } catch (err) { alert("Error saving changes"); }
+  };
+
+  const deleteMsg = async (id) => {
+    if (!window.confirm("Delete this message permanently?")) return;
+    try {
+      const token = localStorage.getItem("adminToken");
+      await API.delete(`/admin/messages/${id}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      fetchMessages();
+    } catch (err) { alert("Delete failed"); }
   };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const formData = new FormData();
-    // Explicitly naming the file helps mobile OS (iOS/Android) pass it correctly
-    const fileName = file.name || `cms-${Date.now()}.jpg`;
-    formData.append('image', file, fileName);
-    
+    formData.append('image', file, file.name);
     setUploading(true);
     try {
-      // Using the NEW dedicated upload route we added to routes.js
       const res = await API.post('/admin/upload-image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      
-      const imageUrl = res.data.image;
-      
-      if (imageUrl) {
-        setAboutData(prev => ({ ...prev, image: imageUrl }));
-      } else {
-        alert("Upload failed: Server did not return the image link.");
-      }
-    } catch (err) {
-      alert("Upload failed. Try a smaller image or check your connection.");
-    } finally {
-      setUploading(false);
-    }
+      if (res.data.image) setAboutData(prev => ({ ...prev, image: res.data.image }));
+    } catch (err) { alert("Upload error"); } 
+    finally { setUploading(false); }
   };
 
   return (
     <div className="essence-cms-container">
       <div className="cms-tab-bar">
         <button onClick={() => {setActiveTab('pages'); setIsEditing(false);}} className={activeTab === 'pages' ? 'active' : ''}>📝 Pages</button>
-        <button onClick={() => setActiveTab('messages')} className={activeTab === 'messages' ? 'active' : ''}>📥 Inbox</button>
+        <button onClick={() => setActiveTab('messages')} className={activeTab === 'messages' ? 'active' : ''}>📥 Inbox ({messages.length})</button>
       </div>
 
       <main className="cms-main-content">
         {activeTab === 'pages' && (
           <div className="cms-section-card">
             <div className="cms-card-header">
-              <h3>About Page Live Control</h3>
+              <h3>About Page Control</h3>
               {!isEditing && <button className="cms-edit-btn" onClick={() => setIsEditing(true)}>Edit Content</button>}
             </div>
-            
             {!isEditing ? (
               <div className="cms-master-preview">
                 <p className="cms-label">Live Title</p>
-                <h4>{aboutData.title || "No Title Set"}</h4>
-                
+                <h4>{aboutData.title || "No Title"}</h4>
                 <p className="cms-label">Live Image</p>
-                {aboutData.image ? (
-                  <img src={aboutData.image} alt="Live" className="cms-preview-img" />
-                ) : (
-                  <div className="no-image-placeholder">No Image Found in Database</div>
-                )}
-                
+                {aboutData.image && <img src={aboutData.image} alt="Live" className="cms-preview-img" />}
                 <p className="cms-label">Live Write-up</p>
                 <p className="cms-text-preview">{aboutData.description}</p>
               </div>
@@ -101,27 +98,50 @@ const AdminCMS = () => {
               <div className="form-group">
                 <label>Update Title</label>
                 <input value={aboutData.title} onChange={(e) => setAboutData({...aboutData, title: e.target.value})} />
-                
                 <label>Update Image</label>
-                <input type="file" accept="image/*" onChange={handleImageUpload} />
-                {uploading && <p className="upload-notice">⏳ Uploading...</p>}
-                
-                {aboutData.image && (
-                    <div className="image-preview-container" style={{marginTop: '15px', border: '1px dashed #ccc', padding: '10px'}}>
-                        <p className="cms-label" style={{color: 'green'}}>✅ Ready to Save:</p>
-                        <img src={aboutData.image} alt="Preview" className="cms-preview-img" style={{maxHeight: '150px'}} />
-                    </div>
-                )}
-                
-                <label style={{marginTop: '20px'}}>Update Write-up</label>
-                <textarea rows="8" value={aboutData.description} onChange={(e) => setAboutData({...aboutData, description: e.target.value})} />
-                
+                <input type="file" onChange={handleImageUpload} />
+                <label>Update Description</label>
+                <textarea rows="6" value={aboutData.description} onChange={(e) => setAboutData({...aboutData, description: e.target.value})} />
                 <div className="edit-actions">
                   <button className="essence-save-btn" onClick={handleSaveAbout} disabled={uploading}>Update Website</button>
                   <button className="cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'messages' && (
+          <div className="cms-section-card">
+            <h3>Customer Inquiries</h3>
+            <div className="table-responsive">
+              <table className="cms-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Message</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {messages.map(msg => (
+                    <tr key={msg.id}>
+                      <td className="date-cell">{new Date(msg.createdAt).toLocaleDateString()}</td>
+                      <td>
+                        <strong>{msg.name}</strong><br/>
+                        <span className="email-sub">{msg.email}</span>
+                      </td>
+                      <td className="msg-text-cell">{msg.message}</td>
+                      <td>
+                        <button onClick={() => deleteMsg(msg.id)} className="cms-delete-btn">Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {messages.length === 0 && <p className="no-data">Inbox is empty.</p>}
+            </div>
           </div>
         )}
       </main>
