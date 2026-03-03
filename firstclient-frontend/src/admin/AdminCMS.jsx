@@ -5,28 +5,27 @@ import './AdminCMS.css';
 const AdminCMS = () => {
   const [activeTab, setActiveTab] = useState('pages'); 
   const [aboutData, setAboutData] = useState({ title: '', description: '', image: '' });
+  const [contactInfo, setContactInfo] = useState({ phone: '', email: '', address: '' });
   const [messages, setMessages] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingContact, setIsEditingContact] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const fetchContent = () => {
+    // Fetch About Page
     API.get('/cms/about').then(res => {
-      if (res.data) {
-        setAboutData({
-          title: res.data.title || '',
-          description: res.data.description || '',
-          image: res.data.image || '' 
-        });
-      }
+      if (res.data) setAboutData({ title: res.data.title || '', description: res.data.description || '', image: res.data.image || '' });
+    });
+    // Fetch Contact Info
+    API.get('/cms/contact_info').then(res => {
+      if (res.data) setContactInfo({ phone: res.data.phone || '08168827837', email: res.data.email || 'gbengababs36@gmail.com', address: res.data.address || 'Lagos, Nigeria' });
     });
   };
 
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("adminToken");
-      const res = await API.get('/admin/messages', {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
+      const res = await API.get('/admin/messages', { headers: { "Authorization": `Bearer ${token}` } });
       setMessages(res.data);
     } catch (err) { console.error("Inbox load error", err); }
   };
@@ -39,10 +38,18 @@ const AdminCMS = () => {
   const handleSaveAbout = async () => {
     try {
       await API.post('/cms/update', { page_name: 'about', data: aboutData });
-      alert("🚀 Website Updated Successfully!");
+      alert("🚀 About Page Updated!");
       setIsEditing(false);
       fetchContent(); 
     } catch (err) { alert("Error saving changes"); }
+  };
+
+  const handleSaveContact = async () => {
+    try {
+      await API.post('/cms/update', { page_name: 'contact_info', data: contactInfo });
+      alert("📞 Contact Details Updated!");
+      setIsEditingContact(false);
+    } catch (err) { alert("Error updating contact info"); }
   };
 
   const deleteMsg = async (id) => {
@@ -76,32 +83,54 @@ const AdminCMS = () => {
 
       <main className="cms-main-content">
         {activeTab === 'pages' && (
-          <div className="cms-section-card">
-            <div className="cms-card-header">
-              <h3>About Page Control</h3>
-              {!isEditing && <button className="cms-edit-btn" onClick={() => setIsEditing(true)}>Edit Content</button>}
-            </div>
-            {!isEditing ? (
-              <div className="cms-master-preview">
-                <h4>{aboutData.title || "Untitled"}</h4>
-                {aboutData.image && <img src={aboutData.image} alt="Preview" className="cms-preview-img" />}
-                <p className="cms-text-preview">{aboutData.description}</p>
+          <>
+            {/* ABOUT PAGE SECTION */}
+            <div className="cms-section-card" style={{marginBottom: '30px'}}>
+              <div className="cms-card-header">
+                <h3>About Page Control</h3>
+                {!isEditing && <button className="cms-edit-btn" onClick={() => setIsEditing(true)}>Edit About</button>}
               </div>
-            ) : (
-              <div className="form-group">
-                <label>Title</label>
-                <input value={aboutData.title} onChange={(e) => setAboutData({...aboutData, title: e.target.value})} />
-                <label>Image</label>
-                <input type="file" onChange={handleImageUpload} />
-                <label>Write-up</label>
-                <textarea rows="6" value={aboutData.description} onChange={(e) => setAboutData({...aboutData, description: e.target.value})} />
-                <div className="edit-actions">
-                  <button className="essence-save-btn" onClick={handleSaveAbout} disabled={uploading}>Update</button>
-                  <button onClick={() => setIsEditing(false)}>Cancel</button>
+              {isEditing ? (
+                <div className="form-group">
+                  <input placeholder="Title" value={aboutData.title} onChange={(e) => setAboutData({...aboutData, title: e.target.value})} />
+                  <input type="file" onChange={handleImageUpload} />
+                  <textarea rows="5" placeholder="Description" value={aboutData.description} onChange={(e) => setAboutData({...aboutData, description: e.target.value})} />
+                  <div className="edit-actions">
+                    <button className="essence-save-btn" onClick={handleSaveAbout}>Update About</button>
+                    <button onClick={() => setIsEditing(false)}>Cancel</button>
+                  </div>
                 </div>
+              ) : <p>Manage your "About Us" content here.</p>}
+            </div>
+
+            {/* CONTACT INFO SECTION */}
+            <div className="cms-section-card">
+              <div className="cms-card-header">
+                <h3>Contact Details (Public)</h3>
+                {!isEditingContact && <button className="cms-edit-btn" onClick={() => setIsEditingContact(true)}>Edit Info</button>}
               </div>
-            )}
-          </div>
+              {isEditingContact ? (
+                <div className="form-group">
+                  <label>Phone Number</label>
+                  <input value={contactInfo.phone} onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})} />
+                  <label>Email Address</label>
+                  <input value={contactInfo.email} onChange={(e) => setContactInfo({...contactInfo, email: e.target.value})} />
+                  <label>Physical Address</label>
+                  <input value={contactInfo.address} onChange={(e) => setContactInfo({...contactInfo, address: e.target.value})} />
+                  <div className="edit-actions">
+                    <button className="essence-save-btn" onClick={handleSaveContact}>Save Details</button>
+                    <button onClick={() => setIsEditingContact(false)}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="cms-master-preview">
+                  <p><strong>Phone:</strong> {contactInfo.phone}</p>
+                  <p><strong>Email:</strong> {contactInfo.email}</p>
+                  <p><strong>Address:</strong> {contactInfo.address}</p>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {activeTab === 'messages' && (
@@ -109,9 +138,7 @@ const AdminCMS = () => {
             <h3>Customer Inquiries</h3>
             <div className="table-responsive">
               <table className="cms-table">
-                <thead>
-                  <tr><th>Date</th><th>Customer</th><th>Message</th><th>Action</th></tr>
-                </thead>
+                <thead><tr><th>Date</th><th>Customer</th><th>Message</th><th>Action</th></tr></thead>
                 <tbody>
                   {messages.map(msg => (
                     <tr key={msg.id}>
@@ -123,7 +150,6 @@ const AdminCMS = () => {
                   ))}
                 </tbody>
               </table>
-              {messages.length === 0 && <p className="no-data">No messages yet.</p>}
             </div>
           </div>
         )}
