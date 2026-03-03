@@ -173,3 +173,17 @@
     .msg-text-cell { min-width: 150px; }
     .date-cell { font-size: 11px; }
   }
+
+.cms-delete-btn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.3s ease; /* Smooth fade */
+}
+
+.cms-delete-btn:hover {
+  opacity: 0.8; /* Subtle change on hover */
+  }
