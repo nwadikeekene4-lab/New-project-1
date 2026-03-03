@@ -14,8 +14,9 @@ const { JSDOM } = require('jsdom');
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
-// UPDATED: Import both Product and Message from models
-const { Product, Message } = require("./models");
+// STRATEGY: Separate imports to prevent Render deployment errors
+const Product = require("./models");
+const Message = require("./Message"); 
 const CMS = require("./cms"); 
 const { CartItem } = require("./cart");
 const Order = require("./order");
@@ -103,12 +104,12 @@ router.post("/admin/login", async (req, res) => {
   }
 });
 
-// --- INBOX & CONTACT ROUTES (NEW) ---
+// --- INBOX & CONTACT ROUTES ---
 
 router.post("/contact", async (req, res) => {
   try {
     const { name, email, message } = sanitizeInput(req.body);
-    const newMessage = await Message.create({ name, email, message });
+    await Message.create({ name, email, message });
     res.json({ success: true, message: "Message sent successfully" });
   } catch (err) {
     res.status(500).json({ error: "Failed to save message" });
@@ -133,14 +134,13 @@ router.delete("/admin/messages/:id", verifyToken, async (req, res) => {
   }
 });
 
-// --- PRODUCT ROUTES (SAFEGUARDED) ---
+// --- PRODUCT ROUTES ---
 
 router.post("/admin/products", verifyToken, upload.single("image"), async (req, res) => {
   try {
     const imageUrl = req.file ? (req.file.path || req.file.secure_url) : null;
-    if (!req.body.name) {
-       return res.json({ image: imageUrl });
-    }
+    if (!req.body.name) return res.json({ image: imageUrl });
+
     const product = await Product.create({
       name: sanitizeInput(req.body.name),
       price: parseFloat(req.body.price) || 0,
