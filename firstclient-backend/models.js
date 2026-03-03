@@ -9,7 +9,6 @@ const Product = sequelize.define("Product", {
   },
   name: DataTypes.STRING,
   price: DataTypes.FLOAT,
-  // CHANGED: Use TEXT to allow long Cloudinary URLs
   image: DataTypes.TEXT, 
   rating: {
     type: DataTypes.JSON,
@@ -25,4 +24,22 @@ const Product = sequelize.define("Product", {
   }
 });
 
-module.exports = Product;
+// NEW: Message Model for Contact Form
+const Message = sequelize.define("Message", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  name: DataTypes.STRING,
+  email: DataTypes.STRING,
+  message: DataTypes.TEXT,
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: "unread"
+  }
+}, {
+  timestamps: true
+});
+
+module.exports = { Product, Message };
