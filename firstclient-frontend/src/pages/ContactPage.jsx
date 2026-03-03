@@ -14,10 +14,10 @@ const ContactPage = () => {
     setLoading(true);
     try {
       await API.post('/contact', formData);
-      alert(`Thank you, ${formData.name}! Your message has been sent.`);
+      alert(`Thank you, ${formData.name}! Your message has been received.`);
       setFormData({ name: '', email: '', message: '' });
     } catch (err) {
-      alert("Error sending message. Please check your connection.");
+      alert("Error sending message. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -34,16 +34,16 @@ const ContactPage = () => {
             <div className="contact-info">
               <h1 className="contact-title">Get In Touch</h1>
               <div className="info-details">
-                <div className="info-item"><span><FaMapMarkerAlt /></span> Lagos, Nigeria</div>
-                <div className="info-item"><span><FaPhoneAlt /></span> 08065432123</div>
-                <div className="info-item"><span><FaEnvelope /></span> hello@heritagehub.com</div>
+                <div className="info-item"><FaMapMarkerAlt /> Lagos, Nigeria</div>
+                <div className="info-item"><FaPhoneAlt /> 08065432123</div>
+                <div className="info-item"><FaEnvelope /> hello@heritagehub.com</div>
               </div>
             </div>
             <div className="contact-form-container">
               <form onSubmit={handleSubmit} className="contact-form">
                 <input placeholder="Full Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
                 <input type="email" placeholder="Email" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-                <textarea rows="4" placeholder="Message" required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} />
+                <textarea rows="4" placeholder="How can we help?" required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} />
                 <button type="submit" className="send-btn" disabled={loading}>{loading ? "Sending..." : "Send Message"}</button>
               </form>
             </div>
