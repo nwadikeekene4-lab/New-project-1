@@ -43,19 +43,16 @@
   transition: 0.3s;
 }
 
-.nav-back-btn .arrow-icon {
-  color: #ffeb3b;
-}
-
 .nav-back-btn:hover {
-  background-color: #228b22;
+  background-color: #1a1a1a; /* Matches heritage theme */
+  color: #d4af37;
   transform: translateX(-3px);
 }
 
 /* Main Content Area */
 .contact-main-content {
   background: #ffffff;
-  padding: 40px;
+  padding: 50px; /* Increased padding */
   border-radius: 0 0 12px 12px;
   box-shadow: 0 15px 35px rgba(0,0,0,0.4);
 }
@@ -69,103 +66,100 @@
 
 /* Left Side: Info */
 .contact-title {
-  font-size: 36px;
+  font-size: 42px; /* Bigger Title */
   font-weight: 800;
   color: #1a1a1a;
   margin-bottom: 15px;
 }
 
-.contact-desc {
-  color: #666;
-  line-height: 1.6;
-  margin-bottom: 30px;
-}
-
 .info-details {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 30px;
 }
 
 .info-item {
   display: flex;
+  align-items: center;
   gap: 15px;
   text-decoration: none;
   color: inherit;
 }
 
 .info-icon {
-  background: #f0f0f0;
-  width: 45px;
-  height: 45px;
+  background: #f8f8f8;
+  width: 55px; /* Slightly bigger icons */
+  height: 55px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  color: #228b22;
-  font-size: 20px;
+  color: #d4af37; /* Gold Icons */
+  font-size: 22px;
+  border: 1px solid #eee;
 }
 
-.info-item h4 {
-  margin: 0;
-  font-size: 16px;
-  color: #111;
-}
-
-.info-item p {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: #666;
-}
-
-/* Right Side: Form */
+/* Right Side: Form - THE BIG BOXES */
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 25px; /* More space between inputs */
 }
 
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.input-group label {
-  font-size: 14px;
-  font-weight: 700;
-  color: #333;
-}
-
-.input-group input, .input-group textarea {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+/* Targets the input groups for larger feel */
+.contact-form input, 
+.contact-form textarea {
+  width: 100%;
+  padding: 20px; /* Big luxury padding */
+  border: 2px solid #eee;
+  border-radius: 10px;
   font-family: inherit;
-  transition: 0.3s;
+  font-size: 17px; /* Larger text */
+  background: #fafafa;
+  transition: all 0.3s ease;
 }
 
-.input-group input:focus, .input-group textarea:focus {
+.contact-form textarea {
+  min-height: 220px; /* Makes the message box naturally very tall */
+  resize: vertical;
+}
+
+.contact-form input:focus, 
+.contact-form textarea:focus {
   outline: none;
-  border-color: #228b22;
-  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+  border-color: #d4af37; /* Heritage Gold border */
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.1);
 }
 
+/* The Send Button - Heritage Style */
 .send-btn {
-  background: #ffeb3b;
-  color: #000;
-  border: none;
-  padding: 16px;
-  border-radius: 6px;
-  font-weight: 700;
+  background: #1a1a1a;
+  color: #d4af37;
+  border: 2px solid #d4af37;
+  padding: 22px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 16px;
   cursor: pointer;
   text-transform: uppercase;
-  transition: 0.3s;
+  letter-spacing: 2px;
+  transition: 0.4s;
+  margin-top: 10px;
 }
 
 .send-btn:hover {
-  background: #228b22;
-  color: #fff;
+  background: #d4af37;
+  color: #1a1a1a;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+}
+
+.send-btn:disabled {
+  background: #ccc;
+  border-color: #bbb;
+  color: #666;
+  cursor: not-allowed;
 }
 
 /* Mobile Responsiveness */
@@ -174,10 +168,12 @@
     grid-template-columns: 1fr;
     gap: 40px;
   }
+  .contact-title { font-size: 32px; }
 }
 
 @media (max-width: 600px) {
   .contact-wrapper { padding: 0; }
   .nav-section, .contact-main-content { border-radius: 0; }
-  .contact-main-content { padding: 30px 20px; min-height: 90vh; }
-}
+  .contact-main-content { padding: 30px 20px; min-height: 95vh; }
+  .contact-form input, .contact-form textarea { padding: 15px; }
+  }
