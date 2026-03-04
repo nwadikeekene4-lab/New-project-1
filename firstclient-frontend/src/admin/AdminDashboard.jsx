@@ -39,8 +39,12 @@ export default function AdminDashboard() {
           <Link to="/admin/products" className="essence-nav-item">Manage Products</Link>
           <Link to="/admin/orders" className="essence-nav-item">View Orders</Link>
           <Link to="/admin/cms" className="essence-nav-item">
-     <span className="nav-icon">✍️</span> Page Content
-  </Link>
+            <span className="nav-icon">✍️</span> Page Content
+          </Link>
+          <Link to="/admin/archive" className="essence-nav-item">
+            <span className="nav-icon">🗑️</span> Trash / Archive
+          </Link>
+          
           <div className="essence-nav-spacer"></div>
           <Link to="/shop" className="essence-nav-item store-link">Go to Store</Link>
           <button onClick={handleLogout} className="essence-logout-btn">Logout</button>
@@ -83,10 +87,19 @@ export default function AdminDashboard() {
             </div>
             <Link to="/admin/orders" className="card-footer-link">View Details</Link>
           </div>
+
+          <div className="essence-card">
+            <div className="card-top">
+              <div className="card-txt">
+                <h3>Archive</h3>
+                <p>Deleted Items</p>
+              </div>
+              <div className="card-icon">🗑️</div>
+            </div>
+            <Link to="/admin/archive" className="card-footer-link">Open Trash</Link>
+          </div>
         </section>
       </main>
     </div>
   );
-    }
-
-
+          }
