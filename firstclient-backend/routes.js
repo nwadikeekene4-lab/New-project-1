@@ -8,6 +8,7 @@ const { Resend } = require("resend");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { Op } = require("sequelize"); // Added Op for archive queries
 
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
@@ -128,7 +129,6 @@ router.put("/admin/products/:id", verifyToken, upload.single("image"), async (re
 
 router.delete("/admin/products/:id", verifyToken, async (req, res) => {
   try {
-    // Soft deletes because of paranoid: true in model
     await Product.destroy({ where: { id: req.params.id } });
     res.json({ success: true, message: "Archived" });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -152,7 +152,6 @@ router.get("/admin/messages", verifyToken, async (req, res) => {
 
 router.delete("/admin/messages/:id", verifyToken, async (req, res) => {
   try {
-    // Soft deletes because of paranoid: true in model
     await Message.destroy({ where: { id: req.params.id } });
     res.json({ success: true, message: "Archived" });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -221,29 +220,39 @@ router.get("/cms/:page", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 1. Get all soft-deleted products
+// --- ARCHIVE & RESTORATION ---
+
+// Get all soft-deleted products
 router.get("/admin/archive/products", verifyToken, async (req, res) => {
   try {
     const archived = await Product.findAll({
-      where: { deletedAt: { [require("sequelize").Op.ne]: null } },
+      where: { deletedAt: { [Op.ne]: null } },
       paranoid: false 
     });
     res.json(archived);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 2. Get all soft-deleted messages
+// Get all soft-deleted messages
 router.get("/admin/archive/messages", verifyToken, async (req, res) => {
   try {
     const archived = await Message.findAll({
-      where: { deletedAt: { [require("sequelize").Op.ne]: null } },
+      where: { deletedAt: { [Op.ne]: null } },
       paranoid: false
     });
     res.json(archived);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. Restore a message (We already made the Product restore route earlier!)
+// Restore a product
+router.post("/admin/products/:id/restore", verifyToken, async (req, res) => {
+  try {
+    await Product.restore({ where: { id: req.params.id } });
+    res.json({ success: true, message: "Product restored" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Restore a message
 router.post("/admin/messages/:id/restore", verifyToken, async (req, res) => {
   try {
     await Message.restore({ where: { id: req.params.id } });
@@ -251,5 +260,20 @@ router.post("/admin/messages/:id/restore", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-module.exports = router;
+// Permanent delete product
+router.delete("/admin/products/:id/permanent", verifyToken, async (req, res) => {
+  try {
+    await Product.destroy({ where: { id: req.params.id }, force: true });
+    res.json({ success: true, message: "Deleted permanently" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
+// Permanent delete message
+router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => {
+  try {
+    await Message.destroy({ where: { id: req.params.id }, force: true });
+    res.json({ success: true, message: "Deleted permanently" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+module.exports = router;
