@@ -9,9 +9,9 @@ const ContactPage = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [info, setInfo] = useState({
-    phone: '08168827837',
     email: 'gbengababs36@gmail.com',
-    address: 'Lagos, Nigeria'
+    phone: '08168827837',
+    location: 'Lagos, Nigeria'
   });
 
   useEffect(() => {
@@ -24,13 +24,11 @@ const ContactPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Direct post to our new message route
       await API.post('/contact', formData);
-      alert(`Thank you, ${formData.name}! Your message has been received.`);
+      alert(`Thank you, ${formData.name}! Your message has been sent successfully.`);
       setFormData({ name: '', email: '', message: '' });
     } catch (err) {
-      console.error(err);
-      alert("Connection Error: Please ensure your backend is active.");
+      alert("We're sorry, we couldn't send your message. Please try again or reach us via phone/email.");
     } finally {
       setLoading(false);
     }
@@ -47,23 +45,17 @@ const ContactPage = () => {
             <div className="contact-info">
               <h1 className="contact-title">Get In Touch</h1>
               <div className="info-details">
-                <div className="info-item"><FaMapMarkerAlt /> {info.address}</div>
-                <div className="info-item"><FaPhoneAlt /> {info.phone}</div>
-                <div className="info-item"><FaEnvelope /> {info.email}</div>
+                <div className="info-item"><div className="info-icon"><FaMapMarkerAlt /></div> <div><h4>Address</h4><p>{info.location}</p></div></div>
+                <div className="info-item"><div className="info-icon"><FaPhoneAlt /></div> <div><h4>Phone</h4><p>{info.phone}</p></div></div>
+                <div className="info-item"><div className="info-icon"><FaEnvelope /></div> <div><h4>Email</h4><p>{info.email}</p></div></div>
               </div>
             </div>
             <div className="contact-form-container">
               <form onSubmit={handleSubmit} className="contact-form">
-                <div className="input-group-large">
-                  <input placeholder="Full Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-                </div>
-                <div className="input-group-large">
-                  <input type="email" placeholder="Email Address" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-                </div>
-                <div className="input-group-large">
-                  <textarea rows="6" placeholder="Write your message here..." required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} />
-                </div>
-                <button type="submit" className="send-btn-large" disabled={loading}>
+                <input placeholder="Full Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                <input type="email" placeholder="Email Address" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+                <textarea rows="6" placeholder="How can we help you today?" required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} />
+                <button type="submit" className="send-btn" disabled={loading}>
                   {loading ? "SENDING..." : "SEND MESSAGE"}
                 </button>
               </form>
