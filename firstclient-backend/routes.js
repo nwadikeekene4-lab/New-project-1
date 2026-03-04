@@ -221,4 +221,35 @@ router.get("/cms/:page", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// 1. Get all soft-deleted products
+router.get("/admin/archive/products", verifyToken, async (req, res) => {
+  try {
+    const archived = await Product.findAll({
+      where: { deletedAt: { [require("sequelize").Op.ne]: null } },
+      paranoid: false 
+    });
+    res.json(archived);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 2. Get all soft-deleted messages
+router.get("/admin/archive/messages", verifyToken, async (req, res) => {
+  try {
+    const archived = await Message.findAll({
+      where: { deletedAt: { [require("sequelize").Op.ne]: null } },
+      paranoid: false
+    });
+    res.json(archived);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 3. Restore a message (We already made the Product restore route earlier!)
+router.post("/admin/messages/:id/restore", verifyToken, async (req, res) => {
+  try {
+    await Message.restore({ where: { id: req.params.id } });
+    res.json({ success: true, message: "Message restored" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
+
