@@ -15,7 +15,6 @@ import NavigationHub from './pages/NavigationHub';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import SocialMediaPage from './pages/SocialMediaPage';
-import ReviewsPage from './pages/ReviewsPage';
 import { SuccessPage } from './pages/SuccessPage';
 import AdminCMS from './admin/AdminCMS';
 
@@ -75,7 +74,6 @@ function App () {
         <Route path="/hub" element={<NavigationHub />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} /> 
-        <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/socials" element={<SocialMediaPage />} />
         
         <Route path="/shop" element={
