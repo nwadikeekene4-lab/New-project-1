@@ -16,7 +16,7 @@ const NavigationHub = () => {
     <div className="hub-wrapper">
       <div className="hub-container">
         <nav className="breadcrumb">
-          <span onClick={() => navigate('/')}>Home</span> / <span>Heritage Hub</span>
+          <span onClick={() => navigate('/')}>Home</span>
         </nav>
 
         <header className="hub-header">
@@ -51,5 +51,6 @@ const NavigationHub = () => {
 
 
 export default NavigationHub;
+
 
 
