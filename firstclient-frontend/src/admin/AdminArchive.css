@@ -26,7 +26,7 @@
 .archive-back-btn:hover { background: #f3f4f6; }
 
 .archive-title-area h1 { margin: 0; font-size: 24px; color: #111827; }
-.archive-title-area p { margin: 4px 0 0; color: #6b7280; font-size: 14px; }
+.archive-title-area p { margin: 4px 0 0; color: #ef4444; font-size: 14px; font-weight: 500; }
 
 .archive-tabs {
   display: flex;
@@ -76,6 +76,7 @@
   padding: 15px;
   border-top: 1px solid #f1f5f9;
   font-size: 14px;
+  vertical-align: middle;
 }
 
 .archive-mini-img {
@@ -93,18 +94,49 @@
   color: #64748b;
 }
 
+/* Button Group Container */
+.archive-action-btns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Green Restore Button */
 .restore-btn {
   background: #ecfdf5;
   color: #059669;
   border: 1px solid #10b981;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 6px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
+  font-size: 13px;
 }
 
-.restore-btn:hover { background: #d1fae5; }
+.restore-btn:hover { 
+  background: #d1fae5; 
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
+}
+
+/* Red Permanent Delete Button */
+.perm-delete-btn {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fda4af;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 13px;
+}
+
+.perm-delete-btn:hover { 
+  background: #ffe4e6;
+  border-color: #f43f5e;
+  box-shadow: 0 2px 4px rgba(225, 29, 72, 0.1);
+}
 
 .empty-msg {
   text-align: center;
@@ -118,3 +150,33 @@
   padding: 100px;
   color: #6b7280;
 }
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .archive-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .archive-tabs button {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  /* Make the table scrollable on small screens */
+  .archive-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Stack buttons on mobile so they are easy to tap */
+  .archive-action-btns {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .restore-btn, .perm-delete-btn {
+    width: 100%;
+    text-align: center;
+  }
+  }
