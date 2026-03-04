@@ -13,7 +13,7 @@ const Message = sequelize.define("Message", {
   },
   phone: { 
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true // ✅ Changed to true to fix the "null values" error
   },
   message: {
     type: DataTypes.TEXT,
