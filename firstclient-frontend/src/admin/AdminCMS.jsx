@@ -51,6 +51,7 @@ const AdminCMS = () => {
     }
   };
 
+  // --- Dynamic Social Logic ---
   const addSocial = () => {
     setSocialData(prev => ({ ...prev, handles: [...prev.handles, { platform: '', handle: '', link: '' }] }));
   };
@@ -71,6 +72,12 @@ const AdminCMS = () => {
     setSocialData({ ...socialData, [type]: updated });
   };
 
+  // --- Message Actions ---
+  const toggleReplied = (id) => {
+    setMessages(messages.map(m => m.id === id ? { ...m, replied: !m.replied } : m));
+    // Note: If you want to persist this to DB, you'd add: API.patch(`/admin/messages/${id}`, { replied: true });
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -80,7 +87,6 @@ const AdminCMS = () => {
     try {
       const res = await API.post('/admin/upload-image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setAboutData({ ...aboutData, image: res.data.image });
-      alert("Image uploaded!");
     } catch (err) { alert("Upload failed"); } 
     finally { setUploading(false); }
   };
@@ -118,7 +124,7 @@ const AdminCMS = () => {
                 </div>
                 {!isEditing ? (
                   <div className="cms-master-preview">
-                    <h4>{aboutData.title}</h4>
+                    <h4>{aboutData.title || "No Title"}</h4>
                     {aboutData.image && <img src={aboutData.image} alt="Preview" className="cms-preview-img" />}
                     <p className="cms-text-preview" style={{whiteSpace: 'pre-wrap'}}>{aboutData.description}</p>
                   </div>
@@ -128,7 +134,7 @@ const AdminCMS = () => {
                     <input value={aboutData.title} onChange={e => setAboutData({...aboutData, title: e.target.value})} />
                     <label>Image</label>
                     <input type="file" onChange={handleImageUpload} />
-                    {uploading && <p>Uploading...</p>}
+                    {uploading && <p className="uploading-text">Uploading image...</p>}
                     <textarea rows="8" value={aboutData.description} onChange={e => setAboutData({...aboutData, description: e.target.value})} />
                     <div className="edit-actions">
                       <button className="essence-save-btn" onClick={() => handleSave('about', aboutData)}>Save Changes</button>
@@ -139,11 +145,11 @@ const AdminCMS = () => {
               </div>
             )}
 
-            {/* TAB 2: CONTACT (FIXED - NO LONGER EMPTY) */}
+            {/* TAB 2: CONTACT */}
             {activeTab === 'contact' && (
               <div className="cms-section-card">
                 <div className="cms-card-header">
-                  <h3>Business Contact Info</h3>
+                  <h3>Business Contact Details</h3>
                   {!isEditing && <button className="cms-edit-btn" onClick={() => setIsEditing(true)}>Edit Details</button>}
                 </div>
                 {!isEditing ? (
@@ -156,12 +162,12 @@ const AdminCMS = () => {
                   <div className="form-group">
                     <label>Business Email</label>
                     <input value={contactInfo.email} onChange={e => setContactInfo({...contactInfo, email: e.target.value})} />
-                    <label>Public Phone</label>
+                    <label>Business Phone</label>
                     <input value={contactInfo.phone} onChange={e => setContactInfo({...contactInfo, phone: e.target.value})} />
-                    <label>Location/Address</label>
+                    <label>Store Location</label>
                     <input value={contactInfo.location} onChange={e => setContactInfo({...contactInfo, location: e.target.value})} />
                     <div className="edit-actions">
-                      <button className="essence-save-btn" onClick={() => handleSave('contact_info', contactInfo)}>Update Info</button>
+                      <button className="essence-save-btn" onClick={() => handleSave('contact_info', contactInfo)}>Update Contact</button>
                       <button className="cms-cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
                     </div>
                   </div>
@@ -173,15 +179,15 @@ const AdminCMS = () => {
             {activeTab === 'socials' && (
               <div className="cms-section-card">
                 <div className="cms-card-header">
-                  <h3>Social Media Handles</h3>
+                  <h3>Social Media & Customer Care</h3>
                   {!isEditing && <button className="cms-edit-btn" onClick={() => setIsEditing(true)}>Manage Socials</button>}
                 </div>
                 
                 <div className="social-manager-wrapper">
-                  <h4>Customer Care (Care Section)</h4>
+                  <h4>Customer Care Numbers</h4>
                   {socialData.care.map((item, i) => (
                     <div key={i} className="dynamic-row">
-                      <input disabled={!isEditing} placeholder="Phone" value={item.number} onChange={e => updateSocialField('care', i, 'number', e.target.value)} />
+                      <input disabled={!isEditing} placeholder="Phone Number" value={item.number} onChange={e => updateSocialField('care', i, 'number', e.target.value)} />
                       <select disabled={!isEditing} value={item.type} onChange={e => updateSocialField('care', i, 'type', e.target.value)}>
                         <option value="WhatsApp">WhatsApp</option>
                         <option value="Call">Call</option>
@@ -189,16 +195,16 @@ const AdminCMS = () => {
                       {isEditing && <button className="row-del-btn" onClick={() => removeRow('care', i)}>×</button>}
                     </div>
                   ))}
-                  {isEditing && <button className="add-row-btn" onClick={addCare}>+ Add Phone Row</button>}
+                  {isEditing && <button className="add-row-btn" onClick={addCare}>+ Add Phone</button>}
 
-                  <hr style={{margin: '20px 0', opacity: 0.2}} />
+                  <hr style={{margin: '20px 0', opacity: 0.1}} />
 
-                  <h4>Social Links (Icons Section)</h4>
+                  <h4>Social Links</h4>
                   {socialData.handles.map((item, i) => (
                     <div key={i} className="dynamic-row">
-                      <input disabled={!isEditing} placeholder="Platform" value={item.platform} onChange={e => updateSocialField('handles', i, 'platform', e.target.value)} />
-                      <input disabled={!isEditing} placeholder="Handle Text" value={item.handle} onChange={e => updateSocialField('handles', i, 'handle', e.target.value)} />
-                      <input disabled={!isEditing} placeholder="URL Link" value={item.link} onChange={e => updateSocialField('handles', i, 'link', e.target.value)} />
+                      <input disabled={!isEditing} placeholder="Platform (e.g. Instagram)" value={item.platform} onChange={e => updateSocialField('handles', i, 'platform', e.target.value)} />
+                      <input disabled={!isEditing} placeholder="Handle/Label" value={item.handle} onChange={e => updateSocialField('handles', i, 'handle', e.target.value)} />
+                      <input disabled={!isEditing} placeholder="Link (URL)" value={item.link} onChange={e => updateSocialField('handles', i, 'link', e.target.value)} />
                       {isEditing && <button className="row-del-btn" onClick={() => removeRow('handles', i)}>×</button>}
                     </div>
                   ))}
@@ -206,7 +212,7 @@ const AdminCMS = () => {
 
                   {isEditing && (
                     <div className="edit-actions" style={{marginTop: '20px'}}>
-                      <button className="essence-save-btn" onClick={() => handleSave('social_links', socialData)}>Save All Socials</button>
+                      <button className="essence-save-btn" onClick={() => handleSave('social_links', socialData)}>Save Social Media</button>
                       <button className="cms-cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
                     </div>
                   )}
@@ -214,29 +220,51 @@ const AdminCMS = () => {
               </div>
             )}
 
-            {/* TAB 4: INBOX */}
+            {/* TAB 4: INBOX (WITH TIME STAMP & REPLIED MARKER) */}
             {activeTab === 'messages' && (
               <div className="cms-section-card">
-                <h3>Customer Inbox</h3>
+                <h3>Customer Messages</h3>
                 <div className="table-responsive">
                   <table className="cms-table">
                     <thead>
-                      <tr><th>Sent</th><th>Customer</th><th>Message</th><th>Action</th></tr>
+                      <tr>
+                        <th>Time Received</th>
+                        <th>Customer</th>
+                        <th>Message</th>
+                        <th>Status / Action</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {messages.length > 0 ? messages.map(msg => (
-                        <tr key={msg.id}>
-                          <td style={{fontSize: '11px'}}>{new Date(msg.createdAt).toLocaleDateString()}</td>
-                          <td>
-                            <strong style={{fontSize: '13px'}}>{msg.name}</strong><br/>
-                            <a href={`https://wa.me/${formatWhatsApp(msg.phone)}`} target="_blank" rel="noreferrer" style={{color: '#25D366', fontSize: '11px'}}>{msg.phone}</a>
+                        <tr key={msg.id} style={{ opacity: msg.replied ? 0.6 : 1 }}>
+                          <td className="time-cell">
+                            <div style={{fontWeight: '600', fontSize: '12px'}}>{new Date(msg.createdAt).toLocaleDateString()}</div>
+                            <div style={{fontSize: '11px', color: '#888'}}>{new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                           </td>
-                          <td style={{fontSize: '13px', maxWidth: '150px'}} className="truncate">{msg.message}</td>
-                          <td><button className="cms-delete-btn" onClick={() => {
-                            if(window.confirm("Delete?")) API.delete(`/admin/messages/${msg.id}`).then(() => fetchData());
-                          }}>Delete</button></td>
+                          <td>
+                            <strong>{msg.name}</strong><br/>
+                            <a href={`https://wa.me/${formatWhatsApp(msg.phone)}`} target="_blank" rel="noreferrer" style={{color: '#25D366', fontSize: '12px', textDecoration: 'none'}}>
+                              {msg.phone || "No Phone"}
+                            </a>
+                          </td>
+                          <td className="msg-text-cell">{msg.message}</td>
+                          <td>
+                            <div className="action-stack">
+                              <button 
+                                className={`mark-btn ${msg.replied ? 'replied' : ''}`}
+                                onClick={() => toggleReplied(msg.id)}
+                              >
+                                {msg.replied ? '✓ Replied' : 'Mark Replied'}
+                              </button>
+                              <button className="cms-delete-btn" onClick={() => {
+                                if(window.confirm("Delete this message?")) API.delete(`/admin/messages/${msg.id}`).then(() => fetchData());
+                              }}>Delete</button>
+                            </div>
+                          </td>
                         </tr>
-                      )) : <tr><td colSpan="4">No messages yet.</td></tr>}
+                      )) : (
+                        <tr><td colSpan="4" style={{textAlign: 'center', padding: '30px', color: '#999'}}>No messages found.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
