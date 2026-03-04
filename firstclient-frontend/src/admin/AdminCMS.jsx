@@ -77,6 +77,12 @@ const AdminCMS = () => {
     }
   };
 
+  // Helper to format phone for WhatsApp link
+  const formatWhatsApp = (num) => {
+    const cleanNum = num.replace(/\D/g, '');
+    return cleanNum.startsWith('0') ? `234${cleanNum.slice(1)}` : cleanNum;
+  };
+
   return (
     <div className="essence-cms-container">
       <header className="cms-header">
@@ -166,7 +172,7 @@ const AdminCMS = () => {
                   <table className="cms-table">
                     <thead>
                       <tr>
-                        <th>Date</th>
+                        <th>Time Sent</th>
                         <th>Customer</th>
                         <th>Message</th>
                         <th>Action</th>
@@ -176,8 +182,24 @@ const AdminCMS = () => {
                       {messages.length > 0 ? (
                         messages.map(msg => (
                           <tr key={msg.id}>
-                            <td>{new Date(msg.createdAt).toLocaleDateString()}</td>
-                            <td><strong>{msg.name}</strong><br/><span className="cms-email-sub">{msg.email}</span></td>
+                            <td className="time-cell">
+                              {new Date(msg.createdAt).toLocaleDateString()} <br/>
+                              <small style={{color: '#888'}}>
+                                {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              </small>
+                            </td>
+                            <td>
+                              <strong>{msg.name}</strong><br/>
+                              <a 
+                                href={`https://wa.me/${formatWhatsApp(msg.phone)}`} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="cms-phone-link"
+                                style={{color: '#25D366', textDecoration: 'none', fontWeight: '500'}}
+                              >
+                                {msg.phone} (WhatsApp)
+                              </a>
+                            </td>
                             <td className="msg-text-cell">{msg.message}</td>
                             <td><button className="cms-delete-btn" onClick={() => deleteMsg(msg.id)}>Delete</button></td>
                           </tr>
