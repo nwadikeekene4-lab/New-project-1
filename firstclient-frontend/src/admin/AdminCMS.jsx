@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import './AdminCMS.css'; 
 
 const AdminCMS = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('about'); 
   const [aboutData, setAboutData] = useState({ title: '', description: '', image: '' });
   const [contactInfo, setContactInfo] = useState({ email: '', phone: '', location: '' });
@@ -12,9 +14,9 @@ const AdminCMS = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
+    // We keep loading true until ALL data is back to prevent "invisible" text
     setLoading(true);
     try {
-      // Parallel fetching for speed
       const [aboutRes, contactRes, msgRes] = await Promise.all([
         API.get('/cms/about'),
         API.get('/cms/contact_info'),
@@ -23,10 +25,13 @@ const AdminCMS = () => {
 
       if (aboutRes.data) setAboutData(aboutRes.data);
       if (contactRes.data) setContactInfo(contactRes.data);
-      setMessages(msgRes.data || []);
+      
+      // Ensure messages is always an array to prevent "Empty" errors
+      setMessages(Array.isArray(msgRes.data) ? msgRes.data : []);
     } catch (err) {
       console.error("Error fetching CMS data:", err);
     } finally {
+      // Data is now in state, now we show the UI
       setLoading(false);
     }
   };
@@ -77,8 +82,8 @@ const AdminCMS = () => {
     }
   };
 
-  // Helper to format phone for WhatsApp link
   const formatWhatsApp = (num) => {
+    if(!num) return "";
     const cleanNum = num.replace(/\D/g, '');
     return cleanNum.startsWith('0') ? `234${cleanNum.slice(1)}` : cleanNum;
   };
@@ -86,10 +91,13 @@ const AdminCMS = () => {
   return (
     <div className="essence-cms-container">
       <header className="cms-header">
+        {/* Proper Back Navigation for Phones */}
+        <button className="nav-back-btn" onClick={() => navigate(-1)} style={{marginBottom: '10px'}}>
+          ← Back
+        </button>
         <h2 className="cms-main-title">Store Management</h2>
       </header>
       
-      {/* KONGA STYLE TAB BAR */}
       <div className="cms-tab-bar">
         <button className={activeTab === 'about' ? 'active' : ''} onClick={() => {setActiveTab('about'); setIsEditing(false);}}>About Page</button>
         <button className={activeTab === 'contact' ? 'active' : ''} onClick={() => {setActiveTab('contact'); setIsEditing(false);}}>Contact Info</button>
@@ -98,9 +106,12 @@ const AdminCMS = () => {
 
       <main className="cms-main-content">
         {loading ? (
-          <div className="cms-loader">Updating dashboard...</div>
+          <div className="cms-loader">
+             <p>Loading Essence Creations Dashboard...</p>
+          </div>
         ) : (
-          <>
+          <div className="cms-fade-in"> {/* Added class for smooth entrance */}
+            
             {/* TAB 1: ABOUT PAGE */}
             {activeTab === 'about' && (
               <div className="cms-section-card">
@@ -112,7 +123,9 @@ const AdminCMS = () => {
                   <div className="cms-master-preview">
                     <h4>{aboutData.title || "No Title Set"}</h4>
                     {aboutData.image && <img src={aboutData.image} alt="Preview" className="cms-preview-img" />}
-                    <p className="cms-text-preview">{aboutData.description || "No description provided."}</p>
+                    <p className="cms-text-preview" style={{whiteSpace: 'pre-wrap'}}>
+                      {aboutData.description || "No description provided."}
+                    </p>
                   </div>
                 ) : (
                   <div className="form-group">
@@ -197,7 +210,7 @@ const AdminCMS = () => {
                                 className="cms-phone-link"
                                 style={{color: '#25D366', textDecoration: 'none', fontWeight: '500'}}
                               >
-                                {msg.phone} (WhatsApp)
+                                {msg.phone || "No Phone"}
                               </a>
                             </td>
                             <td className="msg-text-cell">{msg.message}</td>
@@ -212,7 +225,7 @@ const AdminCMS = () => {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </main>
     </div>
