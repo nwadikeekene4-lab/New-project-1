@@ -8,37 +8,37 @@ const AdminCMS = () => {
   const [activeTab, setActiveTab] = useState('about'); 
   const [aboutData, setAboutData] = useState({ title: '', description: '', image: '' });
   const [contactInfo, setContactInfo] = useState({ email: '', phone: '', location: '' });
+  const [socialData, setSocialData] = useState({ handles: [], care: [] });
   const [messages, setMessages] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
-    // We keep loading true until ALL data is back to prevent "invisible" text
     setLoading(true);
     try {
-      const [aboutRes, contactRes, msgRes] = await Promise.all([
+      const [aboutRes, contactRes, msgRes, socialRes] = await Promise.all([
         API.get('/cms/about'),
         API.get('/cms/contact_info'),
-        API.get('/admin/messages')
+        API.get('/admin/messages'),
+        API.get('/cms/social_links')
       ]);
 
       if (aboutRes.data) setAboutData(aboutRes.data);
       if (contactRes.data) setContactInfo(contactRes.data);
-      
-      // Ensure messages is always an array to prevent "Empty" errors
+      if (socialRes.data) setSocialData({
+        handles: socialRes.data.handles || [],
+        care: socialRes.data.care || []
+      });
       setMessages(Array.isArray(msgRes.data) ? msgRes.data : []);
     } catch (err) {
       console.error("Error fetching CMS data:", err);
     } finally {
-      // Data is now in state, now we show the UI
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleSave = async (page, data) => {
     try {
@@ -51,35 +51,38 @@ const AdminCMS = () => {
     }
   };
 
+  // --- Dynamic Social Logic ---
+  const addSocial = () => {
+    setSocialData(prev => ({ ...prev, handles: [...prev.handles, { platform: '', handle: '', link: '' }] }));
+  };
+
+  const addCare = () => {
+    setSocialData(prev => ({ ...prev, care: [...prev.care, { number: '', type: 'WhatsApp' }] }));
+  };
+
+  const removeRow = (type, index) => {
+    const updated = [...socialData[type]];
+    updated.splice(index, 1);
+    setSocialData({ ...socialData, [type]: updated });
+  };
+
+  const updateSocialField = (type, index, field, value) => {
+    const updated = [...socialData[type]];
+    updated[index][field] = value;
+    setSocialData({ ...socialData, [type]: updated });
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const formData = new FormData();
     formData.append('image', file);
-
     setUploading(true);
     try {
-      const res = await API.post('/admin/upload-image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await API.post('/admin/upload-image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setAboutData({ ...aboutData, image: res.data.image });
-      alert("Image uploaded successfully!");
-    } catch (err) {
-      alert("Image upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const deleteMsg = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this message?")) return;
-    try {
-      await API.delete(`/admin/messages/${id}`);
-      setMessages(messages.filter(m => m.id !== id));
-    } catch (err) {
-      alert("Delete failed");
-    }
+    } catch (err) { alert("Upload failed"); } 
+    finally { setUploading(false); }
   };
 
   const formatWhatsApp = (num) => {
@@ -91,28 +94,21 @@ const AdminCMS = () => {
   return (
     <div className="essence-cms-container">
       <header className="cms-header">
-        {/* Proper Back Navigation for Phones */}
-        <button className="nav-back-btn" onClick={() => navigate(-1)} style={{marginBottom: '10px'}}>
-          ← Back
-        </button>
+        <button className="nav-back-btn" onClick={() => navigate(-1)}>← Back</button>
         <h2 className="cms-main-title">Store Management</h2>
       </header>
       
       <div className="cms-tab-bar">
-        <button className={activeTab === 'about' ? 'active' : ''} onClick={() => {setActiveTab('about'); setIsEditing(false);}}>About Page</button>
-        <button className={activeTab === 'contact' ? 'active' : ''} onClick={() => {setActiveTab('contact'); setIsEditing(false);}}>Contact Info</button>
+        <button className={activeTab === 'about' ? 'active' : ''} onClick={() => {setActiveTab('about'); setIsEditing(false);}}>About</button>
+        <button className={activeTab === 'contact' ? 'active' : ''} onClick={() => {setActiveTab('contact'); setIsEditing(false);}}>Contact</button>
+        <button className={activeTab === 'socials' ? 'active' : ''} onClick={() => {setActiveTab('socials'); setIsEditing(false);}}>Socials</button>
         <button className={activeTab === 'messages' ? 'active' : ''} onClick={() => {setActiveTab('messages'); setIsEditing(false);}}>Inbox ({messages.length})</button>
       </div>
 
       <main className="cms-main-content">
-        {loading ? (
-          <div className="cms-loader">
-             <p>Loading Essence Creations Dashboard...</p>
-          </div>
-        ) : (
-          <div className="cms-fade-in"> {/* Added class for smooth entrance */}
+        {loading ? <div className="cms-loader">Updating dashboard...</div> : (
+          <div className="cms-fade-in">
             
-            {/* TAB 1: ABOUT PAGE */}
             {activeTab === 'about' && (
               <div className="cms-section-card">
                 <div className="cms-card-header">
@@ -121,23 +117,19 @@ const AdminCMS = () => {
                 </div>
                 {!isEditing ? (
                   <div className="cms-master-preview">
-                    <h4>{aboutData.title || "No Title Set"}</h4>
+                    <h4>{aboutData.title}</h4>
                     {aboutData.image && <img src={aboutData.image} alt="Preview" className="cms-preview-img" />}
-                    <p className="cms-text-preview" style={{whiteSpace: 'pre-wrap'}}>
-                      {aboutData.description || "No description provided."}
-                    </p>
+                    <p className="cms-text-preview" style={{whiteSpace: 'pre-wrap'}}>{aboutData.description}</p>
                   </div>
                 ) : (
                   <div className="form-group">
                     <label>Title</label>
-                    <input value={aboutData.title} onChange={e => setAboutData({...aboutData, title: e.target.value})} placeholder="Enter Title" />
-                    <label>Update Image</label>
+                    <input value={aboutData.title} onChange={e => setAboutData({...aboutData, title: e.target.value})} />
+                    <label>Image</label>
                     <input type="file" onChange={handleImageUpload} />
-                    {uploading && <p className="uploading-text">Uploading to Cloudinary...</p>}
-                    <label>Write-up</label>
-                    <textarea rows="8" value={aboutData.description} onChange={e => setAboutData({...aboutData, description: e.target.value})} placeholder="Enter write-up..." />
+                    <textarea rows="8" value={aboutData.description} onChange={e => setAboutData({...aboutData, description: e.target.value})} />
                     <div className="edit-actions">
-                      <button className="essence-save-btn" onClick={() => handleSave('about', aboutData)}>Save Changes</button>
+                      <button className="essence-save-btn" onClick={() => handleSave('about', aboutData)}>Save</button>
                       <button className="cms-cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
                     </div>
                   </div>
@@ -145,81 +137,73 @@ const AdminCMS = () => {
               </div>
             )}
 
-            {/* TAB 2: CONTACT INFO */}
-            {activeTab === 'contact' && (
+            {activeTab === 'socials' && (
               <div className="cms-section-card">
                 <div className="cms-card-header">
-                  <h3>Business Details</h3>
-                  {!isEditing && <button className="cms-edit-btn" onClick={() => setIsEditing(true)}>Edit Details</button>}
+                  <h3>Social Media Handles</h3>
+                  {!isEditing && <button className="cms-edit-btn" onClick={() => setIsEditing(true)}>Manage Socials</button>}
                 </div>
-                {!isEditing ? (
-                  <div className="cms-master-preview">
-                    <div className="info-preview-box">
-                      <p><strong>Email:</strong> {contactInfo.email || "Not set"}</p>
-                      <p><strong>Phone:</strong> {contactInfo.phone || "Not set"}</p>
-                      <p><strong>Location:</strong> {contactInfo.location || "Not set"}</p>
+                
+                <div className="social-manager-wrapper">
+                  <h4>Customer Care</h4>
+                  {socialData.care.map((item, i) => (
+                    <div key={i} className="dynamic-row">
+                      <input disabled={!isEditing} placeholder="Phone Number" value={item.number} onChange={e => updateSocialField('care', i, 'number', e.target.value)} />
+                      <select disabled={!isEditing} value={item.type} onChange={e => updateSocialField('care', i, 'type', e.target.value)}>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Call">Call</option>
+                      </select>
+                      {isEditing && <button className="row-del-btn" onClick={() => removeRow('care', i)}>×</button>}
                     </div>
-                  </div>
-                ) : (
-                  <div className="form-group">
-                    <label>Email Address</label>
-                    <input value={contactInfo.email} onChange={e => setContactInfo({...contactInfo, email: e.target.value})} />
-                    <label>Phone Number</label>
-                    <input value={contactInfo.phone} onChange={e => setContactInfo({...contactInfo, phone: e.target.value})} />
-                    <label>Location</label>
-                    <input value={contactInfo.location} onChange={e => setContactInfo({...contactInfo, location: e.target.value})} />
-                    <div className="edit-actions">
-                      <button className="essence-save-btn" onClick={() => handleSave('contact_info', contactInfo)}>Update Contact</button>
+                  ))}
+                  {isEditing && <button className="add-row-btn" onClick={addCare}>+ Add Phone</button>}
+
+                  <hr style={{margin: '20px 0', opacity: 0.2}} />
+
+                  <h4>Social Links</h4>
+                  {socialData.handles.map((item, i) => (
+                    <div key={i} className="dynamic-row">
+                      <input disabled={!isEditing} placeholder="Platform (e.g. Instagram)" value={item.platform} onChange={e => updateSocialField('handles', i, 'platform', e.target.value)} />
+                      <input disabled={!isEditing} placeholder="Placeholder/Handle" value={item.handle} onChange={e => updateSocialField('handles', i, 'handle', e.target.value)} />
+                      <input disabled={!isEditing} placeholder="Link (https://...)" value={item.link} onChange={e => updateSocialField('handles', i, 'link', e.target.value)} />
+                      {isEditing && <button className="row-del-btn" onClick={() => removeRow('handles', i)}>×</button>}
+                    </div>
+                  ))}
+                  {isEditing && <button className="add-row-btn" onClick={addSocial}>+ Add Social Link</button>}
+
+                  {isEditing && (
+                    <div className="edit-actions" style={{marginTop: '20px'}}>
+                      <button className="essence-save-btn" onClick={() => handleSave('social_links', socialData)}>Save Socials</button>
                       <button className="cms-cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
 
-            {/* TAB 3: INBOX */}
+            {/* MESSAGE TAB */}
             {activeTab === 'messages' && (
               <div className="cms-section-card">
-                <h3>Customer Messages</h3>
+                <h3>Inbox</h3>
                 <div className="table-responsive">
                   <table className="cms-table">
                     <thead>
-                      <tr>
-                        <th>Time Sent</th>
-                        <th>Customer</th>
-                        <th>Message</th>
-                        <th>Action</th>
-                      </tr>
+                      <tr><th>Time</th><th>Customer</th><th>Message</th><th>Action</th></tr>
                     </thead>
                     <tbody>
-                      {messages.length > 0 ? (
-                        messages.map(msg => (
-                          <tr key={msg.id}>
-                            <td className="time-cell">
-                              {new Date(msg.createdAt).toLocaleDateString()} <br/>
-                              <small style={{color: '#888'}}>
-                                {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                              </small>
-                            </td>
-                            <td>
-                              <strong>{msg.name}</strong><br/>
-                              <a 
-                                href={`https://wa.me/${formatWhatsApp(msg.phone)}`} 
-                                target="_blank" 
-                                rel="noreferrer" 
-                                className="cms-phone-link"
-                                style={{color: '#25D366', textDecoration: 'none', fontWeight: '500'}}
-                              >
-                                {msg.phone || "No Phone"}
-                              </a>
-                            </td>
-                            <td className="msg-text-cell">{msg.message}</td>
-                            <td><button className="cms-delete-btn" onClick={() => deleteMsg(msg.id)}>Delete</button></td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr><td colSpan="4" className="cms-no-data">Your inbox is empty.</td></tr>
-                      )}
+                      {messages.map(msg => (
+                        <tr key={msg.id}>
+                          <td>{new Date(msg.createdAt).toLocaleDateString()}</td>
+                          <td>
+                            <strong>{msg.name}</strong><br/>
+                            <a href={`https://wa.me/${formatWhatsApp(msg.phone)}`} target="_blank" rel="noreferrer" style={{color: '#25D366', fontSize: '12px'}}>{msg.phone}</a>
+                          </td>
+                          <td>{msg.message}</td>
+                          <td><button className="cms-delete-btn" onClick={() => {
+                            if(window.confirm("Delete?")) API.delete(`/admin/messages/${msg.id}`).then(() => fetchData());
+                          }}>Delete</button></td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
