@@ -23,19 +23,36 @@ const ContactPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
+    console.log("📤 Attempting to send message to:", API.defaults.baseURL + '/contact');
+    console.log("📦 Data being sent:", formData);
+
     try {
-      // Note: API.post already includes the /api prefix from your api.js config
-      await API.post('/contact', formData);
+      const response = await API.post('/contact', formData);
+      console.log("✅ Server Response:", response.data);
       alert(`Thank you, ${formData.name}! Your message has been sent.`);
       setFormData({ name: '', email: '', message: '' });
     } catch (err) {
-      // Professional Error Message
-      alert("We're having trouble connecting to the server. Please try again in a moment.");
+      // THIS LOGS THE EXACT ERROR TO YOUR BROWSER CONSOLE
+      console.error("❌ FULL ERROR OBJECT:", err);
+      
+      if (err.response) {
+        // The server responded with a status code outside the 2xx range
+        console.error("Status:", err.response.status);
+        console.error("Data:", err.response.data);
+        alert(`Server Error (${err.response.status}): ${err.response.data.error || "Failed to send"}`);
+      } else if (req.request) {
+        // The request was made but no response was received
+        console.error("📡 No response received from backend. Check if backend is awake!");
+        alert("Connection Error: No response from server.");
+      } else {
+        console.error("🛠 Setup Error:", err.message);
+        alert("An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="contact-wrapper">
       <div className="contact-container">
@@ -70,4 +87,5 @@ const ContactPage = () => {
 };
 
 export default ContactPage;
+
 
