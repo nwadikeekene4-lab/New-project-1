@@ -20,35 +20,22 @@ const ContactPage = () => {
     });
   }, []);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    console.log("📤 Attempting to send message to:", API.defaults.baseURL + '/contact');
-    console.log("📦 Data being sent:", formData);
 
     try {
       const response = await API.post('/contact', formData);
-      console.log("✅ Server Response:", response.data);
-      alert(`Thank you, ${formData.name}! Your message has been sent.`);
+      alert(`Success! Message sent to ${info.email}`);
       setFormData({ name: '', email: '', message: '' });
     } catch (err) {
-      // THIS LOGS THE EXACT ERROR TO YOUR BROWSER CONSOLE
-      console.error("❌ FULL ERROR OBJECT:", err);
+      // Professional phone debugging: This shows the exact reason in an alert box
+      const errorMsg = err.response 
+        ? `Server Error (${err.response.status}): ${JSON.stringify(err.response.data)}` 
+        : `Connection Error: ${err.message}. (Check if API URL is correct: ${API.defaults.baseURL})`;
       
-      if (err.response) {
-        // The server responded with a status code outside the 2xx range
-        console.error("Status:", err.response.status);
-        console.error("Data:", err.response.data);
-        alert(`Server Error (${err.response.status}): ${err.response.data.error || "Failed to send"}`);
-      } else if (req.request) {
-        // The request was made but no response was received
-        console.error("📡 No response received from backend. Check if backend is awake!");
-        alert("Connection Error: No response from server.");
-      } else {
-        console.error("🛠 Setup Error:", err.message);
-        alert("An unexpected error occurred.");
-      }
+      alert(errorMsg);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -87,5 +74,6 @@ const ContactPage = () => {
 };
 
 export default ContactPage;
+
 
 
