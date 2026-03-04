@@ -48,9 +48,8 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
         </div>
         <nav className="sidebar-links">
           <Link to="/" onClick={() => setIsSidebarOpen(false)}>Welcome</Link>
-          <Link to="/shop" onClick={() => setIsSidebarOpen(false)}>Shop Products</Link>
           <Link to="/catering" onClick={() => setIsSidebarOpen(false)}>Pastry Services</Link>
-          <Link to="/hub" onClick={() => setIsSidebarOpen(false)}>Heritage Hub</Link>
+          <Link to="/hub" onClick={() => setIsSidebarOpen(false)}>Essence Creations</Link>
           <Link to="/socials" onClick={() => setIsSidebarOpen(false)}>Contact Us</Link>
         </nav>
       </div>
@@ -108,4 +107,5 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
       </header>
     </>
   );
+
 }
