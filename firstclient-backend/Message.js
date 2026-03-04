@@ -13,7 +13,7 @@ const Message = sequelize.define("Message", {
   },
   phone: { 
     type: DataTypes.STRING,
-    allowNull: true // ✅ Changed to true to fix the "null values" error
+    allowNull: true 
   },
   message: {
     type: DataTypes.TEXT,
@@ -24,7 +24,8 @@ const Message = sequelize.define("Message", {
     defaultValue: "unread"
   }
 }, {
-  timestamps: true 
+  timestamps: true,
+  paranoid: true // ✅ Enables Soft Delete
 });
 
 module.exports = Message;
