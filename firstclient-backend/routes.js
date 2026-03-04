@@ -107,12 +107,31 @@ router.post("/admin/login", async (req, res) => {
 // --- INBOX & CONTACT ROUTES ---
 
 router.post("/contact", async (req, res) => {
+  console.log("📥 Incoming Contact Request received at:", new Date().toISOString());
+  console.log("📝 Request Body:", req.body);
+
   try {
     const { name, email, message } = sanitizeInput(req.body);
-    await Message.create({ name, email, message });
+    
+    // Check if fields are missing
+    if (!name || !email || !message) {
+      console.warn("⚠️ Validation Failed: Missing fields");
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const newMessage = await Message.create({ name, email, message });
+    console.log("✅ Message saved to DB with ID:", newMessage.id);
+    
     res.json({ success: true, message: "Message sent successfully" });
   } catch (err) {
-    res.status(500).json({ error: "Failed to save message" });
+    // THIS PRINTS TO YOUR RENDER LOGS
+    console.error("❌ DATABASE ERROR IN /CONTACT ROUTE:");
+    console.error(err); 
+    
+    res.status(500).json({ 
+      error: "Internal Server Error", 
+      details: err.message 
+    });
   }
 });
 
@@ -352,3 +371,4 @@ router.get("/cms/:page", async (req, res) => {
 });
 
 module.exports = router;
+
