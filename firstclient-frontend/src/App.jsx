@@ -17,12 +17,12 @@ import ContactPage from './pages/ContactPage';
 import SocialMediaPage from './pages/SocialMediaPage';
 import { SuccessPage } from './pages/SuccessPage';
 import AdminCMS from './admin/AdminCMS';
+import AdminArchive from './admin/AdminArchive'; // New Integration
 
 function App () {
   const [cart, setCart] = useState([]);
   const [allProducts, setAllProducts] = useState([]); 
   const [globalLoading, setGlobalLoading] = useState(true);
-  // NEW: Lifted search state to sync Header and Product List
   const [searchTerm, setSearchTerm] = useState('');
 
   const removeFromCart = (cartItemId) => {
@@ -82,21 +82,29 @@ function App () {
             setCart={setCart} 
             allProducts={allProducts} 
             globalLoading={globalLoading} 
-            searchTerm={searchTerm}      /* PASS STATE */
-            setSearchTerm={setSearchTerm} /* PASS SETTER */
+            searchTerm={searchTerm} 
+            setSearchTerm={setSearchTerm}
           />
         }/>
 
-    
+        <Route 
+          path="/admin/cms" 
+          element={
+            <ProtectedRoute>
+              <AdminCMS />
+            </ProtectedRoute>
+          } 
+        />
 
-<Route 
-  path="/admin/cms" 
-  element={
-    <ProtectedRoute>
-      <AdminCMS />
-    </ProtectedRoute>
-  } 
-/>
+        <Route 
+          path="/admin/archive" 
+          element={
+            <ProtectedRoute>
+              <AdminArchive />
+            </ProtectedRoute>
+          } 
+        />
+
         <Route path="/checkout" element={
           <Checkout 
             cart={cart} 
