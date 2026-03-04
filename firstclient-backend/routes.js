@@ -14,7 +14,6 @@ const { JSDOM } = require('jsdom');
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
-// STRATEGY: Separate imports to prevent Render deployment errors
 const Product = require("./models");
 const Message = require("./Message"); 
 const CMS = require("./cms"); 
@@ -70,8 +69,6 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// --- AUTH & WEBHOOKS ---
-
 router.post("/paystack/webhook", async (req, res) => {
   try {
     const hash = crypto.createHmac('sha512', PAYSTACK_SECRET)
@@ -104,34 +101,19 @@ router.post("/admin/login", async (req, res) => {
   }
 });
 
-// --- INBOX & CONTACT ROUTES ---
-
 router.post("/contact", async (req, res) => {
-  console.log("📥 Incoming Contact Request received at:", new Date().toISOString());
-  console.log("📝 Request Body:", req.body);
-
   try {
-    const { name, email, message } = sanitizeInput(req.body);
+    const { name, phone, message } = sanitizeInput(req.body);
     
-    // Check if fields are missing
-    if (!name || !email || !message) {
-      console.warn("⚠️ Validation Failed: Missing fields");
+    if (!name || !phone || !message) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const newMessage = await Message.create({ name, email, message });
-    console.log("✅ Message saved to DB with ID:", newMessage.id);
+    await Message.create({ name, phone, message });
     
-    res.json({ success: true, message: "Message sent successfully" });
+    res.json({ success: true, message: "Thank you! Your message has been sent to Essence Creations." });
   } catch (err) {
-    // THIS PRINTS TO YOUR RENDER LOGS
-    console.error("❌ DATABASE ERROR IN /CONTACT ROUTE:");
-    console.error(err); 
-    
-    res.status(500).json({ 
-      error: "Internal Server Error", 
-      details: err.message 
-    });
+    res.status(500).json({ error: "Internal Server Error", details: err.message });
   }
 });
 
@@ -152,8 +134,6 @@ router.delete("/admin/messages/:id", verifyToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// --- PRODUCT ROUTES ---
 
 router.post("/admin/products", verifyToken, upload.single("image"), async (req, res) => {
   try {
@@ -186,8 +166,6 @@ router.get("/products", async (req, res) => {
     res.json(products);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-// --- CART, PAYMENT, & ORDER ROUTES ---
 
 router.get("/cart", async (req, res) => {
   try {
@@ -323,7 +301,6 @@ router.post("/orders/verify", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- CMS ROUTES ---
 router.post("/cms/update", verifyToken, async (req, res) => {
   try {
     const { page_name, data } = req.body;
@@ -371,4 +348,3 @@ router.get("/cms/:page", async (req, res) => {
 });
 
 module.exports = router;
-
