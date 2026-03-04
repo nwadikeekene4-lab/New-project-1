@@ -58,16 +58,19 @@ export default function AdminProducts() {
     const formData = new FormData();
     formData.append("name", editName);
     formData.append("price", editPrice);
+    // Only append image if a new file was selected
     if (editImageFile) formData.append("image", editImageFile);
 
     try {
       const res = await API.put(`/admin/products/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
+      
+      // Update the local state with the returned updated product
       setProducts(products.map(p => p.id === id ? res.data.updatedProduct : p));
       setEditingId(null);
       setEditImageFile(null);
-      alert("Product updated successfully!");
+      alert("Product updated successfully! ✅");
     } catch (err) {
       alert("Error updating product.");
     } finally {
@@ -76,12 +79,20 @@ export default function AdminProducts() {
   };
 
   const deleteProduct = async (id) => {
-    if (!window.confirm("Delete this product?")) return;
+    // UPDATED: User-friendly warning for Soft Delete
+    if (!window.confirm("Archive this product? It will be hidden from the store but can be recovered from the database.")) return;
+    
     const token = localStorage.getItem("adminToken");
     try {
-      await API.delete(`/admin/products/${id}`, { headers: { "Authorization": `Bearer ${token}` } });
+      await API.delete(`/admin/products/${id}`, { 
+        headers: { "Authorization": `Bearer ${token}` } 
+      });
+      // Remove from UI immediately
       setProducts(products.filter(p => p.id !== id));
-    } catch (err) { alert("Error deleting product."); }
+      alert("Product moved to archive. ✅");
+    } catch (err) { 
+      alert("Error archiving product."); 
+    }
   };
 
   const filteredProducts = products.filter(p => 
@@ -118,12 +129,36 @@ export default function AdminProducts() {
             <div key={p.id} className="inventory-item">
               {editingId === p.id ? (
                 <div className="grid-edit-form">
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                  <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                  <input type="file" className="mini-file" onChange={(e) => setEditImageFile(e.target.files[0])} />
+                  <input 
+                    placeholder="Product Name" 
+                    value={editName} 
+                    onChange={(e) => setEditName(e.target.value)} 
+                  />
+                  <input 
+                    type="number" 
+                    placeholder="Price" 
+                    value={editPrice} 
+                    onChange={(e) => setEditPrice(e.target.value)} 
+                  />
+                  <input 
+                    type="file" 
+                    className="mini-file" 
+                    onChange={(e) => setEditImageFile(e.target.files[0])} 
+                  />
                   <div className="edit-grid-btns">
-                    <button className="grid-btn-save" onClick={() => updateProduct(p.id)}>{isSaving ? "..." : "Save"}</button>
-                    <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
+                    <button 
+                      className="grid-btn-save" 
+                      onClick={() => updateProduct(p.id)}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? "Saving..." : "Save"}
+                    </button>
+                    <button 
+                      className="grid-btn-cancel" 
+                      onClick={() => { setEditingId(null); setEditImageFile(null); }}
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -136,8 +171,22 @@ export default function AdminProducts() {
                     <p className="item-price">₦{Number(p.price).toLocaleString()}</p>
                   </div>
                   <div className="item-footer-actions">
-                    <button className="action-link edit" onClick={() => { setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); }}>Edit</button>
-                    <button className="action-link delete" onClick={() => deleteProduct(p.id)}>Delete</button>
+                    <button 
+                      className="action-link edit" 
+                      onClick={() => { 
+                        setEditingId(p.id); 
+                        setEditName(p.name); 
+                        setEditPrice(p.price); 
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="action-link delete" 
+                      onClick={() => deleteProduct(p.id)}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               )}
@@ -147,4 +196,4 @@ export default function AdminProducts() {
       </div>
     </div>
   );
-    }
+}
