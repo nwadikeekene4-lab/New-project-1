@@ -3,6 +3,7 @@ const cors = require("cors");
 const path = require("path");
 const helmet = require("helmet"); 
 const rateLimit = require("express-rate-limit"); 
+const { Op } = require("sequelize"); // Required for cleanup task
 require("dotenv").config(); 
 
 // --- MODELS ---
@@ -10,7 +11,7 @@ const Product = require("./models");
 const Order = require("./order");
 const Admin = require("./Admin"); 
 const CMS = require("./cms");
-const Message = require("./Message"); // ✅ Integrated Message Model
+const Message = require("./Message"); 
 const { CartItem } = require("./cart");
 const { DeliveryOption = { sync: () => Promise.resolve() } } = require("./deliveryoptions");
 const routes = require("./routes"); 
@@ -44,7 +45,6 @@ const limiter = rateLimit({
 });
 app.use(limiter); 
 
-// --- 1. DYNAMIC CORS ---
 const allowedOrigins = [
   "https://firstclient-frontend.onrender.com",
   "http://localhost:3000",
@@ -67,7 +67,6 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// --- Manual Chrome Preflight Handler ---
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     const origin = req.headers.origin;
@@ -83,15 +82,41 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// --- 🧹 AUTOMATIC CLEANUP TASK ---
+const startCleanupTask = () => {
+  // Runs every 24 hours
+  setInterval(async () => {
+    try {
+      const now = new Date();
+      
+      // 1. Permanent delete Products older than 15 days in archive
+      const productLimit = new Date(now.getTime() - (15 * 24 * 60 * 60 * 1000));
+      await Product.destroy({
+        where: { deletedAt: { [Op.lt]: productLimit } },
+        force: true
+      });
+
+      // 2. Permanent delete Messages older than 60 days in archive
+      const messageLimit = new Date(now.getTime() - (60 * 24 * 60 * 60 * 1000));
+      await Message.destroy({
+        where: { deletedAt: { [Op.lt]: messageLimit } },
+        force: true
+      });
+
+      console.log("✅ Cleanup Task: Expired archived items purged.");
+    } catch (err) {
+      console.error("❌ Cleanup Task Error:", err);
+    }
+  }, 24 * 60 * 60 * 1000); 
+};
+
 // --- START SERVER & SYNC DATABASE ---
 async function startServer() {
   try {
     console.log("⏳ Starting database synchronization...");
-
-    // Syncing all models to ensure tables exist in the Render database
     await Product.sync({ alter: true }); 
     await Admin.sync({ alter: true }); 
-    await Message.sync({ alter: true }); // ✅ Fixes the "Messages does not exist" error
+    await Message.sync({ alter: true }); 
     await CartItem.sync({ alter: true });
     await Order.sync({ alter: true }); 
     await CMS.sync({ alter: true });
@@ -100,8 +125,10 @@ async function startServer() {
     
     console.log("✅ All Database tables synced successfully");
 
-    // Mounting routes after database is ready
     app.use("/api", routes);
+    
+    // Initialize Cleanup Task
+    startCleanupTask();
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, '0.0.0.0', () => {
@@ -109,7 +136,7 @@ async function startServer() {
     });
   } catch (err) {
     console.error("❌ Failed to start server:", err.message);
-    process.exit(1); // Exit if DB connection fails
+    process.exit(1); 
   }
 }
 
