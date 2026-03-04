@@ -24,11 +24,13 @@ const ContactPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      // Note: API.post already includes the /api prefix from your api.js config
       await API.post('/contact', formData);
-      alert(`Thank you, ${formData.name}! Your message has been sent successfully.`);
+      alert(`Thank you, ${formData.name}! Your message has been sent.`);
       setFormData({ name: '', email: '', message: '' });
     } catch (err) {
-      alert("We're sorry, we couldn't send your message. Please try again or reach us via phone/email.");
+      // Professional Error Message
+      alert("We're having trouble connecting to the server. Please try again in a moment.");
     } finally {
       setLoading(false);
     }
@@ -68,3 +70,4 @@ const ContactPage = () => {
 };
 
 export default ContactPage;
+
