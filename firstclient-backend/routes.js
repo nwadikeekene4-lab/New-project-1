@@ -53,7 +53,6 @@ const verifyToken = (req, res, next) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
     if (!token) return res.status(403).json({ message: "No token provided" });
-
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
         if (err.name === "TokenExpiredError") return res.status(401).json({ message: "Session expired.", expired: true });
@@ -92,7 +91,7 @@ router.post("/admin/login", async (req, res) => {
   } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// --- PRODUCT MANAGEMENT (FIXED & COMPLETE) ---
+// --- PRODUCT MANAGEMENT ---
 router.get("/products", async (req, res) => {
   try {
     const products = await Product.findAll({ order: [['createdAt', 'DESC']] });
@@ -113,19 +112,15 @@ router.post("/admin/products", verifyToken, upload.single("image"), async (req, 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// THE MISSING UPDATE ROUTE INTEGRATED
 router.put("/admin/products/:id", verifyToken, upload.single("image"), async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: "Product not found" });
-
     let imageUrl = product.image;
     if (req.file) imageUrl = req.file.path || req.file.secure_url;
-
     product.name = sanitizeInput(req.body.name) || product.name;
     product.price = parseFloat(req.body.price) || product.price;
     product.image = imageUrl;
-
     await product.save();
     res.json({ success: true, updatedProduct: product });
   } catch (err) { res.status(500).json({ error: "Update failed" }); }
@@ -133,8 +128,9 @@ router.put("/admin/products/:id", verifyToken, upload.single("image"), async (re
 
 router.delete("/admin/products/:id", verifyToken, async (req, res) => {
   try {
+    // Soft deletes because of paranoid: true in model
     await Product.destroy({ where: { id: req.params.id } });
-    res.json({ success: true });
+    res.json({ success: true, message: "Archived" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -156,8 +152,9 @@ router.get("/admin/messages", verifyToken, async (req, res) => {
 
 router.delete("/admin/messages/:id", verifyToken, async (req, res) => {
   try {
+    // Soft deletes because of paranoid: true in model
     await Message.destroy({ where: { id: req.params.id } });
-    res.json({ success: true });
+    res.json({ success: true, message: "Archived" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -176,9 +173,7 @@ router.post("/cart/add", async (req, res) => {
     if (item) { 
       item.quantity = overrideQuantity !== undefined ? parseInt(overrideQuantity) : item.quantity + parseInt(quantity); 
       await item.save(); 
-    } else { 
-      item = await CartItem.create({ productId, quantity: overrideQuantity || quantity }); 
-    }
+    } else { item = await CartItem.create({ productId, quantity: overrideQuantity || quantity }); }
     res.json(item);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
