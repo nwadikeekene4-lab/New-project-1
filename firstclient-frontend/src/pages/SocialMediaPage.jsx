@@ -1,49 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaWhatsapp, FaPhoneAlt, FaInstagram, FaFacebookF, FaTwitter } from 'react-icons/fa';
+import { FaWhatsapp, FaPhoneAlt, FaInstagram, FaFacebookF, FaGlobe } from 'react-icons/fa';
+import API from '../api';
 import './SocialMediaPage.css';
 
 const SocialMediaPage = () => {
   const navigate = useNavigate();
+  const [data, setData] = useState({ handles: [], care: [] });
 
-  const socialLinks = [
-    { platform: 'Instagram', handle: '@HeritageHub_NG', link: 'https://instagram.com', icon: <FaInstagram />, color: '#E1306C' },
-    { platform: 'Facebook', handle: 'Heritage Hub Provisions', link: 'https://facebook.com', icon: <FaFacebookF />, color: '#1877F2' },
-    { platform: 'Twitter / X', handle: '@HeritageHub', link: 'https://twitter.com', icon: <FaTwitter />, color: '#1DA1F2' }
-  ];
+  useEffect(() => {
+    API.get('/cms/social_links').then(res => {
+      if (res.data) setData(res.data);
+    }).catch(() => {});
+  }, []);
 
-  const customerCare = [
-    { number: '09123456789', icon: <FaWhatsapp />, color: '#25D366', action: 'https://wa.me/2349123456789' },
-    { number: '09123475678', icon: <FaWhatsapp />, color: '#25D366', action: 'https://wa.me/2349123475678' },
-    { number: '08065432123', icon: <FaPhoneAlt />, color: '#16a74d', action: 'tel:08065432123' }
-  ];
+  const getIcon = (platform) => {
+    const p = platform.toLowerCase();
+    if (p.includes('instagram')) return { icon: <FaInstagram />, color: '#E1306C' };
+    if (p.includes('facebook')) return { icon: <FaFacebookF />, color: '#1877F2' };
+    if (p.includes('whatsapp')) return { icon: <FaWhatsapp />, color: '#25D366' };
+    return { icon: <FaGlobe />, color: '#555' };
+  };
 
   return (
     <div className="social-wrapper">
       <div className="social-container">
-        
-        {/* SEPARATE NAVIGATION SECTION */}
         <div className="nav-section-split">
-          <button className="nav-back-btn" onClick={() => navigate('/hub')}>
-            <span className="arrow-icon">←</span> Back to Hub
-          </button>
-          <button className="nav-shop-btn" onClick={() => navigate('/shop')}>
-            Back to shop →
-          </button>
+          <button className="nav-back-btn" onClick={() => navigate('/hub')}>← Back</button>
+          <button className="nav-shop-btn" onClick={() => navigate('/shop')}>Shop →</button>
         </div>
 
         <section className="social-content-card">
           <header className="social-header-area">
             <h1 className="social-title">Connect With Us</h1>
-            <p className="social-subtitle">Join the Heritage community online</p>
+            <p className="social-subtitle">We are always a message away</p>
           </header>
           
           <div className="care-section">
             <h2 className="section-label">Customer Care</h2>
             <div className="care-list">
-              {customerCare.map((item, index) => (
-                <a href={item.action} key={index} className="care-item">
-                  <span className="care-icon" style={{ color: item.color }}>{item.icon}</span>
+              {data.care.map((item, index) => (
+                <a href={item.type === 'WhatsApp' ? `https://wa.me/${item.number.replace(/\D/g,'')}` : `tel:${item.number}`} key={index} className="care-item">
+                  <span className="care-icon" style={{ color: item.type === 'WhatsApp' ? '#25D366' : '#16a74d' }}>
+                    {item.type === 'WhatsApp' ? <FaWhatsapp /> : <FaPhoneAlt />}
+                  </span>
                   <span className="care-number">{item.number}</span>
                 </a>
               ))}
@@ -55,18 +55,19 @@ const SocialMediaPage = () => {
           <div className="links-section">
             <h2 className="section-label">Social Handles</h2>
             <div className="social-grid">
-              {socialLinks.map((social, index) => (
-                <a href={social.link} key={index} target="_blank" rel="noopener noreferrer" className="social-card">
-                  <span className="social-icon-circle" style={{ backgroundColor: social.color }}>
-                    {social.icon}
-                  </span>
-                  <div className="social-info">
-                    <h3>{social.platform}</h3>
-                    <p>{social.handle}</p>
-                  </div>
-                  <span className="arrow-link">→</span>
-                </a>
-              ))}
+              {data.handles.map((social, index) => {
+                const style = getIcon(social.platform);
+                return (
+                  <a href={social.link} key={index} target="_blank" rel="noopener noreferrer" className="social-card">
+                    <span className="social-icon-circle" style={{ backgroundColor: style.color }}>{style.icon}</span>
+                    <div className="social-info">
+                      <h3>{social.platform}</h3>
+                      <p>{social.handle}</p>
+                    </div>
+                    <span className="arrow-link">→</span>
+                  </a>
+                );
+              })}
             </div>
           </div>
         </section>
