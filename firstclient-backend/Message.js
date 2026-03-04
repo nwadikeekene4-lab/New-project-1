@@ -7,9 +7,18 @@ const Message = sequelize.define("Message", {
     autoIncrement: true,
     primaryKey: true
   },
-  name: DataTypes.STRING,
-  email: DataTypes.STRING,
-  message: DataTypes.TEXT,
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  phone: { 
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  message: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
   status: {
     type: DataTypes.STRING,
     defaultValue: "unread"
