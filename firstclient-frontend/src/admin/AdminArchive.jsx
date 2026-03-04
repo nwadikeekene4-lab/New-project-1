@@ -35,7 +35,19 @@ const AdminArchive = () => {
       alert("Item restored successfully! ✅");
       fetchArchive();
     } catch (err) {
-      alert("Restore failed. Check console for details.");
+      alert("Restore failed.");
+    }
+  };
+
+  const handlePermanentDelete = async (type, id) => {
+    if (!window.confirm("WARNING: This will permanently delete this item from the database. This cannot be undone. Proceed?")) return;
+    try {
+      const endpoint = type === 'product' ? `/admin/products/${id}/permanent` : `/admin/messages/${id}/permanent`;
+      await API.delete(endpoint);
+      alert("Item permanently removed from database. ✅");
+      fetchArchive();
+    } catch (err) {
+      alert("Permanent deletion failed.");
     }
   };
 
@@ -45,7 +57,7 @@ const AdminArchive = () => {
         <button className="archive-back-btn" onClick={() => navigate(-1)}>← Back</button>
         <div className="archive-title-area">
           <h1>Trash Can</h1>
-          <p>Recover items you previously deleted</p>
+          <p>Products purge in 15 days | Messages purge in 60 days</p>
         </div>
       </header>
 
@@ -86,7 +98,10 @@ const AdminArchive = () => {
                       <td><strong>{p.name}</strong></td>
                       <td>₦{Number(p.price).toLocaleString()}</td>
                       <td>
-                        <button className="restore-btn" onClick={() => handleRestore('product', p.id)}>Restore</button>
+                        <div className="archive-action-btns">
+                          <button className="restore-btn" onClick={() => handleRestore('product', p.id)}>Restore</button>
+                          <button className="perm-delete-btn" onClick={() => handlePermanentDelete('product', p.id)}>Delete Forever</button>
+                        </div>
                       </td>
                     </tr>
                   )) : (
@@ -111,7 +126,10 @@ const AdminArchive = () => {
                       <td className="archive-msg-cell">{m.message}</td>
                       <td>{new Date(m.deletedAt).toLocaleDateString()}</td>
                       <td>
-                        <button className="restore-btn" onClick={() => handleRestore('message', m.id)}>Restore</button>
+                        <div className="archive-action-btns">
+                          <button className="restore-btn" onClick={() => handleRestore('message', m.id)}>Restore</button>
+                          <button className="perm-delete-btn" onClick={() => handlePermanentDelete('message', m.id)}>Delete Forever</button>
+                        </div>
                       </td>
                     </tr>
                   )) : (
