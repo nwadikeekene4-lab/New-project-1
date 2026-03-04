@@ -187,3 +187,39 @@
 .cms-delete-btn:hover {
   opacity: 0.8; /* Subtle change on hover */
   }
+
+
+  .cms-tab-bar {
+  display: flex;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 30px;
+  overflow-x: auto; /* Allows swiping tabs on small phones */
+}
+
+.cms-tab-bar button {
+  padding: 15px 25px;
+  background: none;
+  border: none;
+  font-weight: 700;
+  color: #888;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: 0.3s;
+}
+
+.cms-tab-bar button.active {
+  color: #1a1a1a;
+  border-bottom-color: #d4af37; /* The Heritage Gold underline */
+}
+
+.cms-tab-bar button:hover {
+  color: #d4af37;
+}
+
+@media (max-width: 600px) {
+  .cms-tab-bar button {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+  }
