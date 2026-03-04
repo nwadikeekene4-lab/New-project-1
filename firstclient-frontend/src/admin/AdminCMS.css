@@ -223,3 +223,41 @@
     font-size: 14px;
   }
   }
+.dynamic-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  background: #f9f9f9;
+  padding: 8px;
+  border-radius: 6px;
+  align-items: center;
+}
+.dynamic-row input, .dynamic-row select {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.row-del-btn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.add-row-btn {
+  width: 100%;
+  padding: 12px;
+  background: white;
+  border: 2px dashed #eee;
+  color: #666;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s;
+}
+.add-row-btn:hover {
+  border-color: #007bff;
+  color: #007bff;
+  }
