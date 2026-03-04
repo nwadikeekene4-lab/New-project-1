@@ -5,10 +5,12 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit"); 
 require("dotenv").config(); 
 
+// --- MODELS ---
 const Product = require("./models");
 const Order = require("./order");
 const Admin = require("./Admin"); 
 const CMS = require("./cms");
+const Message = require("./Message"); // ✅ Integrated Message Model
 const { CartItem } = require("./cart");
 const { DeliveryOption = { sync: () => Promise.resolve() } } = require("./deliveryoptions");
 const routes = require("./routes"); 
@@ -21,7 +23,6 @@ app.disable('x-powered-by');
 
 app.use(helmet({
   crossOriginResourcePolicy: false,
-  // This allows the browser to load images from Cloudinary even if the site is on Render
   crossOriginEmbedderPolicy: false, 
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
   contentSecurityPolicy: {
@@ -29,7 +30,6 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       connectSrc: ["'self'", "https://api.paystack.co", "https://firstclient-frontend.onrender.com"],
-      // ✅ ALLOWED CLOUDINARY IMAGES
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "*.cloudinary.com"],
     },
   },
@@ -83,18 +83,24 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// --- START SERVER & SYNC DATABASE ---
 async function startServer() {
   try {
-    // Syncing models with 'alter: true' to ensure the 'image' column exists in CMS table
+    console.log("⏳ Starting database synchronization...");
+
+    // Syncing all models to ensure tables exist in the Render database
     await Product.sync({ alter: true }); 
     await Admin.sync({ alter: true }); 
-    if (DeliveryOption.sync) await DeliveryOption.sync();
+    await Message.sync({ alter: true }); // ✅ Fixes the "Messages does not exist" error
     await CartItem.sync({ alter: true });
     await Order.sync({ alter: true }); 
     await CMS.sync({ alter: true });
     
-    console.log("✅ Database synced successfully");
+    if (DeliveryOption.sync) await DeliveryOption.sync();
+    
+    console.log("✅ All Database tables synced successfully");
 
+    // Mounting routes after database is ready
     app.use("/api", routes);
 
     const PORT = process.env.PORT || 5000;
@@ -103,6 +109,7 @@ async function startServer() {
     });
   } catch (err) {
     console.error("❌ Failed to start server:", err.message);
+    process.exit(1); // Exit if DB connection fails
   }
 }
 
