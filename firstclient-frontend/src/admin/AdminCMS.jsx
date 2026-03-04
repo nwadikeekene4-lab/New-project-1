@@ -73,9 +73,26 @@ const AdminCMS = () => {
   };
 
   // --- Message Actions ---
-  const toggleReplied = (id) => {
-    setMessages(messages.map(m => m.id === id ? { ...m, replied: !m.replied } : m));
-    // Note: If you want to persist this to DB, you'd add: API.patch(`/admin/messages/${id}`, { replied: true });
+  const toggleReplied = async (id, currentStatus) => {
+    try {
+      // Optimistic UI update
+      setMessages(messages.map(m => m.id === id ? { ...m, replied: !currentStatus } : m));
+      // Persist to database (Assumes your backend handles status updates)
+      await API.put(`/admin/messages/${id}`, { replied: !currentStatus });
+    } catch (err) {
+      console.error("Failed to update status");
+    }
+  };
+
+  const handleSoftDeleteMessage = async (id) => {
+    if (!window.confirm("Move this message to archive? (Soft Delete)")) return;
+    try {
+      await API.delete(`/admin/messages/${id}`);
+      alert("Message Archived ✅");
+      fetchData();
+    } catch (err) {
+      alert("Delete failed. Item might already be archived.");
+    }
   };
 
   const handleImageUpload = async (e) => {
@@ -220,7 +237,7 @@ const AdminCMS = () => {
               </div>
             )}
 
-            {/* TAB 4: INBOX (WITH TIME STAMP & REPLIED MARKER) */}
+            {/* TAB 4: INBOX */}
             {activeTab === 'messages' && (
               <div className="cms-section-card">
                 <h3>Customer Messages</h3>
@@ -252,13 +269,11 @@ const AdminCMS = () => {
                             <div className="action-stack">
                               <button 
                                 className={`mark-btn ${msg.replied ? 'replied' : ''}`}
-                                onClick={() => toggleReplied(msg.id)}
+                                onClick={() => toggleReplied(msg.id, msg.replied)}
                               >
                                 {msg.replied ? '✓ Replied' : 'Mark Replied'}
                               </button>
-                              <button className="cms-delete-btn" onClick={() => {
-                                if(window.confirm("Delete this message?")) API.delete(`/admin/messages/${msg.id}`).then(() => fetchData());
-                              }}>Delete</button>
+                              <button className="cms-delete-btn" onClick={() => handleSoftDeleteMessage(msg.id)}>Delete</button>
                             </div>
                           </td>
                         </tr>
