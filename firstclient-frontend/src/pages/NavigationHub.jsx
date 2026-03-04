@@ -7,7 +7,6 @@ const NavigationHub = () => {
 
   const menuItems = [
     { label: 'About us', path: '/about', icon: '🏛️', desc: 'Learn about us' },
-    { label: 'Customer Reviews', path: '/reviews', icon: '⭐', desc: 'See what people say' },
     { label: 'Get In Touch', path: '/contact', icon: '📞', desc: '24/7 Support' },
     { label: 'Social Media', path: '/socials', icon: '📱', desc: 'Follow our journey' }
   ];
@@ -51,6 +50,7 @@ const NavigationHub = () => {
 
 
 export default NavigationHub;
+
 
 
 
