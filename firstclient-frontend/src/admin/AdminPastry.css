@@ -1,147 +1,67 @@
-:root {
-  --midnight: #1a2a6c;
-  --gold: #fba100;
-  --bg-gray: #f4f7f6;
-}
+:root { --p-blue: #1a2a6c; --p-gold: #fba100; --p-red: #ef4444; }
 
-.pastry-admin-page {
-  background: var(--bg-gray);
-  min-height: 100vh;
-  padding: 20px 15px;
-  font-family: 'Inter', sans-serif;
-}
+.pastry-admin-page { background: #f0f2f5; min-height: 100vh; padding: 20px 10px; font-family: sans-serif; }
+.pastry-max-width { max-width: 1200px; margin: 0 auto; }
 
-.pastry-max-width { max-width: 1280px; margin: 0 auto; }
-
-/* HEADER SECTION */
-.pastry-header-section {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  margin-bottom: 25px;
-}
-
-.pastry-top-nav { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-.p-back-btn { text-decoration: none; font-size: 24px; color: var(--midnight); font-weight: bold; }
-.pastry-top-nav h1 { font-size: 1.5rem; color: var(--midnight); margin: 0; }
-
-/* TABS - Now Scrollable on Mobile */
-.pastry-tabs-flex {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  scrollbar-width: none;
-}
-.pastry-tabs-flex::-webkit-scrollbar { display: none; }
-
-.p-tab {
-  flex: 0 0 auto;
-  padding: 12px 28px;
-  border-radius: 50px;
-  border: none;
-  background: #edf2f7;
-  font-weight: 700;
-  color: #4a5568;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.p-tab.active { background: var(--midnight); color: white; box-shadow: 0 4px 10px rgba(26,42,108,0.25); }
-
-/* RESPONSIVE FORM */
-.pastry-main-form { display: flex; flex-direction: column; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 10px; }
-.input-group-row, .file-group-row { display: flex; flex-wrap: wrap; gap: 10px; }
-.pastry-main-form input { flex: 1; min-width: 180px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; }
-
-.custom-file { flex: 1; min-width: 140px; background: white; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 8px; }
-.custom-file label { display: block; font-size: 10px; font-weight: 800; color: var(--midnight); }
-.custom-file input { border: none; padding: 0; width: 100%; font-size: 11px; }
-
-.p-submit-btn {
-  background: var(--midnight);
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  min-width: 120px;
-}
-.p-submit-btn:hover { background: var(--gold); }
-
-/* KONGA SMART GRID */
-.pastry-smart-grid {
+/* 📱 FORCED GRID: 2 Columns on Mobile, 4+ on Desktop */
+.p-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(2, 1fr); /* Force side-by-side */
+  gap: 12px;
+  width: 100%;
 }
 
-.p-item-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
-.p-card-img { position: relative; width: 100%; aspect-ratio: 1/1; background: #eee; }
-.p-card-img img { width: 100%; height: 100%; object-fit: cover; }
-
-.p-vid-badge { position: absolute; top: 8px; right: 8px; background: var(--midnight); color: var(--gold); padding: 4px 8px; font-size: 10px; font-weight: 900; border-radius: 5px; }
-
-.p-card-details { padding: 12px; flex-grow: 1; text-align: center; }
-.p-card-details h3 { font-size: 14px; margin: 0; color: #334155; height: 34px; overflow: hidden; }
-.p-price-tag { font-size: 17px; font-weight: 800; color: var(--midnight); margin-top: 5px; }
-
-.p-card-actions { display: flex; border-top: 1px solid #f1f5f9; }
-.p-card-actions button { flex: 1; padding: 12px; border: none; background: none; font-weight: 700; cursor: pointer; color: var(--midnight); font-size: 13px; }
-.p-del-btn { color: #ef4444 !important; border-left: 1px solid #f1f5f9; }
-
-/* TABLET / DESKTOP ADJUSTMENTS */
-@media (min-width: 768px) {
-  .pastry-smart-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
-  .pastry-main-form { flex-direction: row; align-items: flex-end; }
-  .input-group-row { flex: 2; }
-  .file-group-row { flex: 3; }
-  }
-
-/* ... keep your previous root and general styles ... */
-
-/* CLICK EFFECTS */
-.p-tab:active, .p-submit-btn:active, .p-card-actions button:active {
-  transform: scale(0.96);
-  opacity: 0.8;
+@media (min-width: 800px) {
+  .p-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+  .p-form-grid { flex-direction: row !important; align-items: flex-end; }
 }
 
-/* BUTTON LOADING STATE */
-.p-submit-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+/* MODAL */
+.video-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.95); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
 }
+.video-modal-content { position: relative; width: 90%; max-width: 450px; }
+.video-modal-content video { width: 100%; border-radius: 12px; border: 2px solid var(--p-gold); }
+.close-modal { position: absolute; top: -45px; right: 0; color: white; background: none; border: 2px solid white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
 
-.p-submit-btn:disabled {
-  background: #64748b;
-  cursor: not-allowed;
-}
+/* HEADER & TABS */
+.p-header { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+.p-nav-row { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+.p-back { text-decoration: none; font-size: 24px; color: var(--p-blue); font-weight: bold; }
+.p-tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+.p-t { padding: 10px 20px; border-radius: 20px; border: none; background: #eee; font-weight: bold; cursor: pointer; white-space: nowrap; }
+.p-t.active { background: var(--p-blue); color: white; }
 
-/* THE SPIN LOADER */
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #fff;
-  animation: spin 0.8s linear infinite;
-}
+/* UPLOAD FORM */
+.p-upload-card { background: #f8fafc; padding: 12px; border-radius: 10px; }
+.p-form-grid { display: flex; flex-direction: column; gap: 10px; }
+.p-form-grid input { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; flex: 1; }
+.p-file { background: white; padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; flex: 1; }
+.p-file label { font-size: 9px; font-weight: 900; color: var(--p-blue); display: block; }
+.p-main-btn { background: var(--p-blue); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+/* PRODUCT CARDS */
+.p-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; position: relative; transition: 0.3s; }
+.p-card-media { position: relative; width: 100%; aspect-ratio: 1/1; }
+.p-card-media img { width: 100%; height: 100%; object-fit: cover; }
+.p-vid-badge-btn { position: absolute; top: 8px; right: 8px; background: var(--p-blue); color: var(--p-gold); border: none; padding: 5px 8px; border-radius: 5px; font-size: 9px; font-weight: 900; cursor: pointer; }
 
-/* HOVER FEEDBACK */
-.p-tab:hover:not(.active) {
-  background: #e2e8f0;
-}
+.p-card-info { padding: 10px; text-align: center; }
+.p-card-info h4 { margin: 0; font-size: 13px; color: #334155; height: 32px; overflow: hidden; }
+.p-card-info p { margin: 5px 0 0; font-weight: 800; color: var(--p-blue); font-size: 15px; }
 
-.p-item-card:hover {
-  border-color: var(--gold);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
+.p-card-btns { display: flex; border-top: 1px solid #eee; }
+.p-card-btns button { flex: 1; padding: 10px; border: none; background: none; font-weight: bold; cursor: pointer; font-size: 11px; color: var(--p-blue); }
+.p-del { color: var(--p-red) !important; border-left: 1px solid #eee; }
+
+/* EDIT UI */
+.p-edit-overlay { padding: 12px; background: #fffdf0; }
+.p-edit-overlay input { width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px; }
+.p-edit-files { text-align: left; font-size: 9px; margin: 8px 0; }
+.p-save-btn { background: #22c55e; color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; margin-bottom: 5px; }
+.p-cancel-btn { background: #94a3b8; color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; }
+
+.spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
