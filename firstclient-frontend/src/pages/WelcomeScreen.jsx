@@ -44,7 +44,7 @@ const WelcomeScreen = () => {
             <span>explore more</span>
           </div>
 
-          <button className="option-btn catering-btn" onClick={() => navigate('/catering')}>
+          <button className="option-btn catering-btn" onClick={() => navigate('/pastries')}>
             View our pastry services 🎂
           </button>
         </div>
@@ -52,5 +52,6 @@ const WelcomeScreen = () => {
     </div>
   );
 };
+
 
 export default WelcomeScreen;
