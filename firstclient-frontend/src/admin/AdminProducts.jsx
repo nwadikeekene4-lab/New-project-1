@@ -19,32 +19,31 @@ export default function AdminProducts() {
 
   const fetchProducts = async () => {
     try {
+      // Backend handles ?category query, but we filter here for safety
       const res = await API.get("/products");
-      setProducts(res.data.filter(p => p.category !== 'pastry'));
-    } catch (err) { console.error(err); }
-  };
-
-  const getImageUrl = (path) => {
-    if (!path || path === "null") return "https://placehold.co/200x200?text=No+Image";
-    if (path.startsWith('blob:') || path.startsWith('http')) return path;
-    return `https://res.cloudinary.com/dw4jcixiu/image/upload/f_auto,q_auto/v1/shop_products/${path.split('/').pop()}`;
+      const generalItems = res.data.filter(p => p.category === 'general' || !p.category);
+      setProducts(generalItems);
+    } catch (err) { console.error("Fetch Error:", err); }
   };
 
   const addProduct = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
-    formData.append("name", newName); formData.append("price", newPrice);
-    formData.append("image", newImageFile); formData.append("category", "general");
+    formData.append("name", newName); 
+    formData.append("price", newPrice);
+    formData.append("image", newImageFile); 
+    formData.append("category", "general");
 
     try {
       const res = await API.post("/admin/products", formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
+      // Backend returns the product object directly
       setProducts([res.data, ...products]);
       setNewName(""); setNewPrice(""); setNewImageFile(null);
       e.target.reset();
-      alert("Added to General Shop! ✅");
+      alert("Added! ✅");
     } catch (err) { alert("Upload failed."); }
   };
 
@@ -52,18 +51,32 @@ export default function AdminProducts() {
     setIsSaving(true);
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
-    formData.append("name", editName); formData.append("price", editPrice);
+    formData.append("name", editName); 
+    formData.append("price", editPrice);
     if (editImageFile) formData.append("image", editImageFile);
 
     try {
       const res = await API.put(`/admin/products/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
-      setProducts(products.map(p => p.id === id ? res.data.updatedProduct : p));
+      // Fixed: Backend returns { success: true, updatedProduct: {...} }
+      const updated = res.data.updatedProduct;
+      setProducts(products.map(p => p.id === id ? updated : p));
       setEditingId(null);
       alert("Updated! ✅");
     } catch (err) { alert("Update failed."); }
     finally { setIsSaving(false); }
+  };
+
+  const deleteProduct = async (id) => {
+    if(!window.confirm("Delete this product?")) return;
+    const token = localStorage.getItem("adminToken");
+    try {
+      await API.delete(`/admin/products/${id}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      setProducts(products.filter(p => p.id !== id));
+    } catch (err) { alert("Delete failed"); }
   };
 
   return (
@@ -75,7 +88,7 @@ export default function AdminProducts() {
             <h1 className="inventory-title">General Inventory</h1>
           </div>
           <div className="inventory-actions">
-            <input type="text" placeholder="Search products..." className="robust-search-bar" onChange={(e) => setSearchTerm(e.target.value)} />
+            <input type="text" placeholder="Search..." className="robust-search-bar" onChange={(e) => setSearchTerm(e.target.value)} />
             <form className="mini-form" onSubmit={addProduct}>
               <input type="text" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
               <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
@@ -84,6 +97,7 @@ export default function AdminProducts() {
             </form>
           </div>
         </header>
+
         <main className="inventory-grid">
           {products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map((p) => (
             <div key={p.id} className="inventory-item">
@@ -91,19 +105,21 @@ export default function AdminProducts() {
                 <div className="grid-edit-form">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                  <button className="grid-btn-save" onClick={() => updateProduct(p.id)} disabled={isSaving}>Save</button>
-                  <button onClick={() => setEditingId(null)}>✕</button>
+                  <div className="edit-grid-btns">
+                    <button className="grid-btn-save" onClick={() => updateProduct(p.id)} disabled={isSaving}>Save</button>
+                    <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
+                  </div>
                 </div>
               ) : (
                 <div className="item-inner">
-                  <div className="item-img-container"><img src={getImageUrl(p.image)} alt="" /></div>
+                  <div className="item-img-container"><img src={p.image} alt="" /></div>
                   <div className="item-details">
                     <h3 className="item-name">{p.name}</h3>
                     <p className="item-price">₦{Number(p.price).toLocaleString()}</p>
                   </div>
                   <div className="item-footer-actions">
                     <button className="action-link edit" onClick={() => { setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); }}>Edit</button>
-                    <button className="action-link delete">Delete</button>
+                    <button className="action-link delete" onClick={() => deleteProduct(p.id)}>Delete</button>
                   </div>
                 </div>
               )}
@@ -113,4 +129,4 @@ export default function AdminProducts() {
       </div>
     </div>
   );
-  }
+        }
