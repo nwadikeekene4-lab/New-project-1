@@ -43,18 +43,37 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key_12345";
 
-// ⭐ UPDATED STORAGE: Handles both Images and Videos
+// ⭐ PROFESSIONAL OPTIMIZED STORAGE
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
     const isVideo = file.mimetype.startsWith('video');
+    
+    if (isVideo) {
+      return {
+        folder: "shop_products",
+        resource_type: "video",
+        format: "mp4",
+        transformation: [
+          { width: 720, crop: "limit" }, // Optimization for web speed
+          { quality: "auto" },           // Dynamic quality adjustment
+          { fetch_format: "auto" }       // Modern codec support
+        ]
+      };
+    }
+
     return {
       folder: "shop_products",
-      resource_type: isVideo ? "video" : "image",
-      format: isVideo ? "mp4" : undefined, // Allow Cloudinary to handle image formats automatically
+      resource_type: "image",
+      transformation: [
+        { width: 1000, crop: "limit" },
+        { quality: "auto" },
+        { fetch_format: "auto" }
+      ]
     };
   },
 });
+
 const upload = multer({ storage: storage });
 
 const verifyToken = (req, res, next) => {
@@ -100,10 +119,10 @@ router.post("/admin/login", async (req, res) => {
   } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// --- ⭐ UPDATED PRODUCT MANAGEMENT (Filtering Support) ---
+// --- PRODUCT MANAGEMENT ---
 router.get("/products", async (req, res) => {
   try {
-    const { category } = req.query; // Supports ?category=pastry
+    const { category } = req.query; 
     let whereClause = {};
     if (category) whereClause.category = category;
 
@@ -115,7 +134,6 @@ router.get("/products", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ⭐ UPDATED CREATE: Supports multi-field upload for Video
 router.post("/admin/products", verifyToken, upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'video', maxCount: 1 }
@@ -138,7 +156,6 @@ router.post("/admin/products", verifyToken, upload.fields([
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ⭐ UPDATED PUT: Supports updating Video
 router.put("/admin/products/:id", verifyToken, upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'video', maxCount: 1 }
@@ -255,23 +272,16 @@ router.get("/cms/:page", async (req, res) => {
 });
 
 // --- ARCHIVE & RESTORATION ---
-
 router.get("/admin/archive/products", verifyToken, async (req, res) => {
   try {
-    const archived = await Product.findAll({
-      where: { deletedAt: { [Op.ne]: null } },
-      paranoid: false 
-    });
+    const archived = await Product.findAll({ where: { deletedAt: { [Op.ne]: null } }, paranoid: false });
     res.json(archived);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.get("/admin/archive/messages", verifyToken, async (req, res) => {
   try {
-    const archived = await Message.findAll({
-      where: { deletedAt: { [Op.ne]: null } },
-      paranoid: false
-    });
+    const archived = await Message.findAll({ where: { deletedAt: { [Op.ne]: null } }, paranoid: false });
     res.json(archived);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
