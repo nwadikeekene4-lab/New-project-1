@@ -1,12 +1,20 @@
+/* CONTAINER & BASE */
 .pastry-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  background: #f8fafc; /* Professional off-white */
+  background: #f8fafc;
   min-height: 100vh;
 }
 
-/* Tab Navigation */
+.loader, .no-products {
+  text-align: center;
+  padding: 50px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* TAB NAVIGATION: KONGA STYLE */
 .pastry-tabs {
   display: flex;
   background: white;
@@ -33,12 +41,12 @@
 }
 
 .pastry-tabs button.active {
-  background: #1a2a6c; /* Professional Midnight Blue */
+  background: #1a2a6c;
   color: white;
   box-shadow: 0 4px 10px rgba(26, 42, 108, 0.2);
 }
 
-/* Grid System */
+/* GRID SYSTEM */
 .pastry-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -52,6 +60,8 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #e2e8f0;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .konga-card:hover {
@@ -71,12 +81,12 @@
   object-fit: cover;
 }
 
-/* Professional Video Overlay */
+/* VIDEO BADGE ON CARD */
 .watch-video-btn {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(26, 42, 108, 0.85); /* Midnight Blue semi-transparent */
+  background: rgba(26, 42, 108, 0.85);
   backdrop-filter: blur(8px);
   color: white;
   border: none;
@@ -88,20 +98,22 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: scale 0.2s ease;
+  transition: transform 0.2s ease;
   z-index: 10;
 }
 
 .watch-video-btn:hover {
-  scale: 1.05;
+  transform: scale(1.05);
   background: rgba(26, 42, 108, 1);
 }
 
+/* CARD DETAILS */
 .card-details {
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-grow: 1;
 }
 
 .card-details h3 {
@@ -128,18 +140,20 @@
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
+  margin-top: auto;
 }
 
 .add-btn:hover {
   background: #e69100;
 }
 
-/* Video Modal Styling */
+/* --- VIDEO MODAL & RELATED SHELF --- */
+
 .video-modal-overlay {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(15, 23, 42, 0.95); /* Deep slate background */
+  background: rgba(15, 23, 42, 0.95);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -150,7 +164,10 @@
 .video-modal-content {
   position: relative;
   width: 90%;
-  max-width: 450px; /* Perfect for portrait/phone style videos */
+  max-width: 450px; /* Portrait optimized */
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
   animation: modalSlideUp 0.3s ease-out;
 }
 
@@ -161,9 +178,9 @@
 
 .main-video {
   width: 100%;
-  border-radius: 16px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255,255,255,0.1);
+  display: block;
+  background: #000;
+  border-bottom: 2px solid #f1f5f9;
 }
 
 .close-video {
@@ -184,18 +201,101 @@
   justify-content: center;
 }
 
-/* Mobile Responsive Adjustments */
+/* RELATED ITEMS SHELF INSIDE MODAL */
+.modal-related-shelf {
+  padding: 15px;
+  background: white;
+}
+
+.modal-related-shelf h4 {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.related-items-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.related-items-list::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.related-mini-card {
+  flex: 0 0 110px;
+  background: #f8fafc;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.related-mini-card img {
+  width: 100%;
+  height: 70px;
+  object-fit: cover;
+}
+
+.mini-info {
+  padding: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mini-info span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+.mini-add-btn {
+  background: #1a2a6c;
+  color: white;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.mini-add-btn:hover {
+  background: #fba100;
+}
+
+/* MOBILE RESPONSIVE */
 @media (max-width: 600px) {
   .pastry-tabs {
     gap: 5px;
     padding: 5px;
+    overflow-x: auto;
+    justify-content: flex-start;
   }
   .pastry-tabs button {
     padding: 10px 15px;
     font-size: 13px;
+    white-space: nowrap;
   }
   .pastry-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 items per row on mobile */
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
-    }
+  .video-modal-content {
+    max-width: 320px; /* Narrower for small screens */
+  }
+  }
