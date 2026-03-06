@@ -6,15 +6,27 @@ import './AdminProducts.css';
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState(""); 
+  
+  // Existing States
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
+  
+  // ⭐ NEW STATES FOR PASTRY
+  const [newCategory, setNewCategory] = useState("general");
+  const [newSubCategory, setNewSubCategory] = useState("Cakes");
+  const [newVideoFile, setNewVideoFile] = useState(null);
 
+  const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editImageFile, setEditImageFile] = useState(null);
+  
+  // ⭐ NEW EDIT STATES
+  const [editCategory, setEditCategory] = useState("general");
+  const [editSubCategory, setEditSubCategory] = useState("Cakes");
+  const [editVideoFile, setEditVideoFile] = useState(null);
 
   useEffect(() => { fetchProducts(); }, []);
 
@@ -41,14 +53,23 @@ export default function AdminProducts() {
     formData.append("name", newName);
     formData.append("price", newPrice);
     formData.append("image", newImageFile);
+    
+    // ⭐ APPEND NEW FIELDS
+    formData.append("category", newCategory);
+    formData.append("subCategory", newSubCategory);
+    if (newVideoFile) formData.append("video", newVideoFile);
 
     try {
       const res = await API.post("/admin/products", formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
       setProducts([res.data, ...products]);
+      
+      // Reset Form
       setNewName(""); setNewPrice(""); setNewImageFile(null);
+      setNewVideoFile(null); setNewCategory("general");
       e.target.reset();
+      alert("Product added successfully! 🚀");
     } catch (err) { alert("Upload failed."); }
   };
 
@@ -58,18 +79,21 @@ export default function AdminProducts() {
     const formData = new FormData();
     formData.append("name", editName);
     formData.append("price", editPrice);
-    // Only append image if a new file was selected
+    formData.append("category", editCategory);
+    formData.append("subCategory", editSubCategory);
+    
     if (editImageFile) formData.append("image", editImageFile);
+    if (editVideoFile) formData.append("video", editVideoFile);
 
     try {
       const res = await API.put(`/admin/products/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
       
-      // Update the local state with the returned updated product
       setProducts(products.map(p => p.id === id ? res.data.updatedProduct : p));
       setEditingId(null);
       setEditImageFile(null);
+      setEditVideoFile(null);
       alert("Product updated successfully! ✅");
     } catch (err) {
       alert("Error updating product.");
@@ -79,20 +103,15 @@ export default function AdminProducts() {
   };
 
   const deleteProduct = async (id) => {
-    // UPDATED: User-friendly warning for Soft Delete
-    if (!window.confirm("Archive this product? It will be hidden from the store but can be recovered from the database.")) return;
-    
+    if (!window.confirm("Archive this product?")) return;
     const token = localStorage.getItem("adminToken");
     try {
       await API.delete(`/admin/products/${id}`, { 
         headers: { "Authorization": `Bearer ${token}` } 
       });
-      // Remove from UI immediately
       setProducts(products.filter(p => p.id !== id));
       alert("Product moved to archive. ✅");
-    } catch (err) { 
-      alert("Error archiving product."); 
-    }
+    } catch (err) { alert("Error archiving product."); }
   };
 
   const filteredProducts = products.filter(p => 
@@ -115,10 +134,29 @@ export default function AdminProducts() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            
+            {/* ⭐ UPDATED ADD FORM */}
             <form className="mini-form" onSubmit={addProduct}>
               <input type="text" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
               <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
-              <input type="file" className="mini-file" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
+              
+              <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)}>
+                <option value="general">General Shop</option>
+                <option value="pastry">Pastry Page</option>
+              </select>
+
+              {newCategory === 'pastry' && (
+                <>
+                  <select value={newSubCategory} onChange={(e) => setNewSubCategory(e.target.value)}>
+                    <option value="Cakes">Cakes</option>
+                    <option value="Breads">Breads</option>
+                    <option value="Others">Others</option>
+                  </select>
+                  <input type="file" accept="video/*" className="mini-file" onChange={(e)=>setNewVideoFile(e.target.files[0])} />
+                </>
+              )}
+
+              <input type="file" accept="image/*" className="mini-file" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
               <button type="submit" className="mini-add-btn">Add Product</button>
             </form>
           </div>
@@ -126,67 +164,62 @@ export default function AdminProducts() {
 
         <main className="inventory-grid">
           {filteredProducts.map((p) => (
-            <div key={p.id} className="inventory-item">
+            <div key={p.id} className={`inventory-item ${p.category === 'pastry' ? 'pastry-tag' : ''}`}>
               {editingId === p.id ? (
                 <div className="grid-edit-form">
-                  <input 
-                    placeholder="Product Name" 
-                    value={editName} 
-                    onChange={(e) => setEditName(e.target.value)} 
-                  />
-                  <input 
-                    type="number" 
-                    placeholder="Price" 
-                    value={editPrice} 
-                    onChange={(e) => setEditPrice(e.target.value)} 
-                  />
-                  <input 
-                    type="file" 
-                    className="mini-file" 
-                    onChange={(e) => setEditImageFile(e.target.files[0])} 
-                  />
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                  <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+                  
+                  <select value={editCategory} onChange={(e) => setEditCategory(e.target.value)}>
+                    <option value="general">General Shop</option>
+                    <option value="pastry">Pastry Page</option>
+                  </select>
+
+                  {editCategory === 'pastry' && (
+                    <select value={editSubCategory} onChange={(e) => setEditSubCategory(e.target.value)}>
+                      <option value="Cakes">Cakes</option>
+                      <option value="Breads">Breads</option>
+                      <option value="Others">Others</option>
+                    </select>
+                  )}
+
+                  <label className="file-label">Change Image:</label>
+                  <input type="file" className="mini-file" onChange={(e) => setEditImageFile(e.target.files[0])} />
+                  
+                  {editCategory === 'pastry' && (
+                    <>
+                      <label className="file-label">Change Video:</label>
+                      <input type="file" accept="video/*" className="mini-file" onChange={(e) => setEditVideoFile(e.target.files[0])} />
+                    </>
+                  )}
+
                   <div className="edit-grid-btns">
-                    <button 
-                      className="grid-btn-save" 
-                      onClick={() => updateProduct(p.id)}
-                      disabled={isSaving}
-                    >
+                    <button className="grid-btn-save" onClick={() => updateProduct(p.id)} disabled={isSaving}>
                       {isSaving ? "Saving..." : "Save"}
                     </button>
-                    <button 
-                      className="grid-btn-cancel" 
-                      onClick={() => { setEditingId(null); setEditImageFile(null); }}
-                    >
-                      ✕
-                    </button>
+                    <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
                   </div>
                 </div>
               ) : (
                 <div className="item-inner">
                   <div className="item-img-container">
                     <img src={getImageUrl(p.image)} alt={p.name} />
+                    {p.videoUrl && <span className="video-badge">🎥 Video</span>}
                   </div>
                   <div className="item-details">
                     <h3 className="item-name">{p.name}</h3>
                     <p className="item-price">₦{Number(p.price).toLocaleString()}</p>
+                    <span className="cat-badge">{p.category} {p.subCategory ? `(${p.subCategory})` : ''}</span>
                   </div>
                   <div className="item-footer-actions">
-                    <button 
-                      className="action-link edit" 
-                      onClick={() => { 
+                    <button className="action-link edit" onClick={() => { 
                         setEditingId(p.id); 
                         setEditName(p.name); 
-                        setEditPrice(p.price); 
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      className="action-link delete" 
-                      onClick={() => deleteProduct(p.id)}
-                    >
-                      Delete
-                    </button>
+                        setEditPrice(p.price);
+                        setEditCategory(p.category || 'general');
+                        setEditSubCategory(p.subCategory || 'Cakes');
+                      }}>Edit</button>
+                    <button className="action-link delete" onClick={() => deleteProduct(p.id)}>Delete</button>
                   </div>
                 </div>
               )}
