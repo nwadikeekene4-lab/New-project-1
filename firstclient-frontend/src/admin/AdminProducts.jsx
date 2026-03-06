@@ -10,23 +10,21 @@ export default function AdminProducts() {
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
-  const [newVideoFile, setNewVideoFile] = useState(null); 
-  const [pastryType, setPastryType] = useState("Cakes"); // ⭐ Strictly for Cakes/Breads
 
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editImageFile, setEditImageFile] = useState(null);
-  const [editVideoFile, setEditVideoFile] = useState(null);
-  const [editPastryType, setEditPastryType] = useState("Cakes");
 
   useEffect(() => { fetchProducts(); }, []);
 
   const fetchProducts = async () => {
     try {
       const res = await API.get("/products");
-      setProducts(res.data);
+      // ⭐ FILTER: Only show general products, hide pastries
+      const generalOnly = res.data.filter(p => p.category !== 'pastry');
+      setProducts(generalOnly);
     } catch (err) { console.error("Failed to load products:", err); }
   };
 
@@ -46,47 +44,35 @@ export default function AdminProducts() {
     formData.append("name", newName);
     formData.append("price", newPrice);
     formData.append("image", newImageFile);
-
-    // ⭐ If video exists, it's a Pastry (Cake or Bread). Otherwise, it's General.
-    if (newVideoFile) {
-      formData.append("video", newVideoFile);
-      formData.append("category", "pastry");
-      formData.append("subCategory", pastryType); 
-    } else {
-      formData.append("category", "general");
-    }
+    formData.append("category", "general"); // ⭐ ALWAYS general here
 
     try {
       const res = await API.post("/admin/products", formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
       setProducts([res.data, ...products]);
-      setNewName(""); setNewPrice(""); setNewImageFile(null); setNewVideoFile(null);
+      setNewName(""); setNewPrice(""); setNewImageFile(null);
       e.target.reset();
-      alert("Product added! ✅");
+      alert("Product added to General Shop! ✅");
     } catch (err) { alert("Upload failed."); }
   };
 
-  const updateProduct = async (id, originalCategory, originalSub) => {
+  const updateProduct = async (id) => {
     setIsSaving(true);
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
     formData.append("name", editName);
     formData.append("price", editPrice);
-    
-    // Use the toggled subCategory if a new video is being uploaded
-    formData.append("category", editVideoFile ? "pastry" : (originalCategory || "general"));
-    formData.append("subCategory", editVideoFile ? editPastryType : (originalSub || ""));
+    formData.append("category", "general");
 
     if (editImageFile) formData.append("image", editImageFile);
-    if (editVideoFile) formData.append("video", editVideoFile);
 
     try {
       const res = await API.put(`/admin/products/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
       setProducts(products.map(p => p.id === id ? res.data.updatedProduct : p));
-      setEditingId(null); setEditImageFile(null); setEditVideoFile(null);
+      setEditingId(null); setEditImageFile(null);
       alert("Updated! ✅");
     } catch (err) { alert("Error updating."); }
     finally { setIsSaving(false); }
@@ -113,33 +99,22 @@ export default function AdminProducts() {
         <header className="inventory-header">
           <div className="nav-top">
             <Link to="/admin" className="back-btn-minimal">←</Link>
-            <h1 className="inventory-title">Manage Inventory</h1>
+            <h1 className="inventory-title">General Inventory</h1>
           </div>
           <div className="inventory-actions">
             <input 
               type="text" 
-              placeholder="Search..." 
+              placeholder="Search general products..." 
               className="robust-search-bar"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            {/* ⭐ CLEAN FORM: No video options here anymore */}
             <form className="mini-form" onSubmit={addProduct}>
-              <input type="text" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
+              <input type="text" placeholder="Product Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
               <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
-              
-              {/* ⭐ Video Input + Tiny Toggle for Type */}
-              <div className="video-section-mini">
-                <input type="file" accept="video/*" onChange={(e)=>setNewVideoFile(e.target.files[0])} />
-                {newVideoFile && (
-                  <select className="type-toggle" onChange={(e) => setPastryType(e.target.value)}>
-                    <option value="Cakes">Is Cake</option>
-                    <option value="Breads">Is Bread</option>
-                  </select>
-                )}
-              </div>
-
               <input type="file" className="mini-file" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
-              <button type="submit" className="mini-add-btn">Add</button>
+              <button type="submit" className="mini-add-btn">Add Product</button>
             </form>
           </div>
         </header>
@@ -151,20 +126,9 @@ export default function AdminProducts() {
                 <div className="grid-edit-form">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                  
-                  <div className="video-section-mini">
-                    <input type="file" onChange={(e) => setEditVideoFile(e.target.files[0])} />
-                    {editVideoFile && (
-                      <select className="type-toggle" onChange={(e) => setEditPastryType(e.target.value)}>
-                        <option value="Cakes">Cake</option>
-                        <option value="Breads">Bread</option>
-                      </select>
-                    )}
-                  </div>
-
                   <input type="file" className="mini-file" onChange={(e) => setEditImageFile(e.target.files[0])} />
                   <div className="edit-grid-btns">
-                    <button className="grid-btn-save" onClick={() => updateProduct(p.id, p.category, p.subCategory)} disabled={isSaving}>Save</button>
+                    <button className="grid-btn-save" onClick={() => updateProduct(p.id)} disabled={isSaving}>Save</button>
                     <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
                   </div>
                 </div>
@@ -172,7 +136,6 @@ export default function AdminProducts() {
                 <div className="item-inner">
                   <div className="item-img-container">
                     <img src={getImageUrl(p.image)} alt={p.name} />
-                    {p.videoUrl && <span className="video-badge">🎥 Video</span>}
                   </div>
                   <div className="item-details">
                     <h3 className="item-name">{p.name}</h3>
@@ -192,4 +155,4 @@ export default function AdminProducts() {
       </div>
     </div>
   );
-  }
+    }
