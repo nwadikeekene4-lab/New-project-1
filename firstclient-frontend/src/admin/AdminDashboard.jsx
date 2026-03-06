@@ -37,8 +37,8 @@ export default function AdminDashboard() {
           <Link to="/admin/products" className="essence-nav-item">Manage Products</Link>
           <Link to="/admin/orders" className="essence-nav-item">View Orders</Link>
           
-          {/* ⭐ New Sidebar Link for Quick Filtering */}
-          <Link to="/admin/products?filter=pastry" className="essence-nav-item">
+          {/* ✅ FIXED LINK: Pointing to the specific Pastry Route */}
+          <Link to="/admin/pastries" className="essence-nav-item">
             <span className="nav-icon">🍰</span> Pastry Management
           </Link>
 
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
             <Link to="/admin/products" className="card-footer-link">Manage Items</Link>
           </div>
 
-          {/* ⭐ NEW PASTRY CARD */}
+          {/* ✅ FIXED CARD: Link now points to /admin/pastries */}
           <div className="essence-card pastry-special">
             <div className="card-top">
               <div className="card-txt">
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
               </div>
               <div className="card-icon">🥐</div>
             </div>
-            <Link to="/admin/products" className="card-footer-link">Manage Pastries</Link>
+            <Link to="/admin/pastries" className="card-footer-link">Manage Pastries</Link>
           </div>
 
           <div className="essence-card">
@@ -117,4 +117,4 @@ export default function AdminDashboard() {
       </main>
     </div>
   );
-        }
+          }
