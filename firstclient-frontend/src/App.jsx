@@ -78,6 +78,7 @@ function App () {
         <Route path="/contact" element={<ContactPage />} /> 
         <Route path="/socials" element={<SocialMediaPage />} />
       <Route path="/pastries" element={<PastryPage cart={cart} setCart={setCart} />} />
+      <Route path="/admin/pastries" element={<AdminPastry />} />
         
         <Route path="/shop" element={
           <HomePage 
