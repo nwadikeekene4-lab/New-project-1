@@ -18,6 +18,7 @@ import SocialMediaPage from './pages/SocialMediaPage';
 import { SuccessPage } from './pages/SuccessPage';
 import AdminCMS from './admin/AdminCMS';
 import AdminArchive from './admin/AdminArchive'; // New Integration
+import PastryPage from './pages/PastryPage';
 
 function App () {
   const [cart, setCart] = useState([]);
