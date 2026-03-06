@@ -22,7 +22,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="essence-dash-wrapper">
-      {/* top fixed header */}
       <div className="essence-mobile-nav">
         <button onClick={toggleSidebar} className="essence-menu-toggle">
           {isSidebarOpen ? "✕" : "☰"}
@@ -30,7 +29,6 @@ export default function AdminDashboard() {
         <span className="essence-logo-text">Essence Admin</span>
       </div>
 
-      {/* Slide-out Sidebar */}
       <aside className={`essence-sidebar ${isSidebarOpen ? "open" : "closed"}`}>
         <div className="essence-sidebar-brand">
           <h2>Essence Board</h2>
@@ -38,6 +36,12 @@ export default function AdminDashboard() {
         <nav className="essence-nav-list">
           <Link to="/admin/products" className="essence-nav-item">Manage Products</Link>
           <Link to="/admin/orders" className="essence-nav-item">View Orders</Link>
+          
+          {/* ⭐ New Sidebar Link for Quick Filtering */}
+          <Link to="/admin/products?filter=pastry" className="essence-nav-item">
+            <span className="nav-icon">🍰</span> Pastry Management
+          </Link>
+
           <Link to="/admin/cms" className="essence-nav-item">
             <span className="nav-icon">✍️</span> Page Content
           </Link>
@@ -51,7 +55,6 @@ export default function AdminDashboard() {
         </nav>
       </aside>
 
-      {/* Dim overlay for mobile only */}
       {isSidebarOpen && <div className="essence-overlay" onClick={toggleSidebar}></div>}
 
       <main className={`essence-main-content ${isSidebarOpen ? "sidebar-is-open" : ""}`}>
@@ -70,11 +73,23 @@ export default function AdminDashboard() {
             <div className="card-top">
               <div className="card-txt">
                 <h3>Products</h3>
-                <p>Inventory Control</p>
+                <p>Standard Inventory</p>
               </div>
               <div className="card-icon">📦</div>
             </div>
             <Link to="/admin/products" className="card-footer-link">Manage Items</Link>
+          </div>
+
+          {/* ⭐ NEW PASTRY CARD */}
+          <div className="essence-card pastry-special">
+            <div className="card-top">
+              <div className="card-txt">
+                <h3>Pastries</h3>
+                <p>Cakes, Breads & Clips</p>
+              </div>
+              <div className="card-icon">🥐</div>
+            </div>
+            <Link to="/admin/products" className="card-footer-link">Manage Pastries</Link>
           </div>
 
           <div className="essence-card">
@@ -102,4 +117,4 @@ export default function AdminDashboard() {
       </main>
     </div>
   );
-          }
+        }
