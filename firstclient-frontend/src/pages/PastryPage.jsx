@@ -6,7 +6,7 @@ const PastryPage = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [activeTab, setActiveTab] = useState('Cakes');
-  const [videoUrl, setVideoUrl] = useState(null); // For the video modal
+  const [videoUrl, setVideoUrl] = useState(null);
 
   useEffect(() => {
     // Fetch products specifically tagged as pastries
@@ -22,14 +22,16 @@ const PastryPage = ({ cart, setCart }) => {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === 'Others') {
-      setFilteredProducts(products.filter(p => p.subCategory !== 'Cakes' && p.subCategory !== 'Breads'));
+      // Ensure "Others" shows everything that isn't specifically a Cake or Bread
+      setFilteredProducts(products.filter(p => p.subCategory === 'Others' || (p.subCategory !== 'Cakes' && p.subCategory !== 'Breads')));
     } else {
       setFilteredProducts(products.filter(p => p.subCategory === tab));
     }
   };
 
   const addToCart = (product) => {
-    // Standard cart logic consistent with your Shop page
+    // Assuming you have a setCart or similar state lifting 
+    // If using the backend API:
     API.post('/cart/add', { productId: product.id, quantity: 1 })
       .then(() => alert(`${product.name} added to cart!`))
       .catch(err => console.error(err));
@@ -57,8 +59,8 @@ const PastryPage = ({ cart, setCart }) => {
             <div className="image-wrapper">
               <img src={product.image} alt={product.name} />
               
-              {/* Conditional Video Overlay for Cakes and Breads */}
-              {(activeTab === 'Cakes' || activeTab === 'Breads') && product.videoUrl && (
+              {/* ⭐ UPDATED: Video button now shows for ANY item that has a videoUrl, regardless of tab */}
+              {product.videoUrl && (
                 <button className="watch-video-btn" onClick={() => setVideoUrl(product.videoUrl)}>
                   <span>▶</span> Watch Video
                 </button>
@@ -79,7 +81,14 @@ const PastryPage = ({ cart, setCart }) => {
         <div className="video-modal-overlay" onClick={() => setVideoUrl(null)}>
           <div className="video-modal-content" onClick={e => e.stopPropagation()}>
             <button className="close-video" onClick={() => setVideoUrl(null)}>✕</button>
-            <video src={videoUrl} controls autoPlay className="main-video" />
+            {/* Added playsInline for better mobile support */}
+            <video 
+              src={videoUrl} 
+              controls 
+              autoPlay 
+              playsInline
+              className="main-video" 
+            />
           </div>
         </div>
       )}
