@@ -76,6 +76,7 @@ function App () {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} /> 
         <Route path="/socials" element={<SocialMediaPage />} />
+      <Route path="/pastries" element={<PastryPage cart={cart} setCart={setCart} />} />
         
         <Route path="/shop" element={
           <HomePage 
