@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import API from '../api';
 import './PastryPage.css';
 
@@ -7,34 +7,44 @@ const PastryPage = ({ cart, setCart }) => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [activeTab, setActiveTab] = useState('Cakes');
   const [videoUrl, setVideoUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // We wrap this in useCallback so we can use it inside useEffect safely
+  const filterData = useCallback((allProducts, tab) => {
+    if (tab === 'Others') {
+      return allProducts.filter(p => 
+        p.subCategory === 'Others' || 
+        (p.subCategory !== 'Cakes' && p.subCategory !== 'Breads')
+      );
+    }
+    return allProducts.filter(p => p.subCategory === tab);
+  }, []);
 
   useEffect(() => {
-    // Fetch products specifically tagged as pastries
+    setLoading(true);
     API.get('/products?category=pastry')
       .then(res => {
         setProducts(res.data);
-        // Initial filter for the default tab
-        setFilteredProducts(res.data.filter(p => p.subCategory === 'Cakes'));
+        // ⭐ Fix: Immediately apply the filter to the incoming data
+        setFilteredProducts(filterData(res.data, activeTab));
       })
-      .catch(err => console.error(err));
-  }, []);
+      .catch(err => console.error("Error fetching pastries:", err))
+      .finally(() => setLoading(false));
+  }, [activeTab, filterData]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === 'Others') {
-      // Ensure "Others" shows everything that isn't specifically a Cake or Bread
-      setFilteredProducts(products.filter(p => p.subCategory === 'Others' || (p.subCategory !== 'Cakes' && p.subCategory !== 'Breads')));
-    } else {
-      setFilteredProducts(products.filter(p => p.subCategory === tab));
-    }
+    setFilteredProducts(filterData(products, tab));
   };
 
   const addToCart = (product) => {
-    // Assuming you have a setCart or similar state lifting 
-    // If using the backend API:
     API.post('/cart/add', { productId: product.id, quantity: 1 })
-      .then(() => alert(`${product.name} added to cart!`))
-      .catch(err => console.error(err));
+      .then(() => {
+        // If you need to update local cart state immediately:
+        if(setCart) setCart(prev => [...prev, product]);
+        alert(`${product.name} added to cart! 🛒`);
+      })
+      .catch(err => alert("Could not add to cart. Please try again."));
   };
 
   return (
@@ -53,35 +63,41 @@ const PastryPage = ({ cart, setCart }) => {
       </nav>
 
       {/* Product Grid */}
-      <main className="pastry-grid">
-        {filteredProducts.map(product => (
-          <div key={product.id} className="konga-card">
-            <div className="image-wrapper">
-              <img src={product.image} alt={product.name} />
-              
-              {/* ⭐ UPDATED: Video button now shows for ANY item that has a videoUrl, regardless of tab */}
-              {product.videoUrl && (
-                <button className="watch-video-btn" onClick={() => setVideoUrl(product.videoUrl)}>
-                  <span>▶</span> Watch Video
-                </button>
-              )}
-            </div>
-            
-            <div className="card-details">
-              <h3>{product.name}</h3>
-              <p className="price">₦{Number(product.price).toLocaleString()}</p>
-              <button className="add-btn" onClick={() => addToCart(product)}>Add to Cart</button>
-            </div>
-          </div>
-        ))}
-      </main>
+      {loading ? (
+        <div className="loader">Loading fresh pastries...</div>
+      ) : (
+        <main className="pastry-grid">
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map(product => (
+              <div key={product.id} className="konga-card">
+                <div className="image-wrapper">
+                  <img src={product.image} alt={product.name} loading="lazy" />
+                  
+                  {product.videoUrl && (
+                    <button className="watch-video-btn" onClick={() => setVideoUrl(product.videoUrl)}>
+                      <span>▶</span> Watch Video
+                    </button>
+                  )}
+                </div>
+                
+                <div className="card-details">
+                  <h3>{product.name}</h3>
+                  <p className="price">₦{Number(product.price || 0).toLocaleString()}</p>
+                  <button className="add-btn" onClick={() => addToCart(product)}>Add to Cart</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="no-products">No {activeTab} available at the moment.</div>
+          )}
+        </main>
+      )}
 
       {/* Professional Video Modal */}
       {videoUrl && (
         <div className="video-modal-overlay" onClick={() => setVideoUrl(null)}>
           <div className="video-modal-content" onClick={e => e.stopPropagation()}>
             <button className="close-video" onClick={() => setVideoUrl(null)}>✕</button>
-            {/* Added playsInline for better mobile support */}
             <video 
               src={videoUrl} 
               controls 
