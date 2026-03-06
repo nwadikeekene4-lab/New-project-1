@@ -8,7 +8,7 @@ const { Resend } = require("resend");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { Op } = require("sequelize"); // Added Op for archive queries
+const { Op } = require("sequelize");
 
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
@@ -43,9 +43,17 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key_12345";
 
+// ⭐ UPDATED STORAGE: Handles both Images and Videos
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: { folder: "shop_products" },
+  params: async (req, file) => {
+    const isVideo = file.mimetype.startsWith('video');
+    return {
+      folder: "shop_products",
+      resource_type: isVideo ? "video" : "image",
+      format: isVideo ? "mp4" : undefined, // Allow Cloudinary to handle image formats automatically
+    };
+  },
 });
 const upload = multer({ storage: storage });
 
@@ -92,36 +100,62 @@ router.post("/admin/login", async (req, res) => {
   } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// --- PRODUCT MANAGEMENT ---
+// --- ⭐ UPDATED PRODUCT MANAGEMENT (Filtering Support) ---
 router.get("/products", async (req, res) => {
   try {
-    const products = await Product.findAll({ order: [['createdAt', 'DESC']] });
+    const { category } = req.query; // Supports ?category=pastry
+    let whereClause = {};
+    if (category) whereClause.category = category;
+
+    const products = await Product.findAll({ 
+      where: whereClause,
+      order: [['createdAt', 'DESC']] 
+    });
     res.json(products);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post("/admin/products", verifyToken, upload.single("image"), async (req, res) => {
+// ⭐ UPDATED CREATE: Supports multi-field upload for Video
+router.post("/admin/products", verifyToken, upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'video', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const imageUrl = req.file ? (req.file.path || req.file.secure_url) : null;
+    const files = req.files;
+    const imageUrl = files.image ? (files.image[0].path || files.image[0].secure_url) : null;
+    const videoUrl = files.video ? (files.video[0].path || files.video[0].secure_url) : null;
+
     const product = await Product.create({
       name: sanitizeInput(req.body.name),
       price: parseFloat(req.body.price) || 0,
-      image: imageUrl, 
+      image: imageUrl,
+      videoUrl: videoUrl,
+      category: req.body.category || 'general',
+      subCategory: req.body.subCategory, 
       rating: { stars: 0, count: 0 }
     });
     res.json(product);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.put("/admin/products/:id", verifyToken, upload.single("image"), async (req, res) => {
+// ⭐ UPDATED PUT: Supports updating Video
+router.put("/admin/products/:id", verifyToken, upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'video', maxCount: 1 }
+]), async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: "Product not found" });
-    let imageUrl = product.image;
-    if (req.file) imageUrl = req.file.path || req.file.secure_url;
+
+    const files = req.files;
+    if (files.image) product.image = files.image[0].path || files.image[0].secure_url;
+    if (files.video) product.videoUrl = files.video[0].path || files.video[0].secure_url;
+
     product.name = sanitizeInput(req.body.name) || product.name;
     product.price = parseFloat(req.body.price) || product.price;
-    product.image = imageUrl;
+    product.category = req.body.category || product.category;
+    product.subCategory = req.body.subCategory || product.subCategory;
+
     await product.save();
     res.json({ success: true, updatedProduct: product });
   } catch (err) { res.status(500).json({ error: "Update failed" }); }
@@ -222,7 +256,6 @@ router.get("/cms/:page", async (req, res) => {
 
 // --- ARCHIVE & RESTORATION ---
 
-// Get all soft-deleted products
 router.get("/admin/archive/products", verifyToken, async (req, res) => {
   try {
     const archived = await Product.findAll({
@@ -233,7 +266,6 @@ router.get("/admin/archive/products", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Get all soft-deleted messages
 router.get("/admin/archive/messages", verifyToken, async (req, res) => {
   try {
     const archived = await Message.findAll({
@@ -244,7 +276,6 @@ router.get("/admin/archive/messages", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Restore a product
 router.post("/admin/products/:id/restore", verifyToken, async (req, res) => {
   try {
     await Product.restore({ where: { id: req.params.id } });
@@ -252,7 +283,6 @@ router.post("/admin/products/:id/restore", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Restore a message
 router.post("/admin/messages/:id/restore", verifyToken, async (req, res) => {
   try {
     await Message.restore({ where: { id: req.params.id } });
@@ -260,7 +290,6 @@ router.post("/admin/messages/:id/restore", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Permanent delete product
 router.delete("/admin/products/:id/permanent", verifyToken, async (req, res) => {
   try {
     await Product.destroy({ where: { id: req.params.id }, force: true });
@@ -268,7 +297,6 @@ router.delete("/admin/products/:id/permanent", verifyToken, async (req, res) => 
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Permanent delete message
 router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => {
   try {
     await Message.destroy({ where: { id: req.params.id }, force: true });
