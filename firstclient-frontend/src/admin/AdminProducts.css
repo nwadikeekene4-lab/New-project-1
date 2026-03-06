@@ -7,7 +7,7 @@
 }
 
 .admin-container-max {
-  max-width: 1400px; /* Prevents zoomed-in look on ultrawide monitors */
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -59,17 +59,15 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 
-.add-product-mini-card {
-  background: #fff;
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-}
-
 .mini-form {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: center; /* Keeps inputs aligned */
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
 }
 
 .mini-form input {
@@ -78,6 +76,35 @@
   border-radius: 4px;
   flex: 1;
   min-width: 150px;
+}
+
+/* ⭐ NEW: VIDEO & PASTRY TOGGLE SECTION */
+.video-section-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9f9f9;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px dashed #ccc;
+}
+
+.video-section-mini input[type="file"] {
+  min-width: auto;
+  font-size: 11px;
+}
+
+.type-toggle {
+  padding: 4px 8px;
+  border: 1px solid #ed017f;
+  border-radius: 4px;
+  background: white;
+  color: #ed017f;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  outline: none;
+  animation: slideIn 0.3s ease-out;
 }
 
 .mini-add-btn {
@@ -91,7 +118,6 @@
 }
 
 /* DYNAMIC RESPONSIVE GRID */
-/* auto-fill + minmax ensures the grid picks the best number of columns for the screen */
 .inventory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -105,6 +131,7 @@
   transition: box-shadow 0.2s;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .inventory-item:hover {
@@ -124,15 +151,21 @@
   object-fit: contain;
 }
 
-.sync-overlay {
+/* ⭐ NEW: VIDEO BADGE ON GRID */
+.video-badge {
   position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0.7);
+  top: 8px;
+  right: 8px;
+  background: rgba(237, 1, 127, 0.9); /* Konga Pink */
+  color: #fff;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
+  gap: 3px;
+  z-index: 2;
 }
 
 .item-details {
@@ -177,100 +210,40 @@
 .action-link.delete { color: #d32f2f; }
 .action-link:hover { background: #f5f5f5; }
 
-/* MOBILE ADJUSTMENTS (2 Columns) */
-@media (max-width: 600px) {
-  .inventory-grid {
-    grid-template-columns: repeat(2, 1fr); /* Force 2-column on mobile */
-    gap: 10px;
-  }
-  
-  .inventory-header {
-    margin-bottom: 20px;
-  }
-
-  .item-name { font-size: 13px; }
-  .item-price { font-size: 14px; }
-  
-  .admin-inventory-wrapper { padding: 10px; }
-   }
-
-/* --- New Status Badges --- */
-.item-img-container {
-  position: relative;
-}
-
-.video-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: bold;
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.cat-badge {
-  display: inline-block;
-  margin-top: 5px;
-  padding: 2px 8px;
-  background: #f0f0f0;
-  color: #666;
-  border-radius: 12px;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 700;
-}
-
-/* Highlight Pastry items in the grid */
-.inventory-item.pastry-tag {
-  border-top: 3px solid #ed017f; /* Konga Pink accent */
-}
-
-.pastry-tag .cat-badge {
-  background: #fff0f7;
-  color: #ed017f;
-}
-
-/* --- Form Improvements --- */
-.mini-form select {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-  font-size: 13px;
-  outline: none;
-}
-
-.mini-form select:focus {
-  border-color: #ed017f;
-}
-
-.file-label {
-  display: block;
-  font-size: 11px;
-  font-weight: bold;
-  color: #888;
-  margin-top: 10px;
-  margin-bottom: 2px;
-  text-align: left;
-}
-
-/* Transition for the sliding fields */
-.pastry-extra-fields {
+/* EDIT FORM STYLES */
+.grid-edit-form {
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  animation: slideDown 0.3s ease-out;
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.grid-edit-form input {
+  padding: 6px;
+  font-size: 13px;
+  border: 1px solid #ddd;
 }
+
+.edit-grid-btns {
+  display: flex;
+  gap: 5px;
+}
+
+.grid-btn-save { background: #2196f3; color: white; border: none; padding: 5px; flex: 1; border-radius: 4px; cursor: pointer; }
+.grid-btn-cancel { background: #eee; color: #333; border: none; padding: 5px; border-radius: 4px; cursor: pointer; }
+
+/* MOBILE ADJUSTMENTS */
+@media (max-width: 600px) {
+  .inventory-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .item-name { font-size: 13px; }
+  .item-price { font-size: 14px; }
+  .admin-inventory-wrapper { padding: 10px; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+  }
