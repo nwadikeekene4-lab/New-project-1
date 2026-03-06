@@ -8,6 +8,7 @@ export default function AdminPastry() {
   const [activeTab, setActiveTab] = useState("Cakes");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Form States
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
@@ -16,8 +17,15 @@ export default function AdminPastry() {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
-  const [editVideoFile, setEditVideoFile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // ⭐ FIX: Clear inputs when switching tabs
+  useEffect(() => {
+    setNewName("");
+    setNewPrice("");
+    setNewImageFile(null);
+    setNewVideoFile(null);
+  }, [activeTab]);
 
   useEffect(() => { fetchPastries(); }, []);
 
@@ -25,7 +33,7 @@ export default function AdminPastry() {
     try {
       const res = await API.get("/products?category=pastry");
       setPastries(res.data);
-    } catch (err) { console.error("Error fetching pastries", err); }
+    } catch (err) { console.error(err); }
   };
 
   const addPastry = async (e) => {
@@ -36,18 +44,20 @@ export default function AdminPastry() {
     formData.append("price", newPrice);
     formData.append("category", "pastry");
     formData.append("subCategory", activeTab); 
-    formData.append("image", newImageFile);
+    if (newImageFile) formData.append("image", newImageFile);
     if (newVideoFile) formData.append("video", newVideoFile);
 
     try {
       const res = await API.post("/admin/products", formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
+      // Add to local state immediately
       setPastries([res.data, ...pastries]);
-      setNewName(""); setNewPrice(""); setNewImageFile(null); setNewVideoFile(null);
-      e.target.reset();
-      alert(`Successfully added to ${activeTab}!`);
-    } catch (err) { alert("Upload failed."); }
+      // Clear form
+      setNewName(""); setNewPrice(""); 
+      setNewImageFile(null); setNewVideoFile(null);
+      alert(`Successfully added to ${activeTab}! ✅`);
+    } catch (err) { alert("Upload failed. Check your connection."); }
   };
 
   const updatePastry = async (id) => {
@@ -56,21 +66,19 @@ export default function AdminPastry() {
     const formData = new FormData();
     formData.append("name", editName);
     formData.append("price", editPrice);
-    if (editVideoFile) formData.append("video", editVideoFile);
 
     try {
       const res = await API.put(`/admin/products/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${token}` }
       });
       setPastries(pastries.map(p => p.id === id ? res.data.updatedProduct : p));
       setEditingId(null);
-      alert("Updated! ✅");
     } catch (err) { alert("Update failed."); }
     finally { setIsSaving(false); }
   };
 
   const deletePastry = async (id) => {
-    if (!window.confirm("Archive this pastry?")) return;
+    if (!window.confirm("Delete this item?")) return;
     const token = localStorage.getItem("adminToken");
     try {
       await API.delete(`/admin/products/${id}`, { headers: { "Authorization": `Bearer ${token}` } });
@@ -89,75 +97,80 @@ export default function AdminPastry() {
   return (
     <div className="pastry-admin-page">
       <div className="pastry-max-width">
-        <header className="pastry-dashboard-header">
-          <div className="pastry-title-row">
-            <Link to="/admin" className="pastry-back-arrow">←</Link>
-            <h1>Pastry Kitchen</h1>
+        <header className="pastry-header-section">
+          <div className="pastry-top-nav">
+            <Link to="/admin" className="p-back-btn">←</Link>
+            <h1>{activeTab} Management</h1>
           </div>
 
-          <div className="pastry-tabs-nav">
+          <nav className="pastry-tabs-flex">
             {["Cakes", "Breads", "Others"].map(tab => (
               <button 
                 key={tab} 
-                className={activeTab === tab ? "pastry-tab active" : "pastry-tab"}
+                className={activeTab === tab ? "p-tab active" : "p-tab"}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
               </button>
             ))}
-          </div>
+          </nav>
 
-          <div className="pastry-controls">
-            <input 
-              type="text" 
-              placeholder={`Search ${activeTab}...`} 
-              className="pastry-search-box"
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          <div className="pastry-action-container">
+             <div className="search-wrap">
+               <input 
+                type="text" 
+                placeholder={`Search ${activeTab}...`} 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+             </div>
             
-            <form className="pastry-upload-form" onSubmit={addPastry}>
-              <input type="text" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
-              <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
-              <div className="file-field"><label>Img</label><input type="file" onChange={(e)=>setNewImageFile(e.target.files[0])} required /></div>
-              <div className="file-field"><label>Vid</label><input type="file" onChange={(e)=>setNewVideoFile(e.target.files[0])} /></div>
-              <button type="submit" className="pastry-submit-btn">Add {activeTab}</button>
+            <form className="pastry-main-form" onSubmit={addPastry}>
+              <div className="input-group-row">
+                <input type="text" placeholder="Product Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
+                <input type="number" placeholder="Price (₦)" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
+              </div>
+              <div className="file-group-row">
+                <div className="custom-file"><label>Photo</label><input type="file" onChange={(e)=>setNewImageFile(e.target.files[0])} required /></div>
+                <div className="custom-file"><label>Video (Opt)</label><input type="file" onChange={(e)=>setNewVideoFile(e.target.files[0])} /></div>
+                <button type="submit" className="p-submit-btn">Add {activeTab}</button>
+              </div>
             </form>
           </div>
         </header>
 
-        <div className="pastry-inventory-grid">
+        <main className="pastry-smart-grid">
           {tabFiltered.map((p) => (
-            <div key={p.id} className="pastry-card">
+            <div key={p.id} className="p-item-card">
               {editingId === p.id ? (
-                <div className="pastry-edit-ui">
+                <div className="p-edit-box">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                  <input type="file" onChange={(e) => setEditVideoFile(e.target.files[0])} />
-                  <div className="edit-actions">
-                    <button onClick={() => updatePastry(p.id)} disabled={isSaving}>Save</button>
-                    <button onClick={() => setEditingId(null)}>✕</button>
+                  <div className="p-edit-btns">
+                    <button className="p-save" onClick={() => updatePastry(p.id)} disabled={isSaving}>Save</button>
+                    <button className="p-cancel" onClick={() => setEditingId(null)}>✕</button>
                   </div>
                 </div>
               ) : (
-                <div className="pastry-card-inner">
-                  <div className="pastry-media-wrap">
+                <>
+                  <div className="p-card-img">
                     <img src={p.image} alt="" />
-                    {p.videoUrl && <span className="video-icon">🎥 Video</span>}
+                    {p.videoUrl && <span className="p-vid-badge">🎥 CLIP</span>}
                   </div>
-                  <div className="pastry-body">
+                  <div className="p-card-details">
                     <h3>{p.name}</h3>
-                    <p>₦{Number(p.price).toLocaleString()}</p>
+                    <p className="p-price-tag">₦{Number(p.price).toLocaleString()}</p>
                   </div>
-                  <div className="pastry-footer">
+                  <div className="p-card-actions">
                     <button onClick={() => { setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); }}>Edit</button>
-                    <button onClick={() => deletePastry(p.id)} className="p-del">Delete</button>
+                    <button onClick={() => deletePastry(p.id)} className="p-del-btn">Delete</button>
                   </div>
-                </div>
+                </>
               )}
             </div>
           ))}
-        </div>
+        </main>
       </div>
     </div>
   );
-    }
+}
