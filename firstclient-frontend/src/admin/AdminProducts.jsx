@@ -10,7 +10,8 @@ export default function AdminProducts() {
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
-  const [newVideoFile, setNewVideoFile] = useState(null); // Optional for Pastries
+  const [newVideoFile, setNewVideoFile] = useState(null); 
+  const [pastryType, setPastryType] = useState("Cakes"); // ⭐ Strictly for Cakes/Breads
 
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -18,6 +19,7 @@ export default function AdminProducts() {
   const [editPrice, setEditPrice] = useState("");
   const [editImageFile, setEditImageFile] = useState(null);
   const [editVideoFile, setEditVideoFile] = useState(null);
+  const [editPastryType, setEditPastryType] = useState("Cakes");
 
   useEffect(() => { fetchProducts(); }, []);
 
@@ -45,11 +47,11 @@ export default function AdminProducts() {
     formData.append("price", newPrice);
     formData.append("image", newImageFile);
 
-    // ⭐ BACKGROUND LOGIC: If a video is added, tag it as a pastry automatically
+    // ⭐ If video exists, it's a Pastry (Cake or Bread). Otherwise, it's General.
     if (newVideoFile) {
       formData.append("video", newVideoFile);
       formData.append("category", "pastry");
-      formData.append("subCategory", "Cakes"); 
+      formData.append("subCategory", pastryType); 
     } else {
       formData.append("category", "general");
     }
@@ -72,9 +74,9 @@ export default function AdminProducts() {
     formData.append("name", editName);
     formData.append("price", editPrice);
     
-    // Keep existing categories on update
-    formData.append("category", originalCategory || "general");
-    formData.append("subCategory", originalSub || "");
+    // Use the toggled subCategory if a new video is being uploaded
+    formData.append("category", editVideoFile ? "pastry" : (originalCategory || "general"));
+    formData.append("subCategory", editVideoFile ? editPastryType : (originalSub || ""));
 
     if (editImageFile) formData.append("image", editImageFile);
     if (editVideoFile) formData.append("video", editVideoFile);
@@ -84,9 +86,7 @@ export default function AdminProducts() {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
       setProducts(products.map(p => p.id === id ? res.data.updatedProduct : p));
-      setEditingId(null);
-      setEditImageFile(null);
-      setEditVideoFile(null);
+      setEditingId(null); setEditImageFile(null); setEditVideoFile(null);
       alert("Updated! ✅");
     } catch (err) { alert("Error updating."); }
     finally { setIsSaving(false); }
@@ -126,7 +126,18 @@ export default function AdminProducts() {
             <form className="mini-form" onSubmit={addProduct}>
               <input type="text" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
               <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
-              <input type="file" title="Optional Video" onChange={(e)=>setNewVideoFile(e.target.files[0])} />
+              
+              {/* ⭐ Video Input + Tiny Toggle for Type */}
+              <div className="video-section-mini">
+                <input type="file" accept="video/*" onChange={(e)=>setNewVideoFile(e.target.files[0])} />
+                {newVideoFile && (
+                  <select className="type-toggle" onChange={(e) => setPastryType(e.target.value)}>
+                    <option value="Cakes">Is Cake</option>
+                    <option value="Breads">Is Bread</option>
+                  </select>
+                )}
+              </div>
+
               <input type="file" className="mini-file" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
               <button type="submit" className="mini-add-btn">Add</button>
             </form>
@@ -140,7 +151,17 @@ export default function AdminProducts() {
                 <div className="grid-edit-form">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                  <input type="file" onChange={(e) => setEditVideoFile(e.target.files[0])} />
+                  
+                  <div className="video-section-mini">
+                    <input type="file" onChange={(e) => setEditVideoFile(e.target.files[0])} />
+                    {editVideoFile && (
+                      <select className="type-toggle" onChange={(e) => setEditPastryType(e.target.value)}>
+                        <option value="Cakes">Cake</option>
+                        <option value="Breads">Bread</option>
+                      </select>
+                    )}
+                  </div>
+
                   <input type="file" className="mini-file" onChange={(e) => setEditImageFile(e.target.files[0])} />
                   <div className="edit-grid-btns">
                     <button className="grid-btn-save" onClick={() => updateProduct(p.id, p.category, p.subCategory)} disabled={isSaving}>Save</button>
@@ -171,4 +192,4 @@ export default function AdminProducts() {
       </div>
     </div>
   );
-    }
+  }
