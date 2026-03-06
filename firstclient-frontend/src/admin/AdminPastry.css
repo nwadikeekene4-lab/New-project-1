@@ -1,149 +1,25 @@
-.pastry-admin-page {
-  background: #f8f9fa;
-  min-height: 100vh;
-  padding: 40px 20px;
-}
-
-.pastry-max-width {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-/* HEADER & TABS */
-.pastry-dashboard-header {
-  background: white;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-  margin-bottom: 30px;
-}
-
+.pastry-admin-page { background: #f8f9fa; min-height: 100vh; padding: 40px 20px; }
+.pastry-max-width { max-width: 1100px; margin: 0 auto; }
+.pastry-dashboard-header { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
 .pastry-title-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
 .pastry-title-row h1 { font-size: 24px; color: #1a2a6c; margin: 0; }
 .pastry-back-arrow { text-decoration: none; font-size: 28px; color: #1a2a6c; font-weight: bold; }
-
-.pastry-tabs-nav {
-  display: flex;
-  gap: 15px;
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 15px;
-  margin-bottom: 20px;
-}
-
-.pastry-tab {
-  padding: 10px 30px;
-  border: none;
-  background: #edf2f7;
-  border-radius: 50px;
-  cursor: pointer;
-  font-weight: 700;
-  color: #4a5568;
-  transition: 0.3s;
-}
-
-.pastry-tab.active {
-  background: #1a2a6c;
-  color: white;
-  box-shadow: 0 4px 12px rgba(26, 42, 108, 0.3);
-}
-
-/* UPLOAD FORM */
-.pastry-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.pastry-upload-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  background: #f1f5f9;
-  padding: 12px;
-  border-radius: 10px;
-}
-
-.pastry-upload-form input {
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-.file-field {
-  display: flex;
-  flex-direction: column;
-  background: white;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-}
-
-.file-field label { font-size: 10px; font-weight: 900; color: #1a2a6c; }
-.file-field input { padding: 0; border: none; font-size: 11px; width: 110px; }
-
-.pastry-submit-btn {
-  background: #1a2a6c;
-  color: white;
-  border: none;
-  padding: 0 25px;
-  border-radius: 6px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.pastry-submit-btn:hover { background: #fba100; }
-
-/* KONGA GRID */
-.pastry-inventory-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-}
-
-.pastry-card {
-  background: white;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  transition: 0.2s;
-}
-
-.pastry-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-
-.pastry-media-wrap { position: relative; height: 170px; }
+.pastry-tabs-nav { display: flex; gap: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px; }
+.pastry-tab { padding: 10px 30px; border: none; background: #edf2f7; border-radius: 50px; cursor: pointer; font-weight: 700; color: #4a5568; transition: 0.3s; }
+.pastry-tab.active { background: #1a2a6c; color: white; box-shadow: 0 4px 12px rgba(26, 42, 108, 0.3); }
+.pastry-upload-form { display: flex; flex-wrap: wrap; gap: 10px; background: #f1f5f9; padding: 12px; border-radius: 10px; margin-top: 15px; }
+.pastry-upload-form input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; }
+.file-field { display: flex; flex-direction: column; background: white; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1; }
+.file-field label { font-size: 9px; font-weight: 900; color: #1a2a6c; }
+.pastry-submit-btn { background: #1a2a6c; color: white; border: none; padding: 0 20px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.pastry-inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+.pastry-card { background: white; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; }
+.pastry-media-wrap { position: relative; height: 160px; }
 .pastry-media-wrap img { width: 100%; height: 100%; object-fit: cover; }
-
-.video-icon {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #1a2a6c;
-  color: #fba100;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.pastry-body { padding: 15px; text-align: center; }
-.pastry-body h3 { font-size: 15px; margin: 0; color: #2d3748; }
-.pastry-body p { font-size: 18px; font-weight: 800; color: #1a2a6c; margin: 5px 0 0; }
-
-.pastry-footer { display: flex; border-top: 1px solid #edf2f7; }
-.pastry-footer button {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  background: none;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  color: #1a2a6c;
-}
-
-.pastry-footer button.p-del { color: #e53e3e; border-left: 1px solid #edf2f7; }
-
-@media (max-width: 500px) {
-  .pastry-inventory-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  }
+.video-icon { position: absolute; top: 10px; right: 10px; background: #1a2a6c; color: #fba100; padding: 4px 8px; border-radius: 4px; font-size: 10px; }
+.pastry-body { padding: 10px; text-align: center; }
+.pastry-body h3 { font-size: 14px; margin: 0; }
+.pastry-body p { font-size: 16px; font-weight: bold; color: #1a2a6c; }
+.pastry-footer { display: flex; border-top: 1px solid #eee; }
+.pastry-footer button { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; font-weight: bold; }
+.p-del { color: red; border-left: 1px solid #eee; }
