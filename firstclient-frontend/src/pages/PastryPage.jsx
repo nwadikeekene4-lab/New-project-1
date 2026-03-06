@@ -9,7 +9,7 @@ const PastryPage = ({ cart, setCart }) => {
   const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // We wrap this in useCallback so we can use it inside useEffect safely
+  // Memoized filter function to prevent unnecessary re-renders
   const filterData = useCallback((allProducts, tab) => {
     if (tab === 'Others') {
       return allProducts.filter(p => 
@@ -25,7 +25,7 @@ const PastryPage = ({ cart, setCart }) => {
     API.get('/products?category=pastry')
       .then(res => {
         setProducts(res.data);
-        // ⭐ Fix: Immediately apply the filter to the incoming data
+        // Apply initial filter
         setFilteredProducts(filterData(res.data, activeTab));
       })
       .catch(err => console.error("Error fetching pastries:", err))
@@ -40,7 +40,6 @@ const PastryPage = ({ cart, setCart }) => {
   const addToCart = (product) => {
     API.post('/cart/add', { productId: product.id, quantity: 1 })
       .then(() => {
-        // If you need to update local cart state immediately:
         if(setCart) setCart(prev => [...prev, product]);
         alert(`${product.name} added to cart! 🛒`);
       })
@@ -93,11 +92,12 @@ const PastryPage = ({ cart, setCart }) => {
         </main>
       )}
 
-      {/* Professional Video Modal */}
+      {/* Professional Video Modal with Related Shelf */}
       {videoUrl && (
         <div className="video-modal-overlay" onClick={() => setVideoUrl(null)}>
           <div className="video-modal-content" onClick={e => e.stopPropagation()}>
             <button className="close-video" onClick={() => setVideoUrl(null)}>✕</button>
+            
             <video 
               src={videoUrl} 
               controls 
@@ -105,6 +105,25 @@ const PastryPage = ({ cart, setCart }) => {
               playsInline
               className="main-video" 
             />
+
+            {/* ⭐ Integrated Related Items Shelf */}
+            <div className="modal-related-shelf">
+              <h4>More from {activeTab}</h4>
+              <div className="related-items-list">
+                {products
+                  .filter(p => p.subCategory === activeTab && p.videoUrl !== videoUrl)
+                  .slice(0, 4) // Show up to 4 related items
+                  .map(item => (
+                    <div key={item.id} className="related-mini-card">
+                      <img src={item.image} alt={item.name} />
+                      <div className="mini-info">
+                        <span>{item.name}</span>
+                        <button className="mini-add-btn" onClick={() => addToCart(item)}>+</button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
