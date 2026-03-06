@@ -7,7 +7,7 @@
 }
 
 .admin-container-max {
-  max-width: 1400px;
+  max-width: 1400px; /* Prevents zoomed-in look on ultrawide monitors */
   margin: 0 auto;
 }
 
@@ -63,11 +63,11 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  align-items: center; /* Keeps inputs aligned */
   background: #fff;
   padding: 15px;
   border-radius: 8px;
   border: 1px solid #ddd;
+  align-items: center;
 }
 
 .mini-form input {
@@ -78,33 +78,32 @@
   min-width: 150px;
 }
 
-/* ⭐ NEW: VIDEO & PASTRY TOGGLE SECTION */
+/* VIDEO & TOGGLE SECTION */
 .video-section-mini {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f9f9f9;
-  padding: 5px 10px;
-  border-radius: 4px;
-  border: 1px dashed #ccc;
-}
-
-.video-section-mini input[type="file"] {
-  min-width: auto;
-  font-size: 11px;
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
 }
 
 .type-toggle {
   padding: 4px 8px;
-  border: 1px solid #ed017f;
+  border: 1px solid #1a2a6c; 
   border-radius: 4px;
-  background: white;
-  color: #ed017f;
+  background: #1a2a6c;
+  color: #ffffff;
   font-size: 11px;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
   outline: none;
-  animation: slideIn 0.3s ease-out;
+  transition: background 0.2s;
+}
+
+.type-toggle:hover {
+  background: #2a3a7c;
 }
 
 .mini-add-btn {
@@ -138,6 +137,11 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
+/* Highlight Pastry items with a Midnight Blue accent */
+.inventory-item.pastry-tag {
+  border-top: 3px solid #1a2a6c;
+}
+
 .item-img-container {
   aspect-ratio: 1 / 1;
   background: #f9f9f9;
@@ -151,20 +155,21 @@
   object-fit: contain;
 }
 
-/* ⭐ NEW: VIDEO BADGE ON GRID */
+/* Professional Dark Video Badge */
 .video-badge {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(237, 1, 127, 0.9); /* Konga Pink */
+  background: rgba(26, 42, 108, 0.85);
   color: #fff;
-  padding: 3px 6px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   z-index: 2;
 }
 
@@ -232,18 +237,24 @@
 .grid-btn-save { background: #2196f3; color: white; border: none; padding: 5px; flex: 1; border-radius: 4px; cursor: pointer; }
 .grid-btn-cancel { background: #eee; color: #333; border: none; padding: 5px; border-radius: 4px; cursor: pointer; }
 
-/* MOBILE ADJUSTMENTS */
+/* MOBILE ADJUSTMENTS (2 Columns) */
 @media (max-width: 600px) {
   .inventory-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
+  
+  .inventory-header {
+    margin-bottom: 20px;
+  }
+
   .item-name { font-size: 13px; }
   .item-price { font-size: 14px; }
+  
   .admin-inventory-wrapper { padding: 10px; }
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: translateX(-5px); }
+  to { opacity: 1; transform: translateX(0); }
   }
