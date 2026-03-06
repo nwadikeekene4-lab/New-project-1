@@ -6,43 +6,91 @@ import './AdminPastry.css';
 export default function AdminPastry() {
   const [pastries, setPastries] = useState([]);
   const [activeTab, setActiveTab] = useState("Cakes");
-  const [errorLog, setErrorLog] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // FORM STATES
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
+  const [newVideoFile, setNewVideoFile] = useState(null);
 
-  useEffect(() => {
-    console.log("DIAGNOSTIC: Pastry Component Mounted");
-    fetchPastries();
-  }, []);
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editVideoFile, setEditVideoFile] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => { fetchPastries(); }, []);
 
   const fetchPastries = async () => {
     try {
       const res = await API.get("/products?category=pastry");
-      console.log("DATABASE RESPONSE:", res.data);
       setPastries(res.data);
-      if (res.data.length === 0) {
-        setErrorLog("Warning: Database returned 0 pastries. Check if products have category='pastry'");
-      }
-    } catch (err) {
-      setErrorLog(`API Error: ${err.message}`);
-    }
+    } catch (err) { console.error("Error fetching pastries", err); }
   };
+
+  const addPastry = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("adminToken");
+    const formData = new FormData();
+    formData.append("name", newName);
+    formData.append("price", newPrice);
+    formData.append("category", "pastry");
+    formData.append("subCategory", activeTab); 
+    formData.append("image", newImageFile);
+    if (newVideoFile) formData.append("video", newVideoFile);
+
+    try {
+      const res = await API.post("/admin/products", formData, {
+        headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
+      });
+      setPastries([res.data, ...pastries]);
+      setNewName(""); setNewPrice(""); setNewImageFile(null); setNewVideoFile(null);
+      e.target.reset();
+      alert(`Successfully added to ${activeTab}!`);
+    } catch (err) { alert("Upload failed."); }
+  };
+
+  const updatePastry = async (id) => {
+    setIsSaving(true);
+    const token = localStorage.getItem("adminToken");
+    const formData = new FormData();
+    formData.append("name", editName);
+    formData.append("price", editPrice);
+    if (editVideoFile) formData.append("video", editVideoFile);
+
+    try {
+      const res = await API.put(`/admin/products/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
+      });
+      setPastries(pastries.map(p => p.id === id ? res.data.updatedProduct : p));
+      setEditingId(null);
+      alert("Updated! ✅");
+    } catch (err) { alert("Update failed."); }
+    finally { setIsSaving(false); }
+  };
+
+  const deletePastry = async (id) => {
+    if (!window.confirm("Archive this pastry?")) return;
+    const token = localStorage.getItem("adminToken");
+    try {
+      await API.delete(`/admin/products/${id}`, { headers: { "Authorization": `Bearer ${token}` } });
+      setPastries(pastries.filter(p => p.id !== id));
+    } catch (err) { alert("Delete failed"); }
+  };
+
+  const tabFiltered = pastries.filter(p => {
+    const nameMatch = p.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    if (activeTab === "Others") {
+      return nameMatch && p.subCategory !== "Cakes" && p.subCategory !== "Breads";
+    }
+    return nameMatch && p.subCategory === activeTab;
+  });
 
   return (
     <div className="pastry-admin-page">
-      {/* 🚨 THE DIAGNOSTIC BOX - IF YOU DON'T SEE THIS, THE CODE IS NOT UPDATED ON THE SERVER */}
-      <div style={{background: 'red', color: 'white', padding: '20px', textAlign: 'center', fontWeight: 'bold', fontSize: '20px', zIndex: 9999}}>
-        DEBUG MODE ACTIVE: Update Time 6:45 PM <br/>
-        Active Tab: {activeTab} | Items Found: {pastries.length} <br/>
-        {errorLog && <span style={{color: 'yellow'}}>ERROR: {errorLog}</span>}
-      </div>
-
       <div className="pastry-max-width">
         <header className="pastry-dashboard-header">
-           <div className="pastry-title-row">
+          <div className="pastry-title-row">
             <Link to="/admin" className="pastry-back-arrow">←</Link>
             <h1>Pastry Kitchen</h1>
           </div>
@@ -58,19 +106,58 @@ export default function AdminPastry() {
               </button>
             ))}
           </div>
-          {/* ... rest of your form ... */}
-          <p style={{textAlign: 'center', color: '#1a2a6c'}}>Current View: {activeTab} Management</p>
+
+          <div className="pastry-controls">
+            <input 
+              type="text" 
+              placeholder={`Search ${activeTab}...`} 
+              className="pastry-search-box"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            
+            <form className="pastry-upload-form" onSubmit={addPastry}>
+              <input type="text" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
+              <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
+              <div className="file-field"><label>Img</label><input type="file" onChange={(e)=>setNewImageFile(e.target.files[0])} required /></div>
+              <div className="file-field"><label>Vid</label><input type="file" onChange={(e)=>setNewVideoFile(e.target.files[0])} /></div>
+              <button type="submit" className="pastry-submit-btn">Add {activeTab}</button>
+            </form>
+          </div>
         </header>
-        
+
         <div className="pastry-inventory-grid">
-            {pastries.filter(p => p.subCategory === activeTab).map(p => (
-                <div key={p.id} className="pastry-card">
-                    <img src={p.image} alt="" style={{width: '100%'}} />
-                    <p>{p.name}</p>
+          {tabFiltered.map((p) => (
+            <div key={p.id} className="pastry-card">
+              {editingId === p.id ? (
+                <div className="pastry-edit-ui">
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                  <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+                  <input type="file" onChange={(e) => setEditVideoFile(e.target.files[0])} />
+                  <div className="edit-actions">
+                    <button onClick={() => updatePastry(p.id)} disabled={isSaving}>Save</button>
+                    <button onClick={() => setEditingId(null)}>✕</button>
+                  </div>
                 </div>
-            ))}
+              ) : (
+                <div className="pastry-card-inner">
+                  <div className="pastry-media-wrap">
+                    <img src={p.image} alt="" />
+                    {p.videoUrl && <span className="video-icon">🎥 Video</span>}
+                  </div>
+                  <div className="pastry-body">
+                    <h3>{p.name}</h3>
+                    <p>₦{Number(p.price).toLocaleString()}</p>
+                  </div>
+                  <div className="pastry-footer">
+                    <button onClick={() => { setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); }}>Edit</button>
+                    <button onClick={() => deletePastry(p.id)} className="p-del">Delete</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
-        }
+    }
