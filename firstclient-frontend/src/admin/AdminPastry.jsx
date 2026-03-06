@@ -7,6 +7,7 @@ export default function AdminPastry() {
   const [pastries, setPastries] = useState([]);
   const [activeTab, setActiveTab] = useState("Cakes");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isUploading, setIsUploading] = useState(false); // New Spinner State
 
   // Form States
   const [newName, setNewName] = useState("");
@@ -19,7 +20,6 @@ export default function AdminPastry() {
   const [editPrice, setEditPrice] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  // ⭐ FIX: Clear inputs when switching tabs
   useEffect(() => {
     setNewName("");
     setNewPrice("");
@@ -38,6 +38,9 @@ export default function AdminPastry() {
 
   const addPastry = async (e) => {
     e.preventDefault();
+    if (isUploading) return;
+
+    setIsUploading(true); // Start Spinner
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
     formData.append("name", newName);
@@ -51,13 +54,15 @@ export default function AdminPastry() {
       const res = await API.post("/admin/products", formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
-      // Add to local state immediately
       setPastries([res.data, ...pastries]);
-      // Clear form
       setNewName(""); setNewPrice(""); 
       setNewImageFile(null); setNewVideoFile(null);
       alert(`Successfully added to ${activeTab}! ✅`);
-    } catch (err) { alert("Upload failed. Check your connection."); }
+    } catch (err) { 
+      alert("Upload failed. Check file size or connection."); 
+    } finally {
+      setIsUploading(false); // Stop Spinner
+    }
   };
 
   const updatePastry = async (id) => {
@@ -131,9 +136,17 @@ export default function AdminPastry() {
                 <input type="number" placeholder="Price (₦)" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
               </div>
               <div className="file-group-row">
-                <div className="custom-file"><label>Photo</label><input type="file" onChange={(e)=>setNewImageFile(e.target.files[0])} required /></div>
-                <div className="custom-file"><label>Video (Opt)</label><input type="file" onChange={(e)=>setNewVideoFile(e.target.files[0])} /></div>
-                <button type="submit" className="p-submit-btn">Add {activeTab}</button>
+                <div className="custom-file">
+                  <label>Photo</label>
+                  <input type="file" accept="image/*" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
+                </div>
+                <div className="custom-file">
+                  <label>Video (Opt)</label>
+                  <input type="file" accept="video/*" onChange={(e)=>setNewVideoFile(e.target.files[0])} />
+                </div>
+                <button type="submit" className="p-submit-btn" disabled={isUploading}>
+                  {isUploading ? <div className="spinner"></div> : `Add ${activeTab}`}
+                </button>
               </div>
             </form>
           </div>
@@ -147,7 +160,9 @@ export default function AdminPastry() {
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
                   <div className="p-edit-btns">
-                    <button className="p-save" onClick={() => updatePastry(p.id)} disabled={isSaving}>Save</button>
+                    <button className="p-save" onClick={() => updatePastry(p.id)} disabled={isSaving}>
+                      {isSaving ? "..." : "Save"}
+                    </button>
                     <button className="p-cancel" onClick={() => setEditingId(null)}>✕</button>
                   </div>
                 </div>
@@ -173,4 +188,4 @@ export default function AdminPastry() {
       </div>
     </div>
   );
-}
+  }
