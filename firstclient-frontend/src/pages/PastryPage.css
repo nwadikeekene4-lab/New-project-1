@@ -1,11 +1,28 @@
-/* CONTAINER & BASE */
-/* NAVIGATION HEADER */
+/* --- CONTAINER & BASE --- */
+.pastry-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f8fafc; /* Professional off-white */
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.loader, .no-products {
+  text-align: center;
+  padding: 60px;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+/* --- NAVIGATION HEADER --- */
 .pastry-nav-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 15px 0;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -18,90 +35,66 @@
   cursor: pointer;
   color: #1a2a6c;
   font-weight: 700;
-  transition: transform 0.2s;
+  transition: transform 0.2s ease;
+  font-size: 16px;
 }
 
 .nav-back-arrow:hover {
   transform: translateX(-5px);
 }
 
-.arrow-icon { font-size: 20px; }
+.arrow-icon { font-size: 22px; }
+
+.pastry-logo-section h2 {
+  font-size: 1.4rem;
+  color: #1e293b;
+  margin: 0;
+  font-weight: 800;
+}
 
 .exit-link {
   color: #64748b;
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
+  transition: color 0.2s;
 }
 
 .exit-link:hover { color: #ef4444; }
 
-/* ADDED STATE FOR BUTTON */
-.add-btn.added-state {
-  background: #10b981 !important; /* Success Green */
-  pointer-events: none;
-  animation: buttonScale 0.3s ease;
-}
-
-@keyframes buttonScale {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-/* FLOATING CART (Additional Styling) */
-.floating-cart-status:hover {
-  background: #2a3a7c;
-  transform: translateY(-2px);
-}
-.pastry-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background: #f8fafc;
-  min-height: 100vh;
-}
-
-.loader, .no-products {
-  text-align: center;
-  padding: 50px;
-  font-weight: 600;
-  color: #64748b;
-}
-
-/* TAB NAVIGATION: KONGA STYLE */
+/* --- TAB NAVIGATION: KONGA STYLE --- */
 .pastry-tabs {
   display: flex;
   background: white;
-  padding: 5px;
+  padding: 6px;
   border-radius: 12px;
   margin-bottom: 30px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
   justify-content: center;
   gap: 10px;
   position: sticky;
-  top: 10px;
+  top: 15px;
   z-index: 100;
 }
 
 .pastry-tabs button {
-  padding: 12px 25px;
+  padding: 12px 28px;
   border: none;
   background: none;
   font-weight: 700;
   color: #64748b;
   cursor: pointer;
   border-radius: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pastry-tabs button.active {
-  background: #1a2a6c;
+  background: #1a2a6c; /* Midnight Blue */
   color: white;
-  box-shadow: 0 4px 10px rgba(26, 42, 108, 0.2);
+  box-shadow: 0 4px 12px rgba(26, 42, 108, 0.25);
 }
 
-/* GRID SYSTEM */
+/* --- PRODUCT GRID SYSTEM --- */
 .pastry-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -110,7 +103,7 @@
 
 .konga-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #e2e8f0;
@@ -136,11 +129,11 @@
   object-fit: cover;
 }
 
-/* VIDEO BADGE ON CARD */
+/* --- VIDEO OVERLAY BUTTONS --- */
 .watch-video-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
   background: rgba(26, 42, 108, 0.85);
   backdrop-filter: blur(8px);
   color: white;
@@ -153,7 +146,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s;
   z-index: 10;
 }
 
@@ -162,12 +155,12 @@
   background: rgba(26, 42, 108, 1);
 }
 
-/* CARD DETAILS */
+/* --- CARD DETAILS & PRICING --- */
 .card-details {
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   flex-grow: 1;
 }
 
@@ -176,10 +169,11 @@
   color: #1e293b;
   font-weight: 600;
   margin: 0;
+  line-height: 1.4;
 }
 
 .price {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 800;
   color: #1a2a6c;
   margin: 0;
@@ -191,10 +185,10 @@
   color: white;
   border: none;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
   margin-top: auto;
 }
 
@@ -202,24 +196,99 @@
   background: #e69100;
 }
 
-/* --- VIDEO MODAL & RELATED SHELF --- */
+.add-btn:active {
+  transform: scale(0.96);
+}
 
+/* REAL-TIME SUCCESS STATE */
+.add-btn.added-state {
+  background: #10b981 !important; /* Success Green */
+  pointer-events: none;
+  animation: buttonScale 0.3s ease;
+}
+
+@keyframes buttonScale {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* --- FLOATING REAL-TIME CART --- */
+.floating-cart-status {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #1a2a6c;
+  color: white;
+  padding: 12px 22px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 10px 30px rgba(26, 42, 108, 0.4);
+  z-index: 1000;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.1);
+  animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.floating-cart-status:hover {
+  background: #2a3a7c;
+  transform: translateY(-3px);
+}
+
+.cart-icon-wrapper { position: relative; font-size: 22px; }
+
+.cart-count-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #fba100;
+  color: #1a2a6c;
+  font-size: 11px;
+  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #1a2a6c;
+  animation: popBadge 0.3s ease;
+}
+
+.cart-text { display: flex; flex-direction: column; }
+.cart-text p { margin: 0; font-size: 10px; opacity: 0.8; text-transform: uppercase; }
+.cart-text strong { font-size: 15px; }
+
+@keyframes slideInRight {
+  from { transform: translateX(100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes popBadge {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* --- VIDEO MODAL & RELATED SHELF --- */
 .video-modal-overlay {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(15, 23, 42, 0.96);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(6px);
 }
 
 .video-modal-content {
   position: relative;
   width: 90%;
-  max-width: 450px; /* Portrait optimized */
+  max-width: 450px;
   background: white;
   border-radius: 20px;
   overflow: hidden;
@@ -227,7 +296,7 @@
 }
 
 @keyframes modalSlideUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -240,117 +309,56 @@
 
 .close-video {
   position: absolute;
-  top: -50px;
+  top: -55px;
   right: 0;
   background: white;
   border: none;
   color: #1a2a6c;
-  width: 35px;
-  height: 35px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* RELATED ITEMS SHELF INSIDE MODAL */
-.modal-related-shelf {
-  padding: 15px;
-  background: white;
-}
-
-.modal-related-shelf h4 {
-  font-size: 12px;
-  color: #64748b;
-  margin: 0 0 12px 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 700;
-}
+.modal-related-shelf { padding: 18px; background: white; }
+.modal-related-shelf h4 { font-size: 12px; color: #64748b; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
 
 .related-items-list {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding-bottom: 5px;
-  scrollbar-width: none; /* Firefox */
+  padding-bottom: 8px;
+  scrollbar-width: none;
 }
 
-.related-items-list::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
-}
+.related-mini-card { flex: 0 0 115px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+.related-mini-card img { width: 100%; height: 75px; object-fit: cover; }
 
-.related-mini-card {
-  flex: 0 0 110px;
-  background: #f8fafc;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-}
-
-.related-mini-card img {
-  width: 100%;
-  height: 70px;
-  object-fit: cover;
-}
-
-.mini-info {
-  padding: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.mini-info span {
-  font-size: 10px;
-  font-weight: 700;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 70px;
-}
+.mini-info { padding: 8px; display: flex; justify-content: space-between; align-items: center; }
+.mini-info span { font-size: 11px; font-weight: 700; color: #1e293b; max-width: 75px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .mini-add-btn {
   background: #1a2a6c;
   color: white;
   border: none;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  font-size: 15px;
 }
 
-.mini-add-btn:hover {
-  background: #fba100;
-}
-
-/* MOBILE RESPONSIVE */
+/* --- MOBILE RESPONSIVE --- */
 @media (max-width: 600px) {
-  .pastry-tabs {
-    gap: 5px;
-    padding: 5px;
-    overflow-x: auto;
-    justify-content: flex-start;
-  }
-  .pastry-tabs button {
-    padding: 10px 15px;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-  .pastry-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .video-modal-content {
-    max-width: 320px; /* Narrower for small screens */
-  }
+  .pastry-nav-header { padding: 10px 0; }
+  .pastry-tabs { justify-content: flex-start; overflow-x: auto; padding: 5px; }
+  .pastry-tabs button { padding: 10px 18px; font-size: 13px; white-space: nowrap; }
+  .pastry-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .floating-cart-status { bottom: 20px; right: 20px; padding: 10px 16px; }
+  .video-modal-content { max-width: 340px; }
   }
