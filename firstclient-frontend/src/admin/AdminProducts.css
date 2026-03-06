@@ -184,3 +184,70 @@
 @media (max-width: 600px) {
   .inventory-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   }
+
+/* PASTRY SPECIFIC STYLES */
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 10px;
+}
+
+.category-tabs button {
+  padding: 8px 25px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #64748b;
+  transition: 0.3s;
+}
+
+.category-tabs button.active {
+  background: #1a2a6c;
+  color: #fff;
+}
+
+.video-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(26, 42, 108, 0.9);
+  color: #fba100; /* Konga Gold */
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 4px;
+}
+
+.file-box {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.file-box label {
+  font-size: 9px;
+  font-weight: 800;
+  color: #1a2a6c;
+  text-transform: uppercase;
+}
+
+.file-box input {
+  font-size: 10px;
+  width: 120px;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.edit-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #1a2a6c;
+  margin-top: 5px;
+  }
