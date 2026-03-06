@@ -12,7 +12,7 @@ export default function AdminPastry() {
   const [newPrice, setNewPrice] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
   const [newVideoFile, setNewVideoFile] = useState(null);
-  const [pastryType, setPastryType] = useState("Other"); // Default to normal pastry
+  const [pastryType, setPastryType] = useState("Others");
 
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -20,7 +20,7 @@ export default function AdminPastry() {
   const [editPrice, setEditPrice] = useState("");
   const [editImageFile, setEditImageFile] = useState(null);
   const [editVideoFile, setEditVideoFile] = useState(null);
-  const [editPastryType, setEditPastryType] = useState("Other");
+  const [editPastryType, setEditPastryType] = useState("Others");
 
   useEffect(() => { fetchPastries(); }, []);
 
@@ -51,8 +51,8 @@ export default function AdminPastry() {
     formData.append("category", "pastry"); 
     formData.append("subCategory", pastryType); 
 
-    // Video only uploads if user selected Cake/Bread and provided a file
-    if ((pastryType === "Cakes" || pastryType === "Breads") && newVideoFile) {
+    // ⭐ Now video is available for EVERY pastry type
+    if (newVideoFile) {
       formData.append("video", newVideoFile);
     }
 
@@ -63,7 +63,7 @@ export default function AdminPastry() {
       setPastries([res.data, ...pastries]);
       setNewName(""); setNewPrice(""); setNewImageFile(null); setNewVideoFile(null);
       e.target.reset();
-      alert("Pastry added! ✅");
+      alert("Pastry added successfully! ✅");
     } catch (err) { alert("Upload failed."); }
   };
 
@@ -77,9 +77,7 @@ export default function AdminPastry() {
     formData.append("subCategory", editPastryType);
 
     if (editImageFile) formData.append("image", editImageFile);
-    if (editVideoFile && (editPastryType === "Cakes" || editPastryType === "Breads")) {
-      formData.append("video", editVideoFile);
-    }
+    if (editVideoFile) formData.append("video", editVideoFile); // ⭐ Available for all on edit too
 
     try {
       const res = await API.put(`/admin/products/${id}`, formData, {
@@ -113,7 +111,7 @@ export default function AdminPastry() {
           <div className="inventory-actions">
             <input 
               type="text" 
-              placeholder="Search pastries..." 
+              placeholder="Search all pastries..." 
               className="robust-search-bar"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -123,47 +121,43 @@ export default function AdminPastry() {
               <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
               
               <select className="type-toggle" value={pastryType} onChange={(e) => setPastryType(e.target.value)}>
-                <option value="Other">General Pastry</option>
-                <option value="Cakes">Cake (Video enabled)</option>
-                <option value="Breads">Bread (Video enabled)</option>
+                <option value="Others">Others</option>
+                <option value="Cakes">Cakes</option>
+                <option value="Breads">Breads</option>
               </select>
 
+              {/* ⭐ Unified File Section */}
               <div className="video-section-mini">
-                <div style={{display:'flex', flexDirection:'column'}}>
+                <div className="file-input-group">
                   <label className="file-label">Cover Image</label>
-                  <input type="file" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
+                  <input type="file" accept="image/*" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
                 </div>
 
-                {/* ⭐ Conditional Video Input: Only shows if Cake or Bread is selected */}
-                {(pastryType === "Cakes" || pastryType === "Breads") && (
-                  <div style={{display:'flex', flexDirection:'column', borderLeft:'1px solid #ddd', paddingLeft:'10px'}}>
-                    <label className="file-label">Showcase Video</label>
-                    <input type="file" accept="video/*" onChange={(e)=>setNewVideoFile(e.target.files[0])} />
-                  </div>
-                )}
+                <div className="file-input-group" style={{borderLeft:'1px solid #ddd', paddingLeft:'10px'}}>
+                  <label className="file-label">Showcase Video (Optional)</label>
+                  <input type="file" accept="video/*" onChange={(e)=>setNewVideoFile(e.target.files[0])} />
+                </div>
               </div>
 
-              <button type="submit" className="mini-add-btn">Add to Shop</button>
+              <button type="submit" className="mini-add-btn">Upload to Shop</button>
             </form>
           </div>
         </header>
 
         <main className="inventory-grid">
           {pastries.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map((p) => (
-            <div key={p.id} className={`inventory-item pastry-tag`}>
+            <div key={p.id} className="inventory-item pastry-tag">
               {editingId === p.id ? (
                 <div className="grid-edit-form">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
                   <select className="type-toggle" value={editPastryType} onChange={(e) => setEditPastryType(e.target.value)}>
-                    <option value="Other">General</option>
-                    <option value="Cakes">Cake</option>
-                    <option value="Breads">Bread</option>
+                    <option value="Others">Others</option>
+                    <option value="Cakes">Cakes</option>
+                    <option value="Breads">Breads</option>
                   </select>
-                  <input type="file" onChange={(e) => setEditImageFile(e.target.files[0])} />
-                  {(editPastryType === "Cakes" || editPastryType === "Breads") && (
-                    <input type="file" accept="video/*" onChange={(e) => setEditVideoFile(e.target.files[0])} />
-                  )}
+                  <input type="file" accept="image/*" onChange={(e) => setEditImageFile(e.target.files[0])} />
+                  <input type="file" accept="video/*" onChange={(e) => setEditVideoFile(e.target.files[0])} />
                   <div className="edit-grid-btns">
                     <button className="grid-btn-save" onClick={() => updatePastry(p.id)} disabled={isSaving}>Save</button>
                     <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
@@ -173,7 +167,7 @@ export default function AdminPastry() {
                 <div className="item-inner">
                   <div className="item-img-container">
                     <img src={getImageUrl(p.image)} alt={p.name} />
-                    {p.videoUrl && <span className="video-badge">🎥 Video</span>}
+                    {p.videoUrl && <span className="video-badge">🎥 Video Clip</span>}
                   </div>
                   <div className="item-details">
                     <h3 className="item-name">{p.name}</h3>
@@ -182,7 +176,7 @@ export default function AdminPastry() {
                   </div>
                   <div className="item-footer-actions">
                     <button className="action-link edit" onClick={() => { 
-                      setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); setEditPastryType(p.subCategory || "Other");
+                      setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); setEditPastryType(p.subCategory || "Others");
                     }}>Edit</button>
                     <button className="action-link delete" onClick={() => deletePastry(p.id)}>Delete</button>
                   </div>
@@ -194,4 +188,4 @@ export default function AdminPastry() {
       </div>
     </div>
   );
-      }
+    }
