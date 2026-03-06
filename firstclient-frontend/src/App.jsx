@@ -19,6 +19,7 @@ import { SuccessPage } from './pages/SuccessPage';
 import AdminCMS from './admin/AdminCMS';
 import AdminArchive from './admin/AdminArchive'; // New Integration
 import PastryPage from './pages/PastryPage';
+import AdminPastry from "./admin/AdminPastry";
 
 function App () {
   const [cart, setCart] = useState([]);
