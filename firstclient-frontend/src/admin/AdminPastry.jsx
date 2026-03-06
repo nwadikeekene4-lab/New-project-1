@@ -1,14 +1,14 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../api";
-import './AdminProducts.css'; // Using shared styles for consistency
+import './AdminPastry.css'; // Dedicated CSS file
 
 export default function AdminPastry() {
   const [pastries, setPastries] = useState([]);
   const [activeTab, setActiveTab] = useState("Cakes");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Form States
+  // Add Form States
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newImageFile, setNewImageFile] = useState(null);
@@ -33,14 +33,16 @@ export default function AdminPastry() {
 
   const addPastry = async (e) => {
     e.preventDefault();
+    if (!newName || !newPrice || !newImageFile) return alert("Missing required fields");
+    
     const token = localStorage.getItem("adminToken");
     const formData = new FormData();
     formData.append("name", newName);
     formData.append("price", newPrice);
     formData.append("category", "pastry");
-    formData.append("subCategory", activeTab); // Automatically set based on current tab
+    formData.append("subCategory", activeTab); // Auto-assign based on current tab
     
-    if (newImageFile) formData.append("image", newImageFile);
+    formData.append("image", newImageFile);
     if (newVideoFile) formData.append("video", newVideoFile);
 
     try {
@@ -51,7 +53,7 @@ export default function AdminPastry() {
       setNewName(""); setNewPrice(""); 
       setNewImageFile(null); setNewVideoFile(null);
       e.target.reset();
-      alert(`${activeTab} Added! ✅`);
+      alert(`${activeTab} Item Added! ✅`);
     } catch (err) { alert("Upload failed."); }
   };
 
@@ -68,24 +70,25 @@ export default function AdminPastry() {
       const res = await API.put(`/admin/products/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${token}` }
       });
+      // Backend sync: updatedProduct
       setPastries(pastries.map(p => p.id === id ? res.data.updatedProduct : p));
       setEditingId(null);
-      alert("Updated! ✅");
+      alert("Updated Successfully! ✅");
     } catch (err) { alert("Update failed."); }
     finally { setIsSaving(false); }
   };
 
   const deletePastry = async (id) => {
-    if (!window.confirm("Delete this item?")) return;
+    if (!window.confirm("Move to archive?")) return;
     const token = localStorage.getItem("adminToken");
     try {
       await API.delete(`/admin/products/${id}`, { headers: { "Authorization": `Bearer ${token}` } });
       setPastries(pastries.filter(p => p.id !== id));
-    } catch (err) { alert("Error deleting."); }
+    } catch (err) { alert("Delete failed"); }
   };
 
-  // Filter logic for tabs
-  const displayedPastries = pastries.filter(p => {
+  // Filter items based on Tab AND Search
+  const filteredPastries = pastries.filter(p => {
     const matchesTab = activeTab === 'Others' 
       ? (p.subCategory !== 'Cakes' && p.subCategory !== 'Breads') 
       : p.subCategory === activeTab;
@@ -94,19 +97,20 @@ export default function AdminPastry() {
   });
 
   return (
-    <div className="admin-inventory-wrapper">
+    <div className="pastry-admin-wrapper">
       <div className="admin-container-max">
-        <header className="inventory-header">
-          <div className="nav-top">
-            <Link to="/admin" className="back-btn-minimal">←</Link>
-            <h1 className="inventory-title">Pastry Management</h1>
+        <header className="pastry-header-box">
+          <div className="header-top-row">
+            <Link to="/admin" className="pastry-back-btn">←</Link>
+            <h1 className="pastry-main-title">Pastry Management</h1>
           </div>
 
-          <nav className="category-tabs">
+          {/* ⭐ THE TABS (Now clearly styled) */}
+          <nav className="pastry-tabs-container">
             {['Cakes', 'Breads', 'Others'].map(tab => (
               <button 
                 key={tab} 
-                className={activeTab === tab ? 'active' : ''} 
+                className={`tab-item ${activeTab === tab ? 'active-tab' : ''}`} 
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -114,59 +118,59 @@ export default function AdminPastry() {
             ))}
           </nav>
 
-          <div className="inventory-actions">
+          <div className="pastry-action-bar">
             <input 
               type="text" 
-              placeholder={`Search ${activeTab}...`} 
-              className="robust-search-bar"
+              placeholder={`Search in ${activeTab}...`} 
+              className="pastry-search-input"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             
-            <form className="mini-form" onSubmit={addPastry}>
-              <input type="text" placeholder="Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
+            <form className="pastry-quick-add" onSubmit={addPastry}>
+              <input type="text" placeholder="Item Name" value={newName} onChange={(e)=>setNewName(e.target.value)} required />
               <input type="number" placeholder="Price" value={newPrice} onChange={(e)=>setNewPrice(e.target.value)} required />
-              <div className="file-box">
+              <div className="file-input-group">
                 <label>Img</label>
                 <input type="file" accept="image/*" onChange={(e)=>setNewImageFile(e.target.files[0])} required />
               </div>
-              <div className="file-box">
+              <div className="file-input-group">
                 <label>Vid</label>
                 <input type="file" accept="video/*" onChange={(e)=>setNewVideoFile(e.target.files[0])} />
               </div>
-              <button type="submit" className="mini-add-btn">Add to {activeTab}</button>
+              <button type="submit" className="pastry-add-btn">Add {activeTab}</button>
             </form>
           </div>
         </header>
 
-        <main className="inventory-grid">
-          {displayedPastries.map((p) => (
-            <div key={p.id} className="inventory-item">
+        <main className="pastry-konga-grid">
+          {filteredPastries.map((p) => (
+            <div key={p.id} className="pastry-item-card">
               {editingId === p.id ? (
-                <div className="grid-edit-form">
+                <div className="pastry-edit-mode">
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                  <label className="edit-label">Update Video:</label>
+                  <label>Change Video:</label>
                   <input type="file" accept="video/*" onChange={(e) => setEditVideoFile(e.target.files[0])} />
-                  <div className="edit-grid-btns">
-                    <button className="grid-btn-save" onClick={() => updatePastry(p.id)} disabled={isSaving}>Save</button>
-                    <button className="grid-btn-cancel" onClick={() => setEditingId(null)}>✕</button>
+                  <div className="edit-btn-row">
+                    <button className="btn-save" onClick={() => updatePastry(p.id)} disabled={isSaving}>Save</button>
+                    <button className="btn-cancel" onClick={() => setEditingId(null)}>✕</button>
                   </div>
                 </div>
               ) : (
-                <div className="item-inner">
-                  <div className="item-img-container">
-                    <img src={p.image} alt="" />
-                    {p.videoUrl && <div className="video-badge">🎥 Video Attached</div>}
+                <div className="pastry-card-content">
+                  <div className="pastry-img-box">
+                    <img src={p.image} alt={p.name} />
+                    {p.videoUrl && <div className="p-video-tag">🎥 Video</div>}
                   </div>
-                  <div className="item-details">
-                    <h3 className="item-name">{p.name}</h3>
-                    <p className="item-price">₦{Number(p.price).toLocaleString()}</p>
+                  <div className="pastry-card-info">
+                    <h3 className="p-item-name">{p.name}</h3>
+                    <p className="p-item-price">₦{Number(p.price).toLocaleString()}</p>
                   </div>
-                  <div className="item-footer-actions">
-                    <button className="action-link edit" onClick={() => { 
+                  <div className="pastry-card-footer">
+                    <button className="p-edit-link" onClick={() => { 
                         setEditingId(p.id); setEditName(p.name); setEditPrice(p.price); 
                       }}>Edit</button>
-                    <button className="action-link delete" onClick={() => deletePastry(p.id)}>Delete</button>
+                    <button className="p-delete-link" onClick={() => deletePastry(p.id)}>Delete</button>
                   </div>
                 </div>
               )}
@@ -176,4 +180,4 @@ export default function AdminPastry() {
       </div>
     </div>
   );
-    }
+      }
