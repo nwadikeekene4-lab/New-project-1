@@ -1,170 +1,149 @@
-.pastry-admin-wrapper {
-  background-color: #f0f2f5;
+.pastry-admin-page {
+  background: #f8f9fa;
   min-height: 100vh;
-  padding: 20px;
-  font-family: 'Segoe UI', Roboto, sans-serif;
+  padding: 40px 20px;
 }
 
-.admin-container-max { max-width: 1200px; margin: 0 auto; }
+.pastry-max-width {
+  max-width: 1100px;
+  margin: 0 auto;
+}
 
 /* HEADER & TABS */
-.pastry-header-box {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
+.pastry-dashboard-header {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
 }
 
-.header-top-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-.pastry-main-title { font-size: 22px; color: #1a2a6c; font-weight: 800; margin: 0; }
-.pastry-back-btn { text-decoration: none; font-size: 24px; color: #1a2a6c; font-weight: bold; }
+.pastry-title-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+.pastry-title-row h1 { font-size: 24px; color: #1a2a6c; margin: 0; }
+.pastry-back-arrow { text-decoration: none; font-size: 28px; color: #1a2a6c; font-weight: bold; }
 
-.pastry-tabs-container {
+.pastry-tabs-nav {
   display: flex;
-  gap: 12px;
-  border-bottom: 2px solid #eef2f6;
-  padding-bottom: 12px;
+  gap: 15px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 15px;
   margin-bottom: 20px;
 }
 
-.tab-item {
-  padding: 10px 25px;
+.pastry-tab {
+  padding: 10px 30px;
   border: none;
-  background: #f1f5f9;
-  border-radius: 30px;
+  background: #edf2f7;
+  border-radius: 50px;
   cursor: pointer;
   font-weight: 700;
-  color: #64748b;
-  transition: all 0.3s ease;
+  color: #4a5568;
+  transition: 0.3s;
 }
 
-.tab-item.active-tab {
+.pastry-tab.active {
   background: #1a2a6c;
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(26, 42, 108, 0.2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(26, 42, 108, 0.3);
 }
 
-/* QUICK ADD BAR */
-.pastry-action-bar {
+/* UPLOAD FORM */
+.pastry-controls {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 15px;
-  align-items: center;
 }
 
-.pastry-search-input {
-  flex: 1;
-  min-width: 200px;
-  padding: 10px 15px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-}
-
-.pastry-quick-add {
+.pastry-upload-form {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
-  background: #f8fafc;
-  padding: 10px;
+  gap: 10px;
+  background: #f1f5f9;
+  padding: 12px;
   border-radius: 10px;
-  border: 1px dashed #1a2a6c;
 }
 
-.pastry-quick-add input[type="text"], 
-.pastry-quick-add input[type="number"] {
-  padding: 8px;
-  border: 1px solid #d1d5db;
+.pastry-upload-form input {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
-  width: 140px;
+  font-size: 13px;
 }
 
-.file-input-group {
+.file-field {
   display: flex;
   flex-direction: column;
   background: white;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
 }
 
-.file-input-group label { font-size: 9px; font-weight: 900; color: #1a2a6c; }
-.file-input-group input { font-size: 10px; width: 100px; }
+.file-field label { font-size: 10px; font-weight: 900; color: #1a2a6c; }
+.file-field input { padding: 0; border: none; font-size: 11px; width: 110px; }
 
-.pastry-add-btn {
+.pastry-submit-btn {
   background: #1a2a6c;
   color: white;
   border: none;
-  padding: 8px 15px;
+  padding: 0 25px;
   border-radius: 6px;
   font-weight: 700;
   cursor: pointer;
 }
 
-.pastry-add-btn:hover { background: #fba100; }
+.pastry-submit-btn:hover { background: #fba100; }
 
 /* KONGA GRID */
-.pastry-konga-grid {
+.pastry-inventory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 15px;
+  gap: 20px;
 }
 
-.pastry-item-card {
+.pastry-card {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
   overflow: hidden;
-  transition: transform 0.2s;
+  transition: 0.2s;
 }
 
-.pastry-item-card:hover { transform: translateY(-4px); }
+.pastry-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
 
-.pastry-img-box { position: relative; height: 160px; background: #f3f4f6; }
-.pastry-img-box img { width: 100%; height: 100%; object-fit: cover; }
+.pastry-media-wrap { position: relative; height: 170px; }
+.pastry-media-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
-.p-video-tag {
+.video-icon {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(26, 42, 108, 0.9);
+  top: 10px;
+  right: 10px;
+  background: #1a2a6c;
   color: #fba100;
-  padding: 3px 7px;
-  font-size: 10px;
+  padding: 4px 8px;
   border-radius: 4px;
+  font-size: 10px;
   font-weight: bold;
 }
 
-.pastry-card-info { padding: 12px; }
-.p-item-name { font-size: 14px; margin: 0; color: #374151; font-weight: 600; }
-.p-item-price { font-size: 16px; margin: 5px 0 0; color: #1a2a6c; font-weight: 800; }
+.pastry-body { padding: 15px; text-align: center; }
+.pastry-body h3 { font-size: 15px; margin: 0; color: #2d3748; }
+.pastry-body p { font-size: 18px; font-weight: 800; color: #1a2a6c; margin: 5px 0 0; }
 
-.pastry-card-footer {
-  display: flex;
-  border-top: 1px solid #f3f4f6;
-}
-
-.p-edit-link, .p-delete-link {
+.pastry-footer { display: flex; border-top: 1px solid #edf2f7; }
+.pastry-footer button {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   border: none;
   background: none;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  color: #1a2a6c;
 }
 
-.p-edit-link { color: #1a2a6c; border-right: 1px solid #f3f4f6; }
-.p-delete-link { color: #dc2626; }
+.pastry-footer button.p-del { color: #e53e3e; border-left: 1px solid #edf2f7; }
 
-/* EDIT FORM */
-.pastry-edit-mode { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-.pastry-edit-mode input { padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; }
-.pastry-edit-mode label { font-size: 10px; font-weight: bold; }
-.edit-btn-row { display: flex; gap: 5px; }
-.btn-save { background: #10b981; color: white; border: none; flex: 2; padding: 7px; border-radius: 4px; font-weight: bold; }
-.btn-cancel { background: #6b7280; color: white; border: none; flex: 1; padding: 7px; border-radius: 4px; }
-
-@media (max-width: 480px) {
-  .pastry-konga-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-}
+@media (max-width: 500px) {
+  .pastry-inventory-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  }
