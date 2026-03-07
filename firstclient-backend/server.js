@@ -3,7 +3,7 @@ const cors = require("cors");
 const path = require("path");
 const helmet = require("helmet"); 
 const rateLimit = require("express-rate-limit"); 
-const { Op } = require("sequelize"); // Required for cleanup task
+const { Op } = require("sequelize"); 
 require("dotenv").config(); 
 
 // --- MODELS ---
@@ -30,8 +30,10 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      connectSrc: ["'self'", "https://api.paystack.co", "https://firstclient-frontend.onrender.com"],
+      // ⭐ UPDATED: Added Cloudinary and common Render patterns to prevent blocks
+      connectSrc: ["'self'", "https://api.paystack.co", "https://*.onrender.com", "http://localhost:5000"],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "*.cloudinary.com"],
+      videoSrc: ["'self'", "https://res.cloudinary.com", "*.cloudinary.com"],
     },
   },
 })); 
@@ -67,6 +69,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// Explicit Options Handling (Kept exactly as yours)
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     const origin = req.headers.origin;
@@ -84,36 +87,47 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // --- 🧹 AUTOMATIC CLEANUP TASK ---
 const startCleanupTask = () => {
-  // Runs every 24 hours
-  setInterval(async () => {
+  // Logic to run immediate cleanup on boot, then every 24 hours
+  const runCleanup = async () => {
     try {
       const now = new Date();
       
       // 1. Permanent delete Products older than 15 days in archive
       const productLimit = new Date(now.getTime() - (15 * 24 * 60 * 60 * 1000));
       await Product.destroy({
-        where: { deletedAt: { [Op.lt]: productLimit } },
-        force: true
+        where: { 
+          deletedAt: { [Op.lt]: productLimit } 
+        },
+        force: true,
+        paranoid: false // Required to find already-soft-deleted items
       });
 
       // 2. Permanent delete Messages older than 60 days in archive
       const messageLimit = new Date(now.getTime() - (60 * 24 * 60 * 60 * 1000));
       await Message.destroy({
-        where: { deletedAt: { [Op.lt]: messageLimit } },
-        force: true
+        where: { 
+          deletedAt: { [Op.lt]: messageLimit } 
+        },
+        force: true,
+        paranoid: false
       });
 
       console.log("✅ Cleanup Task: Expired archived items purged.");
     } catch (err) {
       console.error("❌ Cleanup Task Error:", err);
     }
-  }, 24 * 60 * 60 * 1000); 
+  };
+
+  runCleanup(); // Run once on startup
+  setInterval(runCleanup, 24 * 60 * 60 * 1000); 
 };
 
 // --- START SERVER & SYNC DATABASE ---
 async function startServer() {
   try {
     console.log("⏳ Starting database synchronization...");
+    
+    // ⭐ These { alter: true } calls will now pick up your shippingFee field!
     await Product.sync({ alter: true }); 
     await Admin.sync({ alter: true }); 
     await Message.sync({ alter: true }); 
@@ -121,10 +135,11 @@ async function startServer() {
     await Order.sync({ alter: true }); 
     await CMS.sync({ alter: true });
     
-    if (DeliveryOption.sync) await DeliveryOption.sync();
+    if (DeliveryOption && DeliveryOption.sync) await DeliveryOption.sync();
     
     console.log("✅ All Database tables synced successfully");
 
+    // Use the routes
     app.use("/api", routes);
     
     // Initialize Cleanup Task
