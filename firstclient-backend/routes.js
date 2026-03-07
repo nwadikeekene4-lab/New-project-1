@@ -43,25 +43,22 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key_12345";
 
-// ⭐ PROFESSIONAL OPTIMIZED STORAGE
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
     const isVideo = file.mimetype.startsWith('video');
-    
     if (isVideo) {
       return {
         folder: "shop_products",
         resource_type: "video",
         format: "mp4",
         transformation: [
-          { width: 720, crop: "limit" }, // Optimization for web speed
-          { quality: "auto" },           // Dynamic quality adjustment
-          { fetch_format: "auto" }       // Modern codec support
+          { width: 720, crop: "limit" },
+          { quality: "auto" },
+          { fetch_format: "auto" }
         ]
       };
     }
-
     return {
       folder: "shop_products",
       resource_type: "image",
@@ -125,7 +122,6 @@ router.get("/products", async (req, res) => {
     const { category } = req.query; 
     let whereClause = {};
     if (category) whereClause.category = category;
-
     const products = await Product.findAll({ 
       where: whereClause,
       order: [['createdAt', 'DESC']] 
@@ -142,7 +138,6 @@ router.post("/admin/products", verifyToken, upload.fields([
     const files = req.files;
     const imageUrl = files.image ? (files.image[0].path || files.image[0].secure_url) : null;
     const videoUrl = files.video ? (files.video[0].path || files.video[0].secure_url) : null;
-
     const product = await Product.create({
       name: sanitizeInput(req.body.name),
       price: parseFloat(req.body.price) || 0,
@@ -163,16 +158,13 @@ router.put("/admin/products/:id", verifyToken, upload.fields([
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ error: "Product not found" });
-
     const files = req.files;
     if (files.image) product.image = files.image[0].path || files.image[0].secure_url;
     if (files.video) product.videoUrl = files.video[0].path || files.video[0].secure_url;
-
     product.name = sanitizeInput(req.body.name) || product.name;
     product.price = parseFloat(req.body.price) || product.price;
     product.category = req.body.category || product.category;
     product.subCategory = req.body.subCategory || product.subCategory;
-
     await product.save();
     res.json({ success: true, updatedProduct: product });
   } catch (err) { res.status(500).json({ error: "Update failed" }); }
@@ -242,6 +234,92 @@ router.post("/paystack/init", async (req, res) => {
     );
     res.json(response.data);
   } catch (err) { res.status(500).json({ error: "Paystack Init Failed" }); }
+});
+
+// ⭐ INTEGRATED: Professional Verify & Email Receipt Logic
+router.post("/orders/verify", async (req, res) => {
+  try {
+    const { reference, customerDetails } = req.body;
+    
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
+    });
+
+    if (response.data.data.status === "success") {
+      // 1. Save to Orders Table
+      await Order.create({
+         reference: reference,
+         customerName: customerDetails.name,
+         customerEmail: customerDetails.email,
+         amount: customerDetails.totalAmount,
+         details: customerDetails
+      }).catch(e => console.error("Order Record Error:", e));
+
+      // 2. Clear Database Cart
+      await CartItem.destroy({ where: {} });
+
+      // 3. Send Professional Tabular Receipt via Email
+      if (process.env.RESEND_API_KEY && customerDetails.email) {
+        const itemsHtml = customerDetails.items.map(item => {
+          const p = item.product || item;
+          return `
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #edf2f7; color: #4a5568;">${p.name}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: center;">${item.quantity}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: bold;">₦${Number(p.price).toLocaleString()}</td>
+            </tr>
+          `;
+        }).join('');
+
+        const emailHtml = `
+          <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff;">
+            <div style="background: #1a2a6c; color: white; padding: 20px; text-align: center;">
+              <h1 style="margin: 0; font-size: 22px;">Heritage Hub</h1>
+              <p style="margin: 5px 0 0 0; color: #fba100;">Order Confirmation</p>
+            </div>
+            <div style="padding: 25px;">
+              <p style="font-size: 16px;">Hello <strong>${customerDetails.name}</strong>,</p>
+              <p>Your payment was successful. Here is your order summary:</p>
+              
+              <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead>
+                  <tr style="background: #f7fafc;">
+                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0;">Item</th>
+                    <th style="text-align: center; padding: 10px; border-bottom: 2px solid #e2e8f0;">Qty</th>
+                    <th style="text-align: right; padding: 10px; border-bottom: 2px solid #e2e8f0;">Price</th>
+                  </tr>
+                </thead>
+                <tbody>${itemsHtml}</tbody>
+              </table>
+
+              <div style="margin-top: 20px; text-align: right; border-top: 2px solid #1a2a6c; padding-top: 15px;">
+                <p style="margin: 0; color: #718096;">Shipping (${customerDetails.location}): ₦${Number(customerDetails.shippingFee).toLocaleString()}</p>
+                <p style="font-size: 18px; margin: 8px 0 0 0;"><strong>Total Paid: ₦${Number(customerDetails.totalAmount).toLocaleString()}</strong></p>
+              </div>
+
+              <div style="margin-top: 25px; background: #f8fafc; padding: 15px; border-radius: 5px; font-size: 14px;">
+                <p style="margin: 0;"><strong>Delivery Date:</strong> ${customerDetails.selectedDate}</p>
+                <p style="margin: 5px 0 0 0;"><strong>Ref:</strong> ${reference}</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        await resend.emails.send({
+          from: 'Heritage Hub <onboarding@resend.dev>',
+          to: customerDetails.email,
+          subject: 'Payment Receipt - Heritage Hub',
+          html: emailHtml
+        });
+      }
+
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ success: false });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 router.get("/orders", verifyToken, async (req, res) => {
