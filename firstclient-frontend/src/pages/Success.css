@@ -132,3 +132,32 @@
 .share-btn:hover {
   opacity: 0.9;
   }
+
+.success-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.download-receipt-btn {
+  background-color: #3b82f6;
+  color: white;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.download-receipt-btn:hover {
+  background-color: #2563eb;
+}
+
+.share-btn {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  /* Existing share styles but ensure they match height */
+}
