@@ -16,6 +16,7 @@ const PastryPage = ({ cart, setCart }) => {
     return all.filter(p => (tab === 'Others' ? (p.subCategory !== 'Cakes' && p.subCategory !== 'Breads') : p.subCategory === tab));
   }, []);
 
+  // --- PRESERVED: FETCH LOGIC ---
   useEffect(() => {
     setLoading(true);
     API.get('/products?category=pastry').then(res => {
@@ -24,10 +25,14 @@ const PastryPage = ({ cart, setCart }) => {
     }).finally(() => setLoading(false));
   }, [activeTab, filterData]);
 
+  // ⭐ FIXED: Synced addToCart with Header Cart
   const addToCart = (product) => {
     setAddingId(product.id);
     API.post('/cart/add', { productId: product.id, quantity: 1 }).then(() => {
-      setCart(prev => [...prev, product]);
+      // Re-fetch cart from API to ensure sync with Header
+      return API.get('/cart');
+    }).then(res => {
+      setCart(res.data);
       setTimeout(() => setAddingId(null), 1000);
     });
   };
@@ -39,13 +44,21 @@ const PastryPage = ({ cart, setCart }) => {
         <h2 className="shop-title">Pastry Shop</h2>
         <div className="header-exit" onClick={() => navigate('/')}>Exit</div>
       </header>
+
       <nav className="category-tabs">
         {['Cakes', 'Breads', 'Others'].map(t => (
           <button key={t} className={activeTab === t ? 'active' : ''} onClick={() => setActiveTab(t)}>{t}</button>
         ))}
       </nav>
+
       <main className="product-grid">
-        {loading ? <p>Loading...</p> : filteredProducts.map(p => (
+        {/* ⭐ ADDED: Loading Spinner UI */}
+        {loading ? (
+          <div className="loader-container">
+            <div className="spinner"></div>
+            <p>Loading treats...</p>
+          </div>
+        ) : filteredProducts.map(p => (
           <div key={p.id} className="konga-product-card">
             <div className="img-holder">
               <img src={p.image} alt="" />
@@ -61,15 +74,22 @@ const PastryPage = ({ cart, setCart }) => {
           </div>
         ))}
       </main>
+
+      {/* ⭐ FIXED: Navigates to Checkout and handles nested price logic */}
       {cart?.length > 0 && (
-        <div className="mini-cart-float" onClick={() => navigate('/cart')}>
-          <div className="badge">{cart.length}</div>
-          <span className="total">₦{cart.reduce((s, i) => s + Number(i.price), 0).toLocaleString()}</span>
+        <div className="mini-cart-float" onClick={() => navigate('/checkout')}>
+          <div className="badge">{cart.reduce((a, b) => a + b.quantity, 0)}</div>
+          <span className="total">
+            ₦{cart.reduce((s, i) => s + (Number(i.product?.price || i.price) * i.quantity), 0).toLocaleString()}
+          </span>
         </div>
       )}
+
+      {/* --- PRESERVED: VIDEO MODAL --- */}
       {videoUrl && (
         <div className="vid-overlay" onClick={() => setVideoUrl(null)}>
           <div className="vid-content" onClick={e => e.stopPropagation()}>
+             <button className="close-modal-btn" onClick={() => setVideoUrl(null)}>✕</button>
             <video src={videoUrl} controls autoPlay className="full-vid" />
           </div>
         </div>
