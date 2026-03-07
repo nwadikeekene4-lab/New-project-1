@@ -9,7 +9,7 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
   const [quantities, setQuantities] = useState({}); 
   const [addedItemId, setAddedItemId] = useState(null);
 
-  // Initial load and staggered animation effect
+  // Initial load and staggered animation effect (PRESERVED)
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
       setVisibleProducts(allProducts.slice(0, 12));
@@ -42,15 +42,17 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
     .catch(err => console.error("Error adding to cart:", err));
   };
 
-  // Improved Search: Now updates the global state
+  // Improved Search: Now updates the global state (PRESERVED)
   const handleSearch = (value) => {
     setSearchTerm(value);
   };
 
-  // Filter products based on global searchTerm prop
-  const filteredProducts = allProducts.filter((p) => 
-    p.name?.toLowerCase().includes((searchTerm || '').toLowerCase())
-  );
+  // ⭐ FIXED: Filter products based on global searchTerm AND exclude category 'pastry'
+  const filteredProducts = allProducts.filter((p) => {
+    const matchesSearch = p.name?.toLowerCase().includes((searchTerm || '').toLowerCase());
+    const isNotPastry = p.category !== 'pastry'; // This keeps the shops separate
+    return matchesSearch && isNotPastry;
+  });
 
   const handleClearSearch = () => {
     setSearchTerm('');
@@ -76,6 +78,7 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
             {filteredProducts.length > 0 ? (
               <div className="products-grid">
                 {filteredProducts.map((product) => {
+                  // ⭐ CLOUDINARY LOGIC (PRESERVED EXACTLY)
                   let displayImage = `https://placehold.co/300x300?text=${product.name || 'Product'}`;
                   
                   if (product.image && typeof product.image === 'string' && product.image !== "null") {
@@ -137,13 +140,12 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
                 })}
               </div>
             ) : (
-              /* PROFESSIONAL NO RESULTS STATE */
+              /* PROFESSIONAL NO RESULTS STATE (PRESERVED) */
               <div className="no-results-container animate-fade-in">
                 <div className="no-results-icon">🧁</div>
                 <h3>No treats found for "{searchTerm}"</h3>
                 <p>We couldn't find any products matching your search. Try a different keyword or browse our full collection.</p>
                 
-                {/* This button now triggers the global state reset */}
                 <button className="clear-results-btn" onClick={handleClearSearch}>
                   Browse All Products
                 </button>
@@ -154,4 +156,4 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
       </main>
     </div>
   );
-}
+    }
