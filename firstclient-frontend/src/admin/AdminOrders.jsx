@@ -29,64 +29,76 @@ export default function AdminOrders() {
       .catch(err => console.error("Error fetching orders:", err));
   };
 
-  // ⭐ PRINT RECEIPT LOGIC (Updated to include Shipping Fee breakdown)
+  // ⭐ UPDATED PRINT RECEIPT LOGIC
   const handlePrint = (order) => {
     const printWindow = window.open('', '_blank');
-    const itemsHtml = order.items.map(item => `
-      <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product?.name || item.name}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">₦${Number(item.product?.price || item.price || 0).toLocaleString()}</td>
-      </tr>
-    `).join('');
+    const itemsHtml = order.items.map(item => {
+      const price = item.product?.price || item.price || 0;
+      return `
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #edf2f7; color: #1e293b;">
+            ${item.product?.name || item.name}
+          </td>
+          <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: center;">${item.quantity}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: 600;">
+            ₦${Number(price).toLocaleString()}
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     printWindow.document.write(`
       <html>
         <head>
           <title>Receipt - ${order.reference}</title>
           <style>
-            body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; line-height: 1.6; }
-            .header { text-align: center; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 20px; }
-            .header h1 { margin: 0; color: #1e293b; letter-spacing: 1px; }
-            .details { margin-bottom: 30px; display: flex; justify-content: space-between; }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
-            .summary-table { width: 100%; margin-top: 20px; }
-            .summary-table td { padding: 5px 0; text-align: right; }
-            .total-line { font-size: 1.4rem; font-weight: 800; color: #059669; border-top: 2px solid #eee; padding-top: 10px; }
-            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+            body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: auto; padding: 40px; color: #1e293b; }
+            .header { text-align: center; border-bottom: 3px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px; }
+            .header h1 { margin: 0; color: #1e293b; letter-spacing: 1px; font-size: 32px; }
+            .details-grid { display: flex; justify-content: space-between; margin-bottom: 40px; }
+            .ref-no { font-family: 'Courier New', monospace; color: #3b82f6; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; color: #64748b; text-transform: uppercase; font-size: 12px; }
+            .summary-table { width: 250px; margin-left: auto; margin-top: 20px; border-top: 2px solid #1e293b; }
+            .summary-row { display: flex; justify-content: space-between; padding: 8px 0; }
+            .total-row { font-size: 1.5rem; font-weight: 800; color: #059669; padding-top: 10px; border-top: 1px solid #e2e8f0; }
+            .footer { margin-top: 60px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #edf2f7; padding-top: 20px; }
           </style>
         </head>
         <body>
           <div class="header">
             <h1>ESSENCE CREATIONS</h1>
-            <p>Order Payment Receipt</p>
+            <p style="margin: 5px 0; color: #64748b;">Official Order Receipt</p>
           </div>
-          <div class="details">
+          <div class="details-grid">
             <div>
-              <p><strong>Billed To:</strong><br>${order.customerName}<br>${order.phone}<br>${order.address}, ${order.city}</p>
+              <p><strong>BILLED TO:</strong><br>${order.customerName}<br>${order.phone}<br>${order.address}, ${order.city}</p>
             </div>
             <div style="text-align: right;">
-              <p><strong>Order Ref:</strong> #${order.reference}<br>
-              <strong>Date:</strong> ${dayjs(order.createdAt).format("DD MMM YYYY")}<br>
-              <strong>Delivery:</strong> ${order.selectedDate || "Standard"}</p>
+              <p><strong>ORDER REF:</strong> <span class="ref-no">#${order.reference}</span><br>
+              <strong>DATE:</strong> ${dayjs(order.createdAt).format("DD MMM YYYY")}<br>
+              <strong>DELIVERY:</strong> ${order.selectedDate || "Standard"}</p>
             </div>
           </div>
           <table>
             <thead>
-              <tr><th>Item Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th></tr>
+              <tr><th>Item Description</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th></tr>
             </thead>
             <tbody>${itemsHtml}</tbody>
           </table>
-          
-          <table class="summary-table">
-            <tr><td>Shipping Fee (${order.city}):</td><td style="width: 120px;">₦${Number(order.shippingFee || 0).toLocaleString()}</td></tr>
-            <tr class="total-line"><td>Amount Paid:</td><td>₦${Number(order.amount).toLocaleString()}</td></tr>
-          </table>
-
-          <div class="footer">Thank you for your business! Essence Creations.</div>
+          <div class="summary-table">
+            <div class="summary-row">
+              <span style="color: #64748b;">Shipping Fee (${order.city}):</span>
+              <span>₦${Number(order.shippingFee || 0).toLocaleString()}</span>
+            </div>
+            <div class="summary-row total-row">
+              <span>TOTAL</span>
+              <span>₦${Number(order.amount).toLocaleString()}</span>
+            </div>
+          </div>
+          <div class="footer">Thank you for choosing Essence Creations! Visit us again.</div>
           <script>
-            window.onload = function() { window.print(); window.close(); };
+            window.onload = function() { setTimeout(() => { window.print(); window.close(); }, 500); };
           </script>
         </body>
       </html>
@@ -134,7 +146,13 @@ export default function AdminOrders() {
       <div className="admin-controls-container">
         <h2 className="page-title">Essence Creations Orders</h2>
         <div className="controls-row">
-          <input type="text" placeholder="Search by name or ref..." className="search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <input 
+            type="text" 
+            placeholder="Search by name or ref..." 
+            className="search-input" 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+          />
           <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="All">All Statuses</option>
             <option value="Pending">Pending</option>
@@ -148,7 +166,8 @@ export default function AdminOrders() {
       <div className="orders-container">
         {filteredOrders.length === 0 ? <div className="no-orders">No matching orders found.</div> : (
           filteredOrders.map(order => {
-            const isDelivered = (order.status || "").toLowerCase() === "delivered";
+            const currentStatus = (order.status || "Pending").toLowerCase();
+            const isDelivered = currentStatus === "delivered";
             
             return (
               <div key={order.id} className={`order-card ${isDelivered ? "delivered-card" : ""}`}>
@@ -163,7 +182,7 @@ export default function AdminOrders() {
                       {dayjs(order.createdAt).format("DD MMM YYYY")} | {dayjs(order.createdAt).format("hh:mm A")}
                     </span>
                   </div>
-                  <div className={`status-badge ${(order.status || "Pending").toLowerCase()}`}>
+                  <div className={`status-badge ${currentStatus}`}>
                     <select value={order.status || "Pending"} onChange={(e) => handleStatusChange(order.id, e.target.value)}>
                       <option value="Pending">Pending</option>
                       <option value="Processing">Processing</option>
@@ -198,10 +217,9 @@ export default function AdminOrders() {
                   </div>
                   <div className="grid-section summary-section">
                     <div className="delivery-highlight">
-                      <span>Delivery:</span>
+                      <span>Delivery Date:</span>
                       <strong>{order.selectedDate || "Standard"}</strong> 
                     </div>
-                    {/* Integrated Shipping Fee Display */}
                     <div className="delivery-highlight">
                       <span>Shipping Fee:</span>
                       <strong>₦{Number(order.shippingFee || 0).toLocaleString()}</strong> 
@@ -223,4 +241,4 @@ export default function AdminOrders() {
       </div>
     </div>
   );
-            }
+      }
