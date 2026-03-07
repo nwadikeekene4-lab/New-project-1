@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import dayjs from "dayjs"; // Added for receipt dating
+import dayjs from "dayjs"; 
 import API from '../api';
 import './Success.css';
 
@@ -25,6 +25,7 @@ export function SuccessPage({ setCart }) {
     if (ref) {
       const customerDetails = savedDetails ? JSON.parse(savedDetails) : null;
       
+      // Keep your existing logic for immediate UI update from localStorage
       if (customerDetails) {
         setOrderDetails(customerDetails);
         const shipping = Number(customerDetails.shippingFee || 0);
@@ -35,6 +36,19 @@ export function SuccessPage({ setCart }) {
       API.post("/orders/verify", { reference: ref, customerDetails })
       .then((res) => {
         if (res.data.success) {
+          // ⭐ FIX: If localStorage was empty (WhatsApp link), use backend data
+          if (!orderDetails && res.data.order) {
+            const backendOrder = res.data.order;
+            setOrderDetails(backendOrder);
+            const shipping = Number(backendOrder.shippingFee || 0);
+            const total = Number(backendOrder.amount || 0);
+            setPrices({ 
+                shipping, 
+                total, 
+                subtotal: total - shipping 
+            });
+          }
+          
           setStatus('success');
           setCart([]); 
           localStorage.removeItem("pendingCustomerDetails"); 
@@ -49,9 +63,9 @@ export function SuccessPage({ setCart }) {
     } else {
       setStatus('error');
     }
-  }, [location, setCart]);
+  }, [location, setCart, orderDetails]); // Added orderDetails to dependency to safely check state
 
-  // ⭐ NEW: TABULAR PDF RECEIPT LOGIC
+  // ⭐ YOUR TABULAR PDF RECEIPT LOGIC (Unchanged)
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
 
@@ -91,9 +105,9 @@ export function SuccessPage({ setCart }) {
           <div class="details">
             <div>
               <strong>Billed To:</strong><br>
-              ${orderDetails.name}<br>
+              ${orderDetails.name || orderDetails.customerName}<br>
               ${orderDetails.phone}<br>
-              ${orderDetails.address}, ${orderDetails.location}
+              ${orderDetails.address}, ${orderDetails.location || orderDetails.city}
             </div>
             <div style="text-align: right;">
               <strong>Order Ref:</strong> #${reference}<br>
@@ -121,6 +135,7 @@ export function SuccessPage({ setCart }) {
     printWindow.document.close();
   };
 
+  // ⭐ YOUR WHATSAPP LOGIC (With Persistent Link added)
   const handleShareReceipt = async () => {
     if (!orderDetails) return;
     const itemSummary = orderDetails.items.map(item => {
@@ -128,13 +143,17 @@ export function SuccessPage({ setCart }) {
         return `• ${item.quantity}x ${p.name} (₦${Number(p.price).toLocaleString()})`;
     }).join('\n');
 
+    // Added persistent link to the message
+    const persistentLink = `${window.location.origin}/success?reference=${reference}`;
+
     const receiptText = `*ESSENCE CREATIONS RECEIPT* 🛍️\n\n` +
       `*Order Ref:* ${reference}\n` +
-      `*Customer:* ${orderDetails.name}\n\n` +
+      `*Customer:* ${orderDetails.name || orderDetails.customerName}\n\n` +
       `*Items:* \n${itemSummary}\n\n` +
       `*Shipping:* ₦${prices.shipping.toLocaleString()}\n` +
       `*Total Paid:* ₦${prices.total.toLocaleString()}\n\n` +
       `*Delivery Date:* ${orderDetails.selectedDate}\n\n` +
+      `*View Online:* ${persistentLink}\n\n` +
       `Thank you for shopping with Essence Creations!`;
 
     if (navigator.share) {
@@ -166,7 +185,7 @@ export function SuccessPage({ setCart }) {
       <div className="success-card">
         <div className="checkmark-circle"><div className="checkmark"></div></div>
         <h1>Payment Successful!</h1>
-        <p className="thanks-text">Thank you for your order, <strong>{orderDetails?.name}</strong>!</p>
+        <p className="thanks-text">Thank you for your order, <strong>{orderDetails?.name || orderDetails?.customerName}</strong>!</p>
         
         <div className="order-summary-box">
           <div className="summary-item"><span>Items Total:</span><strong>₦{prices.subtotal.toLocaleString()}</strong></div>
@@ -177,9 +196,8 @@ export function SuccessPage({ setCart }) {
           <div className="summary-item"><span>Ref:</span><small>{reference}</small></div>
         </div>
 
-        <p className="email-note">A copy of this receipt has been sent to <strong>{orderDetails?.email}</strong></p>
+        <p className="email-note">A copy of this receipt has been sent to <strong>{orderDetails?.email || orderDetails?.customerEmail}</strong></p>
 
-        {/* ⭐ DUAL BUTTONS: Download and Share */}
         <div className="success-action-buttons">
           <button onClick={handleDownloadReceipt} className="download-receipt-btn">
             Download PDF Receipt
@@ -193,4 +211,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-}
+              }
