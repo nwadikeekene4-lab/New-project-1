@@ -1,3 +1,6 @@
+/* =========================================
+   CONTAINER & GLOBAL STYLES
+   ========================================= */
 .success-wrapper {
   min-height: 80vh;
   display: flex;
@@ -27,10 +30,6 @@
   border-radius: 50%;
   border: 4px solid #4caf50;
   margin-bottom: 20px;
-}
-
-.checkmark {
-  display: block;
 }
 
 .checkmark:after {
@@ -78,11 +77,58 @@
 }
 
 .total-amount {
-  color: #d4af37; /* Gold color */
+  color: #d4af37; /* Gold color preserved */
   font-size: 1.2rem;
+  font-weight: 800;
 }
 
-/* --- Buttons --- */
+/* --- Action Buttons Container --- */
+.success-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 25px 0;
+}
+
+/* 1. Download Button (Blue) */
+.download-receipt-btn {
+  background-color: #3b82f6;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.download-receipt-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+/* 2. WhatsApp Share Button (Modern Grey/Blue Look) */
+.share-btn {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  padding: 15px;
+  width: 100%;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.share-btn:hover {
+  background-color: #e2e8f0;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+/* 3. Back to Shop Button (Black/Dark) */
 .continue-btn {
   display: block;
   background: #222;
@@ -91,14 +137,16 @@
   border-radius: 10px;
   text-decoration: none;
   font-weight: bold;
-  transition: transform 0.2s;
+  transition: all 0.2s;
+  font-size: 14px;
 }
 
 .continue-btn:hover {
+  background: #000;
   transform: translateY(-2px);
-  background: #444;
 }
 
+/* --- Error State --- */
 .error-card .checkmark-circle {
   border-color: #f44336;
 }
@@ -107,57 +155,24 @@
   content: "✕";
   border: none;
   transform: none;
-  left: 28px;
-  top: 15px;
+  left: 23px; /* Adjusted for better alignment */
+  top: 12px;
   color: #f44336;
   font-size: 40px;
   animation: none;
   opacity: 1;
-
 }
 
-.share-btn {
-  background: #25D366; /* WhatsApp Green */
-  color: white;
-  border: none;
-  padding: 14px;
-  width: 100%;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  margin: 15px 0;
-  transition: opacity 0.2s;
-}
+/* --- Extra Details --- */
+.thanks-text { font-size: 1.1rem; color: #4a5568; }
+.email-note { font-size: 0.85rem; color: #718096; margin-top: 15px; line-height: 1.5; }
 
-.share-btn:hover {
-  opacity: 0.9;
+/* --- Mobile Responsiveness --- */
+@media (max-width: 480px) {
+  .success-card {
+    padding: 25px 20px;
   }
-
-.success-action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.download-receipt-btn {
-  background-color: #3b82f6;
-  color: white;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.download-receipt-btn:hover {
-  background-color: #2563eb;
-}
-
-.share-btn {
-  background-color: #f1f5f9;
-  color: #1e293b;
-  border: 1px solid #cbd5e1;
-  /* Existing share styles but ensure they match height */
-}
+  .total-amount {
+    font-size: 1.1rem;
+  }
+  }
