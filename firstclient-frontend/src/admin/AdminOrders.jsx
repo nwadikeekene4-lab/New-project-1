@@ -9,10 +9,13 @@ export default function AdminOrders() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
-  useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => { 
+    document.title = "Manage Orders | Essence Creations";
+    fetchOrders(); 
+  }, []);
 
   const fetchOrders = () => {
-    // Header is now handled automatically by api.js interceptor
+    // SYNCED: Backend endpoint is /orders
     API.get("/orders")
       .then(res => {
         const sanitizedOrders = res.data.map(order => {
@@ -28,18 +31,20 @@ export default function AdminOrders() {
   };
 
   const deleteOrder = async (orderId) => {
-    if (window.confirm("Are you sure?")) {
+    if (window.confirm("Are you sure you want to delete this record?")) {
       try {
-        await API.delete(`/orders/${orderId}`);
+        // SYNCED: Added /admin prefix to match your new backend route
+        await API.delete(`/admin/orders/${orderId}`);
         setOrders(orders.filter(order => order.id !== orderId));
       } catch (err) { alert("Error deleting order."); }
     }
   };
 
   const deleteAllOrders = async () => {
-    if (window.confirm("CRITICAL: Delete ALL orders?")) {
+    if (window.confirm("CRITICAL: Delete ALL order history? This cannot be undone.")) {
       try {
-        await API.delete("/orders/all/bulk");
+        // SYNCED: Added /admin prefix and /bulk suffix to match backend
+        await API.delete("/admin/orders/all/bulk");
         setOrders([]);
       } catch (err) { alert("Error clearing orders."); }
     }
@@ -47,7 +52,8 @@ export default function AdminOrders() {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      await API.patch(`/orders/${orderId}`, { status: newStatus });
+      // SYNCED: Added /admin prefix to match backend
+      await API.patch(`/admin/orders/${orderId}`, { status: newStatus });
       setOrders(orders.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
     } catch (err) { alert("Error updating status"); }
   };
@@ -62,21 +68,19 @@ export default function AdminOrders() {
 
   return (
     <div className="admin-orders-page">
-      <Link to="/admin" className="back-btn-minimal" title="Back to Dashboard">
-        ←
-      </Link>
+      <Link to="/admin" className="back-btn-minimal" title="Back to Dashboard">←</Link>
 
       <div className="admin-controls-container">
-        <h2 className="page-title">Manage Orders</h2>
+        <h2 className="page-title">Essence Creations Orders</h2>
         <div className="controls-row">
-          <input type="text" placeholder="Search orders..." className="search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <input type="text" placeholder="Search by name or ref..." className="search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="All">All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="Processing">Processing</option>
             <option value="Delivered">Delivered</option>
           </select>
-          <button onClick={deleteAllOrders} className="bulk-delete-btn">Clear All History</button>
+          <button onClick={deleteAllOrders} className="bulk-delete-btn">Clear History</button>
         </div>
       </div>
 
@@ -94,7 +98,7 @@ export default function AdminOrders() {
                     <span className="value">#{order.reference}</span>
                   </div>
                   <div className="date-group">
-                    <span className="label">PLACED ON</span>
+                    <span className="label">ORDER DATE</span>
                     <span className="value">
                       {dayjs(order.createdAt).format("DD MMM YYYY")} | {dayjs(order.createdAt).format("hh:mm A")}
                     </span>
@@ -113,25 +117,29 @@ export default function AdminOrders() {
                     <h4>Customer</h4>
                     <p className="cust-name">{order.customerName}</p>
                     <p className="cust-detail">{order.phone}</p>
-                    <p className="cust-detail address">{order.address}</p>
+                    <p className="cust-detail address">{order.address}, {order.city}</p>
                   </div>
                   <div className="grid-section">
-                    <h4>Order Details</h4>
+                    <h4>Items</h4>
                     <div className="items-list">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="admin-item-row">
-                          <div className="admin-item-info">
-                            <p className="admin-item-name">{item.product?.name || item.name}</p>
-                            <p className="admin-item-price">{item.quantity} x ₦{(item.product?.price || 0).toLocaleString()}</p>
+                      {order.items.map((item, idx) => {
+                        // SYNCED: Use item.price if product.price isn't available (snapshot logic)
+                        const price = item.product?.price || item.price || 0;
+                        return (
+                          <div key={idx} className="admin-item-row">
+                            <div className="admin-item-info">
+                              <p className="admin-item-name">{item.product?.name || item.name}</p>
+                              <p className="admin-item-price">{item.quantity} x ₦{Number(price).toLocaleString()}</p>
+                            </div>
+                            <span className="admin-item-total">₦{(price * item.quantity).toLocaleString()}</span>
                           </div>
-                          <span className="admin-item-total">₦{((item.product?.price || 0) * item.quantity).toLocaleString()}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                   <div className="grid-section summary-section">
                     <div className="delivery-highlight">
-                      <span>Preferred Date:</span>
+                      <span>Delivery Date:</span>
                       <strong>{deliveryDate}</strong> 
                     </div>
                     <div className="total-line">
@@ -148,4 +156,4 @@ export default function AdminOrders() {
       </div>
     </div>
   );
-}
+    }
