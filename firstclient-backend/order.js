@@ -11,6 +11,12 @@ const Order = sequelize.define("Order", {
     type: DataTypes.FLOAT,
     allowNull: false
   },
+  // ⭐ ADDED: To store the shipping cost separately from the total amount
+  shippingFee: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    defaultValue: 0
+  },
   items: {
     type: DataTypes.TEXT, 
     allowNull: false
@@ -18,9 +24,10 @@ const Order = sequelize.define("Order", {
   status: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: "Paid" 
+    defaultValue: "Pending" // Changed to Pending to match your new Admin logic
   },
   customerName: { type: DataTypes.STRING, allowNull: true },
+  customerEmail: { type: DataTypes.STRING, allowNull: true }, // Added for Resend receipts
   address: { type: DataTypes.TEXT, allowNull: true },
   city: { type: DataTypes.STRING, allowNull: true },
   country: { type: DataTypes.STRING, allowNull: true },
@@ -29,7 +36,7 @@ const Order = sequelize.define("Order", {
   selectedDate: { type: DataTypes.STRING, allowNull: true }
 }, {
   timestamps: true,
-  paranoid: true 
+  paranoid: true // Keeps records for the "Archive" section instead of hard deleting
 });
 
 module.exports = Order;
