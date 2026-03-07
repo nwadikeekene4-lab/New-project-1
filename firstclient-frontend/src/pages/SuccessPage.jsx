@@ -23,6 +23,8 @@ export function SuccessPage({ setCart }) {
 
     if (ref) {
       const customerDetails = savedDetails ? JSON.parse(savedDetails) : null;
+      
+      // If we have details in localStorage, set the UI immediately
       if (customerDetails) {
         setOrderDetails(customerDetails);
         const shipping = Number(customerDetails.shippingFee || 0);
@@ -32,6 +34,7 @@ export function SuccessPage({ setCart }) {
 
       API.post("/orders/verify", { reference: ref, customerDetails })
       .then((res) => {
+        // success is true if payment is verified OR if order already exists in DB
         if (res.data.success) {
           setStatus('success');
           setCart([]); 
@@ -49,33 +52,36 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
-  // ⭐ UNIVERSAL SHARE LOGIC
+  // ⭐ UPDATED SHARE LOGIC: Essence Creations Branding + Clearer Format
   const handleShareReceipt = async () => {
     if (!orderDetails) return;
 
     const itemSummary = orderDetails.items.map(item => {
         const p = item.product || item;
-        return `• ${item.quantity}x ${p.name}`;
+        return `• ${item.quantity}x ${p.name} (₦${Number(p.price).toLocaleString()})`;
     }).join('\n');
 
-    const receiptText = `*HERITAGE HUB RECEIPT* 🛍️\n\n` +
+    const receiptText = `*ESSENCE CREATIONS RECEIPT* 🛍️\n\n` +
       `*Order Ref:* ${reference}\n` +
-      `*Total Paid:* ₦${prices.total.toLocaleString()}\n` +
-      `*Delivery:* ${orderDetails.selectedDate}\n\n` +
+      `*Customer:* ${orderDetails.name}\n\n` +
       `*Items:* \n${itemSummary}\n\n` +
-      `Thank you for shopping with us!`;
+      `*Shipping:* ₦${prices.shipping.toLocaleString()}\n` +
+      `*Total Paid:* ₦${prices.total.toLocaleString()}\n\n` +
+      `*Delivery Date:* ${orderDetails.selectedDate}\n` +
+      `*Address:* ${orderDetails.address}, ${orderDetails.location}\n\n` +
+      `Thank you for shopping with Essence Creations!`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'My Heritage Hub Receipt',
+          title: 'My Essence Creations Receipt',
           text: receiptText,
           url: window.location.href, 
         });
       } catch (err) { console.log("Share dismissed"); }
     } else {
       // Desktop Fallback to WhatsApp
-      const encodedMsg = encodeURIComponent(receiptText + `\n\nLink: ${window.location.href}`);
+      const encodedMsg = encodeURIComponent(receiptText + `\n\nLink to Receipt: ${window.location.href}`);
       window.open(`https://wa.me/?text=${encodedMsg}`, '_blank');
     }
   };
@@ -88,7 +94,7 @@ export function SuccessPage({ setCart }) {
     <div className="success-wrapper">
       <div className="success-card error-card">
         <h1>Oops!</h1>
-        <p>Verification failed. Contact support with Ref: <strong>{reference}</strong></p>
+        <p>Verification failed or session expired. Contact support with Ref: <strong>{reference}</strong></p>
         <Link to="/shop" className="continue-btn">Back to Shop</Link>
       </div>
     </div>
@@ -99,20 +105,23 @@ export function SuccessPage({ setCart }) {
       <div className="success-card">
         <div className="checkmark-circle"><div className="checkmark"></div></div>
         <h1>Payment Successful!</h1>
-        <p className="thanks-text">Thank you, <strong>{orderDetails?.name}</strong>!</p>
+        <p className="thanks-text">Thank you for your order, <strong>{orderDetails?.name}</strong>!</p>
         
         <div className="order-summary-box">
           <div className="summary-item"><span>Items Total:</span><strong>₦{prices.subtotal.toLocaleString()}</strong></div>
-          <div className="summary-item"><span>Delivery:</span><strong>₦{prices.shipping.toLocaleString()}</strong></div>
+          <div className="summary-item"><span>Shipping:</span><strong>₦{prices.shipping.toLocaleString()}</strong></div>
           <div className="summary-item total-row"><span>Grand Total:</span><strong className="total-amount">₦{prices.total.toLocaleString()}</strong></div>
           <hr />
-          <div className="summary-item"><span>Date:</span><strong>{orderDetails?.selectedDate}</strong></div>
+          <div className="summary-item address-summary">
+            <span>Delivery Address:</span>
+            <small>{orderDetails?.address}, {orderDetails?.location}</small>
+          </div>
+          <div className="summary-item"><span>Delivery Date:</span><strong>{orderDetails?.selectedDate}</strong></div>
           <div className="summary-item"><span>Ref:</span><small>{reference}</small></div>
         </div>
 
-        <p className="email-note">Receipt sent to <strong>{orderDetails?.email}</strong></p>
+        <p className="email-note">A copy of this receipt has been sent to <strong>{orderDetails?.email}</strong></p>
 
-        {/* ⭐ THE UNIVERSAL SHARE BUTTON */}
         <button onClick={handleShareReceipt} className="share-btn">
           Share Receipt (WhatsApp/Save)
         </button>
@@ -121,4 +130,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-          }
+      }
