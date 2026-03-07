@@ -236,7 +236,7 @@ router.post("/paystack/init", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Paystack Init Failed" }); }
 });
 
-// ⭐ INTEGRATED: Essence Creations Verified Logic with FIXED STATUS
+// ⭐ INTEGRATED: VERIFICATION LOGIC WITH SHIPPING FEE PERSISTENCE
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
@@ -256,12 +256,13 @@ router.post("/orders/verify", async (req, res) => {
          customerName: customerDetails.name,
          customerEmail: customerDetails.email,
          amount: customerDetails.totalAmount,
+         shippingFee: customerDetails.shippingFee || 0, // SAVED FOR ADMIN PAGE
          address: customerDetails.address,
          city: customerDetails.city,
          phone: customerDetails.phone,
          selectedDate: customerDetails.selectedDate,
          items: JSON.stringify(customerDetails.items),
-         status: "Pending" // ⭐ GUARANTEED STATUS
+         status: "Pending" 
       });
 
       await CartItem.destroy({ where: {} });
@@ -321,7 +322,18 @@ router.post("/orders/verify", async (req, res) => {
   }
 });
 
-// ⭐ ADDED: ADMIN ORDER MANAGEMENT ROUTES
+// ⭐ NEW: PUBLIC ORDER FETCH FOR SUCCESS PAGE / WHATSAPP PERSISTENCE
+router.get("/orders/receipt/:reference", async (req, res) => {
+  try {
+    const order = await Order.findOne({ where: { reference: req.params.reference } });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    const sanitized = order.toJSON();
+    sanitized.items = typeof sanitized.items === 'string' ? JSON.parse(sanitized.items) : sanitized.items;
+    res.json(sanitized);
+  } catch (err) { res.status(500).json({ error: "Fetch failed" }); }
+});
+
+// --- ADMIN ORDER MANAGEMENT ---
 router.get("/orders", verifyToken, async (req, res) => {
   try {
     const orders = await Order.findAll({ order: [['createdAt', 'DESC']] });
@@ -354,14 +366,25 @@ router.delete("/admin/orders/all/bulk", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Bulk delete failed" }); }
 });
 
-// --- CMS & ARCHIVE REMAIN UNCHANGED ---
+// --- CMS MANAGEMENT ---
 router.post("/cms/update", verifyToken, async (req, res) => {
   try {
     const { page_name, data } = req.body;
-    const [page, created] = await CMS.findOrCreate({ where: { page_name }, defaults: { title: sanitizeInput(data.title), description: sanitizeInput(data.description), image: data.image, content: data } });
+    const [page, created] = await CMS.findOrCreate({ 
+      where: { page_name }, 
+      defaults: { 
+        title: sanitizeInput(data.title), 
+        description: sanitizeInput(data.description), 
+        image: data.image, 
+        content: data 
+      } 
+    });
     if (!created) {
-      page.title = sanitizeInput(data.title); page.description = sanitizeInput(data.description);
-      page.image = data.image; page.content = data; await page.save();
+      page.title = sanitizeInput(data.title); 
+      page.description = sanitizeInput(data.description);
+      page.image = data.image; 
+      page.content = data; 
+      await page.save();
     }
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -374,6 +397,7 @@ router.get("/cms/:page", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- ARCHIVE & RESTORATION ---
 router.get("/admin/archive/products", verifyToken, async (req, res) => {
   try {
     const archived = await Product.findAll({ where: { deletedAt: { [Op.ne]: null } }, paranoid: false });
