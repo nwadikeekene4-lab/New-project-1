@@ -72,12 +72,10 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
-  // ⭐ YOUR TABULAR PDF RECEIPT LOGIC (100% Intact)
+  // ⭐ INTEGRATED FIX: Uses html2pdf for direct download (Tabular layout preserved)
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
 
-    const printWindow = window.open('', '_blank');
-    // Ensure items are parsed if they come from DB as string
     const itemsArray = typeof orderDetails.items === 'string' ? JSON.parse(orderDetails.items) : orderDetails.items;
     
     const itemsHtml = itemsArray.map(item => {
@@ -91,28 +89,14 @@ export function SuccessPage({ setCart }) {
         `;
     }).join('');
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Receipt - ${reference}</title>
-          <style>
-            body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 40px; color: #2d3748; }
-            .header { text-align: center; border-bottom: 3px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px; }
-            .header h1 { margin: 0; color: #1a202c; font-size: 28px; }
-            .details { display: flex; justify-content: space-between; margin-bottom: 30px; line-height: 1.5; }
-            table { width: 100%; border-collapse: collapse; }
-            th { background: #f7fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
-            .total-section { text-align: right; margin-top: 30px; padding-top: 15px; border-top: 2px solid #1a202c; }
-            .total-section h2 { margin: 0; color: #059669; }
-            .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #a0aec0; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>ESSENCE CREATIONS</h1>
+    const element = document.createElement('div');
+    element.innerHTML = `
+      <div style="font-family: sans-serif; max-width: 700px; margin: auto; padding: 40px; color: #2d3748; background: white;">
+          <div style="text-align: center; border-bottom: 3px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px;">
+            <h1 style="margin: 0; color: #1a202c; font-size: 28px;">ESSENCE CREATIONS</h1>
             <p>Official Payment Receipt</p>
           </div>
-          <div class="details">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 30px; line-height: 1.5;">
             <div>
               <strong>Billed To:</strong><br>
               ${orderDetails.name || orderDetails.customerName}<br>
@@ -125,27 +109,36 @@ export function SuccessPage({ setCart }) {
               <strong>Delivery:</strong> ${orderDetails.selectedDate}
             </div>
           </div>
-          <table>
+          <table style="width: 100%; border-collapse: collapse;">
             <thead>
-              <tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th></tr>
+              <tr>
+                <th style="background: #f7fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Item</th>
+                <th style="background: #f7fafc; padding: 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Qty</th>
+                <th style="background: #f7fafc; padding: 12px; text-align: right; border-bottom: 2px solid #e2e8f0;">Price</th>
+              </tr>
             </thead>
             <tbody>${itemsHtml}</tbody>
           </table>
-          <div class="total-section">
+          <div style="text-align: right; margin-top: 30px; padding-top: 15px; border-top: 2px solid #1a202c;">
             <p style="margin-bottom: 5px;">Shipping: ₦${prices.shipping.toLocaleString()}</p>
-            <h2>Total Paid: ₦${prices.total.toLocaleString()}</h2>
+            <h2 style="margin: 0; color: #059669;">Total Paid: ₦${prices.total.toLocaleString()}</h2>
           </div>
-          <div class="footer">Thank you for choosing Essence Creations! Visit us again.</div>
-          <script>
-            window.onload = function() { window.print(); window.close(); };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+          <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #a0aec0;">Thank you for choosing Essence Creations! Visit us again.</div>
+      </div>
+    `;
+
+    const opt = {
+      margin: 0,
+      filename: `Receipt_${reference}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    window.html2pdf().from(element).set(opt).save();
   };
 
-  // ⭐ YOUR WHATSAPP LOGIC (With Persistent Link)
+  // ⭐ YOUR WHATSAPP LOGIC (100% Intact)
   const handleShareReceipt = async () => {
     if (!orderDetails) return;
     const itemsArray = typeof orderDetails.items === 'string' ? JSON.parse(orderDetails.items) : orderDetails.items;
@@ -222,4 +215,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-            }
+      }
