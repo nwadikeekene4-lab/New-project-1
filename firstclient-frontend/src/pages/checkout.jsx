@@ -6,7 +6,7 @@ import './checkout.css';
 
 export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantity }) {
   
-  // --- PRESERVED: DATE LOGIC ---
+  // ⭐ UPDATED: Now includes the year in the date string
   const getWorkDay = (index) => {
     let daysAdded = 0;
     let targetDate = dayjs();
@@ -15,7 +15,7 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       if (targetDate.day() === 0) continue;
       daysAdded++;
     }
-    return targetDate.format("dddd, MMMM D");
+    return targetDate.format("dddd, MMMM D, YYYY"); // e.g., Monday, March 9, 2026
   };
 
   const deliveryOptions = [
@@ -30,7 +30,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
     name: '', email: '', address: '', city: '', country: '', phone: '', location: ''
   });
 
-  // --- PRESERVED: IMAGE FALLBACK ---
   const getImageUrl = (img) => img || "https://placehold.co/100x100?text=No+Image";
 
   const handleInputChange = (e) => {
@@ -39,10 +38,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
 
   const handleDateSelection = (dateString) => {
     setSelectedDate(dateString);
-    cart.forEach(item => {
-      API.post(`/cart/update-date`, { cartItemId: item.id, deliveryDate: dateString })
-        .catch(err => console.error("Date persistence error:", err));
-    });
   };
 
   const handleClearCart = () => {
@@ -53,7 +48,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
 
   const hasInvalidQuantity = cart.some(item => item.quantity === "" || item.quantity <= 0);
 
-  // ⭐ FIXED: Price calculation now looks into the nested .product object correctly
   const itemsTotal = cart.reduce((sum, item) => {
     const itemPrice = item.product?.price || item.price || 0;
     return sum + (Number(itemPrice) * (Number(item.quantity) || 0));
@@ -69,7 +63,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
   const shippingTotal = getShippingFee(customerDetails.location);
   const orderTotal = itemsTotal + shippingTotal;
 
-  // --- PRESERVED: PAYSTACK LOGIC ---
   const handlePlaceOrder = async () => {
     if (cart.length === 0) return alert("Your cart is empty.");
     if (hasInvalidQuantity) return alert("Please set a valid quantity for all items.");
@@ -111,7 +104,8 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
     <div className="checkout-page-wrapper">
       <div className="checkout-minimal-header">
         <div className="header-inner">
-          <Link to="/" className="checkout-logo">Heritage Hub</Link>
+          {/* ⭐ BRANDING UPDATED */}
+          <Link to="/" className="checkout-logo">Essence Creations</Link>
           <div className="checkout-step-label">Secure Checkout</div>
           <Link to="/shop" className="back-link">Continue Shopping</Link>
         </div>
@@ -127,7 +121,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
               </div>
               <div className="checkout-items-list">
                 {cart.map(cartItem => {
-                   // ⭐ FIXED: Resolve product data correctly for both Pastry and General Shop items
                    const productData = cartItem.product || cartItem;
                    return (
                     <div key={cartItem.id} className="checkout-product-row">
@@ -147,7 +140,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                             <span className="unit-price"> • ₦{Number(productData.price).toLocaleString()}</span>
                           </div>
                         </div>
-                        {/* ⭐ FIXED: Removal now functional */}
                         <button className="delete-btn" onClick={() => removeFromCart(cartItem.id)}>Remove</button>
                       </div>
                     </div>
@@ -210,4 +202,4 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       </div>
     </div>
   );
-}
+        }
