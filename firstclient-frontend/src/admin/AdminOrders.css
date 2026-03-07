@@ -110,7 +110,7 @@
 }
 
 .ref-group .value {
-  font-family: 'Courier New', monospace; /* Professional Ref look */
+  font-family: 'Courier New', monospace;
   color: #3b82f6;
   font-size: 15px;
 }
@@ -129,7 +129,7 @@
   color: #334155;
 }
 
-/* 3-Column Grid for Content */
+/* ⭐ KONGA-STYLE 3-Column Grid */
 .order-grid {
   display: grid;
   grid-template-columns: 1fr 1.5fr 1fr;
@@ -167,7 +167,7 @@
 .admin-item-total { font-weight: 700; color: #334155; font-size: 14px; }
 
 /* =========================================
-   SUMMARY SECTION (Updated for Shipping)
+   SUMMARY SECTION
    ========================================= */
 .summary-section {
   display: flex;
@@ -198,7 +198,6 @@
   color: #1e293b;
 }
 
-/* Special color for the Shipping Fee value */
 .delivery-highlight:nth-of-type(2) {
   border-color: #bfdbfe;
   background: #f0f9ff;
@@ -225,7 +224,7 @@
 }
 
 /* =========================================
-   STATUS BADGES & DROPDOWNS
+   STATUS BADGES
    ========================================= */
 .status-badge select {
   padding: 8px 14px;
@@ -243,7 +242,6 @@
 .status-badge.processing select { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 .status-badge.delivered select { background: #f0fdf4; color: #15803d; border-color: #86efac; }
 
-/* ✅ DELIVERED CARD OVERRIDE */
 .order-card.delivered-card {
   background-color: #f0fff4 !important; 
   border-color: #bbf7d0 !important;
@@ -295,12 +293,32 @@
 }
 
 /* =========================================
+   ⭐ FIX: PREVIEW TOOLBAR (For handlePrint)
+   ========================================= */
+.toolbar {
+  background: #f1f5f9;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.btn-print { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+.btn-close { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+/* =========================================
    RESPONSIVE DESIGN (BREAKPOINTS)
    ========================================= */
 
 @media (max-width: 1024px) {
   .order-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr; /* Split into 2 columns on tablets */
     gap: 20px;
   }
 }
@@ -309,10 +327,25 @@
   .admin-orders-page { padding: 15px; }
   .page-title { font-size: 1.4rem; padding: 15px 20px; }
   .order-card-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  
+  .order-grid { 
+    grid-template-columns: 1fr; /* Single column on mobile */
+    padding: 15px;
+  }
+  
   .status-badge, .status-badge select { width: 100%; }
   .controls-row { flex-direction: column; }
   .search-input, .filter-select { width: 100%; }
+  
   .action-buttons-row { flex-direction: column; }
+  .print-btn, .del-btn { width: 100%; padding: 15px; }
+}
+
+/* Hide toolbar when printing */
+@media print {
+  .no-print, .toolbar {
+    display: none !important;
+  }
 }
 
 /* Helper Classes */
@@ -345,4 +378,4 @@
 .bulk-delete-btn:hover {
   background-color: #c53030;
   color: white;
-   }
+                                    }
