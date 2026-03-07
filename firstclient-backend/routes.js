@@ -236,7 +236,7 @@ router.post("/paystack/init", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Paystack Init Failed" }); }
 });
 
-// ⭐ INTEGRATED: Professional Verify & Email Receipt Logic
+// ⭐ INTEGRATED: Essence Creations Verified Logic
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
@@ -246,7 +246,7 @@ router.post("/orders/verify", async (req, res) => {
     });
 
     if (response.data.data.status === "success") {
-      // 1. Save to Orders Table
+      // 1. Save Order
       await Order.create({
          reference: reference,
          customerName: customerDetails.name,
@@ -258,7 +258,7 @@ router.post("/orders/verify", async (req, res) => {
       // 2. Clear Database Cart
       await CartItem.destroy({ where: {} });
 
-      // 3. Send Professional Tabular Receipt via Email
+      // 3. Send Professional Receipt
       if (process.env.RESEND_API_KEY && customerDetails.email) {
         const itemsHtml = customerDetails.items.map(item => {
           const p = item.product || item;
@@ -273,42 +273,43 @@ router.post("/orders/verify", async (req, res) => {
 
         const emailHtml = `
           <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff;">
-            <div style="background: #1a2a6c; color: white; padding: 20px; text-align: center;">
-              <h1 style="margin: 0; font-size: 22px;">Heritage Hub</h1>
-              <p style="margin: 5px 0 0 0; color: #fba100;">Order Confirmation</p>
+            <div style="background: #000; color: white; padding: 20px; text-align: center;">
+              <h1 style="margin: 0; font-size: 22px;">Essence Creations</h1>
+              <p style="margin: 5px 0 0 0; color: #d4af37;">Official Payment Receipt</p>
             </div>
             <div style="padding: 25px;">
               <p style="font-size: 16px;">Hello <strong>${customerDetails.name}</strong>,</p>
-              <p>Your payment was successful. Here is your order summary:</p>
+              <p>Thank you for choosing Essence Creations. Your payment has been confirmed.</p>
               
               <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                 <thead>
                   <tr style="background: #f7fafc;">
-                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0;">Item</th>
+                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0;">Product</th>
                     <th style="text-align: center; padding: 10px; border-bottom: 2px solid #e2e8f0;">Qty</th>
-                    <th style="text-align: right; padding: 10px; border-bottom: 2px solid #e2e8f0;">Price</th>
+                    <th style="text-align: right; padding: 10px; border-bottom: 2px solid #e2e8f0;">Unit Price</th>
                   </tr>
                 </thead>
                 <tbody>${itemsHtml}</tbody>
               </table>
 
-              <div style="margin-top: 20px; text-align: right; border-top: 2px solid #1a2a6c; padding-top: 15px;">
-                <p style="margin: 0; color: #718096;">Shipping (${customerDetails.location}): ₦${Number(customerDetails.shippingFee).toLocaleString()}</p>
-                <p style="font-size: 18px; margin: 8px 0 0 0;"><strong>Total Paid: ₦${Number(customerDetails.totalAmount).toLocaleString()}</strong></p>
+              <div style="margin-top: 20px; text-align: right; border-top: 2px solid #000; padding-top: 15px;">
+                <p style="margin: 0; color: #718096;">Shipping Fee: ₦${Number(customerDetails.shippingFee).toLocaleString()}</p>
+                <p style="font-size: 18px; margin: 8px 0 0 0;"><strong>Total Amount Paid: ₦${Number(customerDetails.totalAmount).toLocaleString()}</strong></p>
               </div>
 
-              <div style="margin-top: 25px; background: #f8fafc; padding: 15px; border-radius: 5px; font-size: 14px;">
-                <p style="margin: 0;"><strong>Delivery Date:</strong> ${customerDetails.selectedDate}</p>
-                <p style="margin: 5px 0 0 0;"><strong>Ref:</strong> ${reference}</p>
+              <div style="margin-top: 25px; background: #f8fafc; padding: 15px; border-radius: 5px; font-size: 14px; border: 1px solid #e2e8f0;">
+                <p style="margin: 0 0 5px 0;"><strong>Delivery Address:</strong> ${customerDetails.address}, ${customerDetails.location}</p>
+                <p style="margin: 0 0 5px 0;"><strong>Estimated Delivery:</strong> ${customerDetails.selectedDate}</p>
+                <p style="margin: 0;"><strong>Transaction Ref:</strong> ${reference}</p>
               </div>
             </div>
           </div>
         `;
 
         await resend.emails.send({
-          from: 'Heritage Hub <onboarding@resend.dev>',
+          from: 'Essence Creations <onboarding@resend.dev>',
           to: customerDetails.email,
-          subject: 'Payment Receipt - Heritage Hub',
+          subject: 'Your Receipt from Essence Creations',
           html: emailHtml
         });
       }
