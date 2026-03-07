@@ -17,38 +17,36 @@ export function SuccessPage({ setCart }) {
     const ref = query.get('trxref') || query.get('reference');
     setReference(ref);
     
-    if (!ref || hasVerified.current) return;
+    if (!ref) {
+        setStatus('error');
+        return;
+    }
+
+    if (hasVerified.current) return;
     hasVerified.current = true;
 
     const savedDetails = localStorage.getItem("pendingCustomerDetails");
 
-    if (ref) {
-      const customerDetails = savedDetails ? JSON.parse(savedDetails) : null;
-      
-      // Keep your existing logic for immediate UI update from localStorage
-      if (customerDetails) {
-        setOrderDetails(customerDetails);
-        const shipping = Number(customerDetails.shippingFee || 0);
-        const total = Number(customerDetails.totalAmount || 0);
-        setPrices({ shipping, total, subtotal: total - shipping });
-      }
+    // FUNCTION TO SYNC UI WITH DATA
+    const syncOrderData = (data) => {
+      setOrderDetails(data);
+      const shipping = Number(data.shippingFee || 0);
+      const total = Number(data.totalAmount || data.amount || 0);
+      setPrices({ 
+        shipping, 
+        total, 
+        subtotal: total - shipping 
+      });
+    };
+
+    if (savedDetails) {
+      // SCENARIO 1: Fresh Order (User just paid)
+      const customerDetails = JSON.parse(savedDetails);
+      syncOrderData(customerDetails);
 
       API.post("/orders/verify", { reference: ref, customerDetails })
       .then((res) => {
         if (res.data.success) {
-          // ⭐ FIX: If localStorage was empty (WhatsApp link), use backend data
-          if (!orderDetails && res.data.order) {
-            const backendOrder = res.data.order;
-            setOrderDetails(backendOrder);
-            const shipping = Number(backendOrder.shippingFee || 0);
-            const total = Number(backendOrder.amount || 0);
-            setPrices({ 
-                shipping, 
-                total, 
-                subtotal: total - shipping 
-            });
-          }
-          
           setStatus('success');
           setCart([]); 
           localStorage.removeItem("pendingCustomerDetails"); 
@@ -61,16 +59,28 @@ export function SuccessPage({ setCart }) {
         setStatus('error');
       });
     } else {
-      setStatus('error');
+      // SCENARIO 2: WhatsApp Link or Browser Refresh (Fetch from Database)
+      API.get(`/orders/receipt/${ref}`)
+      .then((res) => {
+        syncOrderData(res.data);
+        setStatus('success');
+      })
+      .catch((err) => {
+        console.error("Fetch Error:", err);
+        setStatus('error');
+      });
     }
-  }, [location, setCart, orderDetails]); // Added orderDetails to dependency to safely check state
+  }, [location, setCart]);
 
-  // ⭐ YOUR TABULAR PDF RECEIPT LOGIC (Unchanged)
+  // ⭐ YOUR TABULAR PDF RECEIPT LOGIC (100% Intact)
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
 
     const printWindow = window.open('', '_blank');
-    const itemsHtml = orderDetails.items.map(item => {
+    // Ensure items are parsed if they come from DB as string
+    const itemsArray = typeof orderDetails.items === 'string' ? JSON.parse(orderDetails.items) : orderDetails.items;
+    
+    const itemsHtml = itemsArray.map(item => {
         const p = item.product || item;
         return `
           <tr>
@@ -135,15 +145,16 @@ export function SuccessPage({ setCart }) {
     printWindow.document.close();
   };
 
-  // ⭐ YOUR WHATSAPP LOGIC (With Persistent Link added)
+  // ⭐ YOUR WHATSAPP LOGIC (With Persistent Link)
   const handleShareReceipt = async () => {
     if (!orderDetails) return;
-    const itemSummary = orderDetails.items.map(item => {
+    const itemsArray = typeof orderDetails.items === 'string' ? JSON.parse(orderDetails.items) : orderDetails.items;
+    
+    const itemSummary = itemsArray.map(item => {
         const p = item.product || item;
         return `• ${item.quantity}x ${p.name} (₦${Number(p.price).toLocaleString()})`;
     }).join('\n');
 
-    // Added persistent link to the message
     const persistentLink = `${window.location.origin}/success?reference=${reference}`;
 
     const receiptText = `*ESSENCE CREATIONS RECEIPT* 🛍️\n\n` +
@@ -174,7 +185,7 @@ export function SuccessPage({ setCart }) {
     <div className="success-wrapper">
       <div className="success-card error-card">
         <h1>Oops!</h1>
-        <p>Verification failed. Contact support with Ref: <strong>{reference}</strong></p>
+        <p>Verification failed or Order not found. Contact support with Ref: <strong>{reference}</strong></p>
         <Link to="/shop" className="continue-btn">Back to Shop</Link>
       </div>
     </div>
@@ -211,4 +222,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-              }
+            }
