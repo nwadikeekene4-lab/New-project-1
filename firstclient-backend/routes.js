@@ -236,12 +236,11 @@ router.post("/paystack/init", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Paystack Init Failed" }); }
 });
 
-// ⭐ INTEGRATED: Essence Creations Verified Logic with FIXES
+// ⭐ INTEGRATED: Essence Creations Verified Logic with FIXED STATUS
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
     
-    // 1. Check if order already exists (prevents "Oops" on refresh/re-visit)
     const existingOrder = await Order.findOne({ where: { reference } });
     if (existingOrder) {
       return res.json({ success: true, alreadyProcessed: true });
@@ -252,7 +251,6 @@ router.post("/orders/verify", async (req, res) => {
     });
 
     if (response.data.data.status === "success") {
-      // 2. Save Order to Database using proper columns
       await Order.create({
          reference: reference,
          customerName: customerDetails.name,
@@ -262,13 +260,12 @@ router.post("/orders/verify", async (req, res) => {
          city: customerDetails.city,
          phone: customerDetails.phone,
          selectedDate: customerDetails.selectedDate,
-         items: JSON.stringify(customerDetails.items) // Stringify for Text column
+         items: JSON.stringify(customerDetails.items),
+         status: "Pending" // ⭐ GUARANTEED STATUS
       });
 
-      // 3. Clear Database Cart
       await CartItem.destroy({ where: {} });
 
-      // 4. Send Professional Receipt
       if (process.env.RESEND_API_KEY && customerDetails.email) {
         const itemsHtml = customerDetails.items.map(item => {
           const p = item.product || item;
@@ -290,7 +287,6 @@ router.post("/orders/verify", async (req, res) => {
             <div style="padding: 25px;">
               <p style="font-size: 16px;">Hello <strong>${customerDetails.name}</strong>,</p>
               <p>Thank you for choosing Essence Creations. Your payment has been confirmed.</p>
-              
               <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                 <thead>
                   <tr style="background: #f7fafc;">
@@ -301,16 +297,9 @@ router.post("/orders/verify", async (req, res) => {
                 </thead>
                 <tbody>${itemsHtml}</tbody>
               </table>
-
               <div style="margin-top: 20px; text-align: right; border-top: 2px solid #000; padding-top: 15px;">
                 <p style="margin: 0; color: #718096;">Shipping Fee: ₦${Number(customerDetails.shippingFee).toLocaleString()}</p>
                 <p style="font-size: 18px; margin: 8px 0 0 0;"><strong>Total Amount Paid: ₦${Number(customerDetails.totalAmount).toLocaleString()}</strong></p>
-              </div>
-
-              <div style="margin-top: 25px; background: #f8fafc; padding: 15px; border-radius: 5px; font-size: 14px; border: 1px solid #e2e8f0;">
-                <p style="margin: 0 0 5px 0;"><strong>Delivery Address:</strong> ${customerDetails.address}, ${customerDetails.location}</p>
-                <p style="margin: 0 0 5px 0;"><strong>Scheduled Delivery:</strong> ${customerDetails.selectedDate}</p>
-                <p style="margin: 0;"><strong>Transaction Ref:</strong> ${reference}</p>
               </div>
             </div>
           </div>
@@ -323,7 +312,6 @@ router.post("/orders/verify", async (req, res) => {
           html: emailHtml
         });
       }
-
       res.json({ success: true });
     } else {
       res.status(400).json({ success: false });
@@ -333,6 +321,7 @@ router.post("/orders/verify", async (req, res) => {
   }
 });
 
+// ⭐ ADDED: ADMIN ORDER MANAGEMENT ROUTES
 router.get("/orders", verifyToken, async (req, res) => {
   try {
     const orders = await Order.findAll({ order: [['createdAt', 'DESC']] });
@@ -340,7 +329,32 @@ router.get("/orders", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- CMS ---
+router.patch("/admin/orders/:id", verifyToken, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const order = await Order.findByPk(req.params.id);
+    if (!order) return res.status(404).json({ error: "Order not found" });
+    order.status = status;
+    await order.save();
+    res.json({ success: true, message: "Status updated" });
+  } catch (err) { res.status(500).json({ error: "Update failed" }); }
+});
+
+router.delete("/admin/orders/:id", verifyToken, async (req, res) => {
+  try {
+    await Order.destroy({ where: { id: req.params.id } });
+    res.json({ success: true, message: "Order deleted" });
+  } catch (err) { res.status(500).json({ error: "Delete failed" }); }
+});
+
+router.delete("/admin/orders/all/bulk", verifyToken, async (req, res) => {
+  try {
+    await Order.destroy({ where: {}, truncate: true });
+    res.json({ success: true, message: "All orders cleared" });
+  } catch (err) { res.status(500).json({ error: "Bulk delete failed" }); }
+});
+
+// --- CMS & ARCHIVE REMAIN UNCHANGED ---
 router.post("/cms/update", verifyToken, async (req, res) => {
   try {
     const { page_name, data } = req.body;
@@ -360,7 +374,6 @@ router.get("/cms/:page", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- ARCHIVE & RESTORATION ---
 router.get("/admin/archive/products", verifyToken, async (req, res) => {
   try {
     const archived = await Product.findAll({ where: { deletedAt: { [Op.ne]: null } }, paranoid: false });
