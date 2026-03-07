@@ -20,7 +20,6 @@ export default function AdminOrders() {
         const sanitizedOrders = res.data.map(order => {
           let parsedItems = [];
           try {
-            // Support both direct objects and stringified JSON from database
             parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
           } catch (e) { 
             console.error("Item parsing error for order:", order.reference, e);
@@ -33,7 +32,7 @@ export default function AdminOrders() {
       .catch(err => console.error("Error fetching orders:", err));
   };
 
-  // ⭐ UPDATED PRINT RECEIPT LOGIC (100% Intact with Shipping Fix)
+  // ⭐ INTEGRATED FIX: Added Toolbar for Preview & Print Control
   const handlePrint = (order) => {
     const printWindow = window.open('', '_blank');
     const itemsHtml = order.items.map(item => {
@@ -41,9 +40,7 @@ export default function AdminOrders() {
       const price = p.price || 0;
       return `
         <tr>
-          <td style="padding: 12px; border-bottom: 1px solid #edf2f7; color: #1e293b;">
-            ${p.name}
-          </td>
+          <td style="padding: 12px; border-bottom: 1px solid #edf2f7; color: #1e293b;">${p.name}</td>
           <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: center;">${item.quantity}</td>
           <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: 600;">
             ₦${Number(price).toLocaleString()}
@@ -57,7 +54,17 @@ export default function AdminOrders() {
         <head>
           <title>Receipt - ${order.reference}</title>
           <style>
-            body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: auto; padding: 40px; color: #1e293b; }
+            @media print { .no-print { display: none !important; } }
+            body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: auto; padding: 20px; color: #1e293b; }
+            .toolbar { 
+                background: #f1f5f9; padding: 15px; margin-bottom: 20px; border-radius: 8px;
+                display: flex; gap: 10px; justify-content: center; position: sticky; top: 0;
+            }
+            .toolbar button { 
+                padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;
+            }
+            .btn-print { background: #3b82f6; color: white; }
+            .btn-close { background: #64748b; color: white; }
             .header { text-align: center; border-bottom: 3px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px; }
             .header h1 { margin: 0; color: #1e293b; letter-spacing: 1px; font-size: 32px; }
             .details-grid { display: flex; justify-content: space-between; margin-bottom: 40px; }
@@ -71,6 +78,10 @@ export default function AdminOrders() {
           </style>
         </head>
         <body>
+          <div class="toolbar no-print">
+            <button class="btn-print" onclick="window.print()">Print Receipt</button>
+            <button class="btn-close" onclick="window.close()">Close Preview</button>
+          </div>
           <div class="header">
             <h1>ESSENCE CREATIONS</h1>
             <p style="margin: 5px 0; color: #64748b;">Official Order Receipt</p>
@@ -102,9 +113,6 @@ export default function AdminOrders() {
             </div>
           </div>
           <div class="footer">Thank you for choosing Essence Creations! Visit us again.</div>
-          <script>
-            window.onload = function() { setTimeout(() => { window.print(); window.close(); }, 500); };
-          </script>
         </body>
       </html>
     `);
@@ -247,4 +255,4 @@ export default function AdminOrders() {
       </div>
     </div>
   );
-                  }
+                }
