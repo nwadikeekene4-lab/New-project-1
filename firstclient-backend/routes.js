@@ -236,29 +236,39 @@ router.post("/paystack/init", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Paystack Init Failed" }); }
 });
 
-// ⭐ INTEGRATED: Essence Creations Verified Logic
+// ⭐ INTEGRATED: Essence Creations Verified Logic with FIXES
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
     
+    // 1. Check if order already exists (prevents "Oops" on refresh/re-visit)
+    const existingOrder = await Order.findOne({ where: { reference } });
+    if (existingOrder) {
+      return res.json({ success: true, alreadyProcessed: true });
+    }
+
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
     });
 
     if (response.data.data.status === "success") {
-      // 1. Save Order
+      // 2. Save Order to Database using proper columns
       await Order.create({
          reference: reference,
          customerName: customerDetails.name,
          customerEmail: customerDetails.email,
          amount: customerDetails.totalAmount,
-         details: customerDetails
-      }).catch(e => console.error("Order Record Error:", e));
+         address: customerDetails.address,
+         city: customerDetails.city,
+         phone: customerDetails.phone,
+         selectedDate: customerDetails.selectedDate,
+         items: JSON.stringify(customerDetails.items) // Stringify for Text column
+      });
 
-      // 2. Clear Database Cart
+      // 3. Clear Database Cart
       await CartItem.destroy({ where: {} });
 
-      // 3. Send Professional Receipt
+      // 4. Send Professional Receipt
       if (process.env.RESEND_API_KEY && customerDetails.email) {
         const itemsHtml = customerDetails.items.map(item => {
           const p = item.product || item;
@@ -299,7 +309,7 @@ router.post("/orders/verify", async (req, res) => {
 
               <div style="margin-top: 25px; background: #f8fafc; padding: 15px; border-radius: 5px; font-size: 14px; border: 1px solid #e2e8f0;">
                 <p style="margin: 0 0 5px 0;"><strong>Delivery Address:</strong> ${customerDetails.address}, ${customerDetails.location}</p>
-                <p style="margin: 0 0 5px 0;"><strong>Estimated Delivery:</strong> ${customerDetails.selectedDate}</p>
+                <p style="margin: 0 0 5px 0;"><strong>Scheduled Delivery:</strong> ${customerDetails.selectedDate}</p>
                 <p style="margin: 0;"><strong>Transaction Ref:</strong> ${reference}</p>
               </div>
             </div>
@@ -325,7 +335,7 @@ router.post("/orders/verify", async (req, res) => {
 
 router.get("/orders", verifyToken, async (req, res) => {
   try {
-    const orders = await Order.findAll({ order: [['createdAt', 'DESC']], include: { all: true, nested: true } });
+    const orders = await Order.findAll({ order: [['createdAt', 'DESC']] });
     res.json(orders);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
