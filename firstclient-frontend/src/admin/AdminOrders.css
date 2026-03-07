@@ -6,6 +6,8 @@
   min-height: 100vh;
   padding: 30px;
   font-family: 'Segoe UI', system-ui, sans-serif;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Page Title with Blue Accent */
@@ -15,8 +17,9 @@
   padding: 24px 30px;
   border-radius: 12px;
   margin-bottom: 25px;
+  margin-top: 0;
   border: 1px solid #e2e8f0;
-  border-left: 6px solid #3b82f6; /* Your signature blue border */
+  border-left: 6px solid #3b82f6; 
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -80,7 +83,13 @@
   border: 1px solid #e2e8f0;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, background-color 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.order-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
 }
 
 /* Header: Ref, Date, and Status Dropdown */
@@ -98,6 +107,12 @@
 .ref-group, .date-group {
   display: flex;
   flex-direction: column;
+}
+
+.ref-group .value {
+  font-family: 'Courier New', monospace; /* Professional Ref look */
+  color: #3b82f6;
+  font-size: 15px;
 }
 
 .label {
@@ -151,24 +166,60 @@
 .admin-item-price { font-size: 12px; color: #64748b; margin: 0; }
 .admin-item-total { font-weight: 700; color: #334155; font-size: 14px; }
 
-/* Summary Section */
+/* =========================================
+   SUMMARY SECTION (Updated for Shipping)
+   ========================================= */
+.summary-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .delivery-highlight {
-  background: #fffbeb;
-  padding: 12px;
+  background: #ffffff; 
+  padding: 10px 15px;
   border-radius: 8px;
-  border: 1px solid #fef3c7;
-  margin-bottom: 15px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delivery-highlight span {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.delivery-highlight strong {
+  font-size: 13px;
+  color: #1e293b;
+}
+
+/* Special color for the Shipping Fee value */
+.delivery-highlight:nth-of-type(2) {
+  border-color: #bfdbfe;
+  background: #f0f9ff;
+}
+
+.delivery-highlight:nth-of-type(2) strong {
+  color: #3b82f6; 
 }
 
 .total-line {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 10px;
   margin-bottom: 20px;
+  padding-top: 10px;
+  border-top: 1px dashed #cbd5e1;
 }
 
 .total-amt {
-  color: #059669; /* Professional Green */
+  color: #059669; 
   font-weight: 800;
   font-size: 1.4rem;
 }
@@ -181,172 +232,26 @@
   border-radius: 8px;
   font-size: 12px;
   font-weight: 800;
-  border: 1px solid #cbd5e1;
+  border: 2px solid transparent;
   cursor: pointer;
   outline: none;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
 }
 
-.status-badge.pending select { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-.status-badge.processing select { background: #e0f2fe; color: #075985; border-color: #7dd3fc; }
-.status-badge.shipped select { background: #f3e8ff; color: #6b21a8; border-color: #d8b4fe; }
-.status-badge.delivered select { background: #dcfce7; color: #166534; border-color: #86efac; }
+.status-badge.pending select { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
+.status-badge.processing select { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.status-badge.delivered select { background: #f0fdf4; color: #15803d; border-color: #86efac; }
 
-/* =========================================
-   ✅ DELIVERED CARD OVERRIDE
-   ========================================= */
+/* ✅ DELIVERED CARD OVERRIDE */
 .order-card.delivered-card {
-  background-color: #f0fff4 !important; /* Soft Mint Green */
+  background-color: #f0fff4 !important; 
   border-color: #bbf7d0 !important;
-}
-
-.order-card.delivered-card .order-card-header {
-  background-color: #e6fffa;
-  border-bottom-color: #bbf7d0;
-}
-
-.order-card.delivered-card .grid-section h4 {
-  border-bottom-color: #22c55e; /* Green line instead of blue */
 }
 
 /* =========================================
    BUTTONS
    ========================================= */
-.del-btn {
-  width: 100%;
-  padding: 12px;
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.del-btn:hover {
-  background: #dc2626;
-  color: white;
-}
-
-/* =========================================
-   RESPONSIVE DESIGN (BREAKPOINTS)
-   ========================================= */
-
-/* Tablets & Small Laptops */
-@media (max-width: 1024px) {
-  .order-grid {
-    grid-template-columns: 1fr; /* Stack 3 sections into 1 */
-    gap: 20px;
-  }
-}
-
-/* Mobile Phones */
-@media (max-width: 600px) {
-  .admin-orders-page { padding: 15px; }
-  
-  .page-title { 
-    font-size: 1.4rem; 
-    padding: 15px 20px; 
-  }
-
-  .order-card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .status-badge, .status-badge select {
-    width: 100%; /* Makes dropdown easy to tap on mobile */
-  }
-
-  .controls-row {
-    flex-direction: column;
-  }
-
-  .search-input, .filter-select {
-    width: 100%;
-  }
-}
-
-/* Empty State Styling */
-.no-orders {
-  text-align: center;
-  padding: 60px;
-  background: white;
-  border-radius: 12px;
-  border: 2px dashed #cbd5e1;
-  color: #94a3b8;
-  font-weight: 600;
-}
-
-/* Add to existing AdminOrders.css */
-
-/* Highlight Delivered Cards in Green */
-.order-card.delivered-card {
-  background-color: #f0fff4; /* Light Mint */
-  border-color: #c6f6d5;
-}
-.order-card.delivered-card .order-card-header {
-  background-color: #e6fffa;
-}
-
-/* Bottom Delete All Button Container */
-.bottom-actions {
-  display: flex;
-  justify-content: center;
-  padding: 40px 0;
-  margin-top: 20px;
-  border-top: 2px dashed #cbd5e0;
-}
-
-.clear-all-btn {
-  background-color: #fff5f5;
-  color: #c53030;
-  border: 1px solid #feb2b2;
-  padding: 15px 40px;
-  border-radius: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.clear-all-btn:hover {
-  background-color: #c53030;
-  color: white;
-  box-shadow: 0 4px 12px rgba(197, 48, 48, 0.2);
-
-}
-
-/* ROBUST MINIMAL ARROW (Matches Admin Products) */
-.back-btn-minimal {
-  text-decoration: none;
-  font-size: 28px; /* High visibility arrow */
-  color: #1e293b;
-  padding: 5px 10px;
-  display: inline-block;
-  margin-bottom: 10px;
-  transition: transform 0.2s, color 0.2s;
-}
-
-.back-btn-minimal:hover {
-  color: #3b82f6;
-  transform: translateX(-5px); /* Smooth slide effect */
-}
-
-/* Ensure container sizing remains robust */
-.admin-orders-page {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.page-title {
-  margin-top: 0; /* Align with the arrow's layout */
-}
-
-/* ⭐ NEW ACTION BUTTONS STYLING */
 .action-buttons-row {
   display: flex;
   gap: 10px;
@@ -354,9 +259,9 @@
 }
 
 .print-btn {
-  flex: 1;
+  flex: 1.5;
   padding: 12px;
-  background: #3b82f6; /* Signature Blue */
+  background: #3b82f6; 
   color: white;
   border: none;
   border-radius: 10px;
@@ -371,21 +276,73 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-/* Adjusting the existing del-btn to share space */
 .del-btn {
   flex: 1;
   padding: 12px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
   font-size: 13px;
+  transition: all 0.2s;
 }
 
-/* Summary Section Flex Fix */
-.summary-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+.del-btn:hover {
+  background: #dc2626;
+  color: white;
 }
 
-/* Print-specific helper if needed */
-@media print {
-  .no-print { display: none !important; }
-     }
+/* =========================================
+   RESPONSIVE DESIGN (BREAKPOINTS)
+   ========================================= */
+
+@media (max-width: 1024px) {
+  .order-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-orders-page { padding: 15px; }
+  .page-title { font-size: 1.4rem; padding: 15px 20px; }
+  .order-card-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .status-badge, .status-badge select { width: 100%; }
+  .controls-row { flex-direction: column; }
+  .search-input, .filter-select { width: 100%; }
+  .action-buttons-row { flex-direction: column; }
+}
+
+/* Helper Classes */
+.back-btn-minimal {
+  text-decoration: none;
+  font-size: 28px;
+  color: #1e293b;
+  padding: 5px 10px;
+  display: inline-block;
+  margin-bottom: 10px;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.back-btn-minimal:hover {
+  color: #3b82f6;
+  transform: translateX(-5px);
+}
+
+.bulk-delete-btn {
+  background-color: #fff5f5;
+  color: #c53030;
+  border: 1px solid #feb2b2;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bulk-delete-btn:hover {
+  background-color: #c53030;
+  color: white;
+   }
