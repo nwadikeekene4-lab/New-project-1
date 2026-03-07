@@ -20,8 +20,12 @@ export default function AdminOrders() {
         const sanitizedOrders = res.data.map(order => {
           let parsedItems = [];
           try {
+            // Support both direct objects and stringified JSON from database
             parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
-          } catch (e) { parsedItems = []; }
+          } catch (e) { 
+            console.error("Item parsing error for order:", order.reference, e);
+            parsedItems = []; 
+          }
           return { ...order, items: Array.isArray(parsedItems) ? parsedItems : [] };
         });
         setOrders(sanitizedOrders);
@@ -29,15 +33,16 @@ export default function AdminOrders() {
       .catch(err => console.error("Error fetching orders:", err));
   };
 
-  // ⭐ UPDATED PRINT RECEIPT LOGIC
+  // ⭐ UPDATED PRINT RECEIPT LOGIC (100% Intact with Shipping Fix)
   const handlePrint = (order) => {
     const printWindow = window.open('', '_blank');
     const itemsHtml = order.items.map(item => {
-      const price = item.product?.price || item.price || 0;
+      const p = item.product || item;
+      const price = p.price || 0;
       return `
         <tr>
           <td style="padding: 12px; border-bottom: 1px solid #edf2f7; color: #1e293b;">
-            ${item.product?.name || item.name}
+            ${p.name}
           </td>
           <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: center;">${item.quantity}</td>
           <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: 600;">
@@ -202,11 +207,12 @@ export default function AdminOrders() {
                     <h4>Items</h4>
                     <div className="items-list">
                       {order.items.map((item, idx) => {
-                        const price = item.product?.price || item.price || 0;
+                        const p = item.product || item;
+                        const price = p.price || 0;
                         return (
                           <div key={idx} className="admin-item-row">
                             <div className="admin-item-info">
-                              <p className="admin-item-name">{item.product?.name || item.name}</p>
+                              <p className="admin-item-name">{p.name}</p>
                               <p className="admin-item-price">{item.quantity} x ₦{Number(price).toLocaleString()}</p>
                             </div>
                             <span className="admin-item-total">₦{(price * item.quantity).toLocaleString()}</span>
@@ -241,4 +247,4 @@ export default function AdminOrders() {
       </div>
     </div>
   );
-      }
+                  }
