@@ -345,3 +345,47 @@
 .page-title {
   margin-top: 0; /* Align with the arrow's layout */
 }
+
+/* ⭐ NEW ACTION BUTTONS STYLING */
+.action-buttons-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.print-btn {
+  flex: 1;
+  padding: 12px;
+  background: #3b82f6; /* Signature Blue */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.print-btn:hover {
+  background: #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Adjusting the existing del-btn to share space */
+.del-btn {
+  flex: 1;
+  padding: 12px;
+  font-size: 13px;
+}
+
+/* Summary Section Flex Fix */
+.summary-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Print-specific helper if needed */
+@media print {
+  .no-print { display: none !important; }
+     }
