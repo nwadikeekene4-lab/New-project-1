@@ -29,7 +29,7 @@ export default function AdminOrders() {
       .catch(err => console.error("Error fetching orders:", err));
   };
 
-  // ⭐ PRINT RECEIPT LOGIC (Matches your client's receipt style)
+  // ⭐ PRINT RECEIPT LOGIC (Updated to include Shipping Fee breakdown)
   const handlePrint = (order) => {
     const printWindow = window.open('', '_blank');
     const itemsHtml = order.items.map(item => `
@@ -51,7 +51,9 @@ export default function AdminOrders() {
             .details { margin-bottom: 30px; display: flex; justify-content: space-between; }
             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
             th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
-            .total { text-align: right; margin-top: 25px; font-size: 1.4rem; font-weight: 800; color: #059669; }
+            .summary-table { width: 100%; margin-top: 20px; }
+            .summary-table td { padding: 5px 0; text-align: right; }
+            .total-line { font-size: 1.4rem; font-weight: 800; color: #059669; border-top: 2px solid #eee; padding-top: 10px; }
             .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
           </style>
         </head>
@@ -76,7 +78,12 @@ export default function AdminOrders() {
             </thead>
             <tbody>${itemsHtml}</tbody>
           </table>
-          <div class="total">Amount Paid: ₦${Number(order.amount).toLocaleString()}</div>
+          
+          <table class="summary-table">
+            <tr><td>Shipping Fee (${order.city}):</td><td style="width: 120px;">₦${Number(order.shippingFee || 0).toLocaleString()}</td></tr>
+            <tr class="total-line"><td>Amount Paid:</td><td>₦${Number(order.amount).toLocaleString()}</td></tr>
+          </table>
+
           <div class="footer">Thank you for your business! Essence Creations.</div>
           <script>
             window.onload = function() { window.print(); window.close(); };
@@ -170,7 +177,7 @@ export default function AdminOrders() {
                     <h4>Customer</h4>
                     <p className="cust-name">{order.customerName}</p>
                     <p className="cust-detail">{order.phone}</p>
-                    <p className="cust-detail address">{order.address}, {order.city}</p>
+                    <p className="cust-detail address">{order.address}, <strong>{order.city}</strong></p>
                   </div>
                   <div className="grid-section">
                     <h4>Items</h4>
@@ -191,14 +198,18 @@ export default function AdminOrders() {
                   </div>
                   <div className="grid-section summary-section">
                     <div className="delivery-highlight">
-                      <span>Delivery Date:</span>
+                      <span>Delivery:</span>
                       <strong>{order.selectedDate || "Standard"}</strong> 
+                    </div>
+                    {/* Integrated Shipping Fee Display */}
+                    <div className="delivery-highlight">
+                      <span>Shipping Fee:</span>
+                      <strong>₦{Number(order.shippingFee || 0).toLocaleString()}</strong> 
                     </div>
                     <div className="total-line">
                       <span>Total Paid:</span>
                       <span className="total-amt">₦{Number(order.amount).toLocaleString()}</span>
                     </div>
-                    {/* ⭐ INTEGRATED BUTTONS ROW */}
                     <div className="action-buttons-row">
                       <button className="print-btn" onClick={() => handlePrint(order)}>Print Receipt</button>
                       <button className="del-btn" onClick={() => deleteOrder(order.id)}>Delete Record</button>
@@ -212,4 +223,4 @@ export default function AdminOrders() {
       </div>
     </div>
   );
-          }
+            }
