@@ -209,9 +209,9 @@ router.get("/cart", async (req, res) => {
 });
 router.post("/cart/remove", async (req, res) => {
   const { productId } = req.body;
-  await CartItem.destroy({ where: { productId } }); // This kills it in the database
+  await CartItem.destroy({ where: { productId } }); 
   const updatedCart = await CartItem.findAll({ include: [{ model: Product, as: "product" }] });
-  res.json(updatedCart); // This sends the fresh, clean list back to the frontend
+  res.json(updatedCart); 
 });
 router.post("/cart/add", async (req, res) => {
   try {
@@ -242,7 +242,7 @@ router.post("/paystack/init", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Paystack Init Failed" }); }
 });
 
-// ⭐ INTEGRATED: VERIFICATION LOGIC WITH SHIPPING FEE PERSISTENCE
+// ⭐ INTEGRATED: VERIFICATION LOGIC WITH ALL MISSING INFO ADDED
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
@@ -257,12 +257,14 @@ router.post("/orders/verify", async (req, res) => {
     });
 
     if (response.data.data.status === "success") {
+      const paymentDate = new Date().toLocaleString('en-NG', { timeZone: 'Africa/Lagos' });
+
       await Order.create({
          reference: reference,
          customerName: customerDetails.name,
          customerEmail: customerDetails.email,
          amount: customerDetails.totalAmount,
-         shippingFee: customerDetails.shippingFee || 0, // SAVED FOR ADMIN PAGE
+         shippingFee: customerDetails.shippingFee || 0,
          address: customerDetails.address,
          city: customerDetails.city,
          phone: customerDetails.phone,
@@ -287,27 +289,42 @@ router.post("/orders/verify", async (req, res) => {
 
         const emailHtml = `
           <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff;">
-            <div style="background: #000; color: white; padding: 20px; text-align: center;">
-              <h1 style="margin: 0; font-size: 22px;">Essence Creations</h1>
-              <p style="margin: 5px 0 0 0; color: #d4af37;">Official Payment Receipt</p>
+            <div style="background: #1c1c1c; color: white; padding: 25px; text-align: center;">
+              <h1 style="margin: 0; font-size: 24px; letter-spacing: 1px;">ESSENCE CREATIONS</h1>
+              <p style="margin: 5px 0 0 0; color: #28a745; font-weight: bold;">PAYMENT RECEIPT</p>
+              <p style="margin: 10px 0 0 0; font-size: 12px; opacity: 0.7;">Ref: #${reference}</p>
             </div>
-            <div style="padding: 25px;">
+            <div style="padding: 30px;">
               <p style="font-size: 16px;">Hello <strong>${customerDetails.name}</strong>,</p>
-              <p>Thank you for choosing Essence Creations. Your payment has been confirmed.</p>
+              <p>Your order has been confirmed! Payment was received on <strong>${paymentDate}</strong>.</p>
+              
+              <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #28a745;">
+                <h4 style="margin: 0 0 10px 0; color: #1c1c1c; text-transform: uppercase; font-size: 13px;">Delivery Details</h4>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Address:</strong> ${customerDetails.address}, ${customerDetails.city}</p>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Location Area:</strong> ${customerDetails.location}</p>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Target Date:</strong> ${customerDetails.selectedDate}</p>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Phone:</strong> ${customerDetails.phone}</p>
+              </div>
+
               <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                 <thead>
                   <tr style="background: #f7fafc;">
-                    <th style="text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0;">Product</th>
-                    <th style="text-align: center; padding: 10px; border-bottom: 2px solid #e2e8f0;">Qty</th>
-                    <th style="text-align: right; padding: 10px; border-bottom: 2px solid #e2e8f0;">Unit Price</th>
+                    <th style="text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Product</th>
+                    <th style="text-align: center; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Qty</th>
+                    <th style="text-align: right; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Price</th>
                   </tr>
                 </thead>
                 <tbody>${itemsHtml}</tbody>
               </table>
-              <div style="margin-top: 20px; text-align: right; border-top: 2px solid #000; padding-top: 15px;">
-                <p style="margin: 0; color: #718096;">Shipping Fee: ₦${Number(customerDetails.shippingFee).toLocaleString()}</p>
-                <p style="font-size: 18px; margin: 8px 0 0 0;"><strong>Total Amount Paid: ₦${Number(customerDetails.totalAmount).toLocaleString()}</strong></p>
+
+              <div style="margin-top: 25px; text-align: right; border-top: 2px solid #1c1c1c; padding-top: 20px;">
+                <p style="margin: 0; color: #718096; font-size: 14px;">Subtotal: ₦${Number(customerDetails.itemsTotal).toLocaleString()}</p>
+                <p style="margin: 5px 0; color: #718096; font-size: 14px;">Shipping (${customerDetails.location}): ₦${Number(customerDetails.shippingFee).toLocaleString()}</p>
+                <h2 style="margin: 10px 0 0 0; color: #1c1c1c; font-size: 22px;">Total Paid: ₦${Number(customerDetails.totalAmount).toLocaleString()}</h2>
               </div>
+            </div>
+            <div style="background: #f7fafc; padding: 20px; text-align: center; font-size: 12px; color: #a0aec0;">
+              Thank you for choosing Essence Creations. If you have any questions, please contact our support.
             </div>
           </div>
         `;
@@ -315,7 +332,7 @@ router.post("/orders/verify", async (req, res) => {
         await resend.emails.send({
           from: 'Essence Creations <onboarding@resend.dev>',
           to: customerDetails.email,
-          subject: 'Your Receipt from Essence Creations',
+          subject: `Your Essence Creations Receipt [#${reference}]`,
           html: emailHtml
         });
       }
@@ -328,7 +345,7 @@ router.post("/orders/verify", async (req, res) => {
   }
 });
 
-// ⭐ NEW: PUBLIC ORDER FETCH FOR SUCCESS PAGE / WHATSAPP PERSISTENCE
+// --- REMAINING ROUTES ---
 router.get("/orders/receipt/:reference", async (req, res) => {
   try {
     const order = await Order.findOne({ where: { reference: req.params.reference } });
@@ -339,7 +356,6 @@ router.get("/orders/receipt/:reference", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Fetch failed" }); }
 });
 
-// --- ADMIN ORDER MANAGEMENT ---
 router.get("/orders", verifyToken, async (req, res) => {
   try {
     const orders = await Order.findAll({ order: [['createdAt', 'DESC']] });
@@ -372,25 +388,16 @@ router.delete("/admin/orders/all/bulk", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Bulk delete failed" }); }
 });
 
-// --- CMS MANAGEMENT ---
 router.post("/cms/update", verifyToken, async (req, res) => {
   try {
     const { page_name, data } = req.body;
     const [page, created] = await CMS.findOrCreate({ 
       where: { page_name }, 
-      defaults: { 
-        title: sanitizeInput(data.title), 
-        description: sanitizeInput(data.description), 
-        image: data.image, 
-        content: data 
-      } 
+      defaults: { title: sanitizeInput(data.title), description: sanitizeInput(data.description), image: data.image, content: data } 
     });
     if (!created) {
-      page.title = sanitizeInput(data.title); 
-      page.description = sanitizeInput(data.description);
-      page.image = data.image; 
-      page.content = data; 
-      await page.save();
+      page.title = sanitizeInput(data.title); page.description = sanitizeInput(data.description);
+      page.image = data.image; page.content = data; await page.save();
     }
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -403,7 +410,6 @@ router.get("/cms/:page", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- ARCHIVE & RESTORATION ---
 router.get("/admin/archive/products", verifyToken, async (req, res) => {
   try {
     const archived = await Product.findAll({ where: { deletedAt: { [Op.ne]: null } }, paranoid: false });
@@ -447,4 +453,3 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
 });
 
 module.exports = router;
-
