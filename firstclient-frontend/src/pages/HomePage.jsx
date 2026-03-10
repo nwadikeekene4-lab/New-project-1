@@ -8,8 +8,8 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
   const [quantities, setQuantities] = useState({}); 
   const [addedItemId, setAddedItemId] = useState(null);
   
-  // ⭐ NEW: State for the Responsive Image Modal
-  const [selectedImage, setSelectedImage] = useState(null);
+  // ⭐ CHANGED: Swapped selectedImage for zoomImage (Pastry Style)
+  const [zoomImage, setZoomImage] = useState(null);
 
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
@@ -21,7 +21,6 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
     }
   }, [allProducts]);
 
-  // Handle manual typing or button clicks for quantity
   const handleQuantityChange = (productId, value) => {
     if (value === "") {
       setQuantities(prev => ({ ...prev, [productId]: "" }));
@@ -48,7 +47,7 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
     .then((response) => {
       setCart(response.data); 
       setAddedItemId(product.id);
-      setTimeout(() => setAddedItemId(null), 2000);
+      setTimeout(() => setAddedItemId(null), 1500); // Resetting the "Success" state
     })
     .catch(err => console.error("Error adding to cart:", err));
   };
@@ -99,10 +98,10 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
 
                   return (
                     <div key={product.id} className="product-card">
-                      {/* ⭐ ENHANCED: Click to view image */}
+                      {/* ⭐ CHANGED: Click anywhere to close image logic */}
                       <div 
                         className="product-image-wrapper" 
-                        onClick={() => setSelectedImage({ url: displayImage, name: product.name, price: product.price })}
+                        onClick={() => setZoomImage(displayImage)}
                       >
                         <img className="product-img" src={displayImage} alt={product.name} loading="lazy" />
                         <div className="image-hover-hint">Quick View</div>
@@ -146,20 +145,17 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
                             </button>
                           </div>
                           
+                          {/* ⭐ CHANGED: Professional Konga-style Add Button */}
                           <button
-                            className="buy-btn"
+                            className={`k-add-btn ${addedItemId === product.id ? 'added' : ''}`}
                             onClick={(e) => {
                               e.preventDefault();
                               handleAddToCart(product);
                             }}
                           >
-                            {addedItemId === product.id ? "Done!" : "Add"}
+                            {addedItemId === product.id ? "Success! ✅" : "Add to Cart"}
                           </button>
                         </div>
-
-                        {addedItemId === product.id && (
-                          <div className="status-badge">✅ Added</div>
-                        )}
                       </div>
                     </div>
                   );
@@ -178,21 +174,13 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
         )}
       </main>
 
-      {/* ⭐ NEW: RESPONSIVE IMAGE MODAL */}
-      {selectedImage && (
-        <div className="img-modal-overlay" onClick={() => setSelectedImage(null)}>
-          <div className="img-modal-container" onClick={(e) => e.stopPropagation()}>
-            <button className="img-modal-close-btn" onClick={() => setSelectedImage(null)}>✕</button>
-            <div className="img-modal-body">
-              <img src={selectedImage.url} alt={selectedImage.name} className="img-modal-responsive-img" />
-            </div>
-            <div className="img-modal-info">
-              <h4>{selectedImage.name}</h4>
-              <p className="modal-price">₦{Number(selectedImage.price || 0).toLocaleString()}</p>
-            </div>
-          </div>
+      {/* ⭐ CHANGED: Pastry-Style Zoom Overlay (No 'X' needed, tap anywhere to exit) */}
+      {zoomImage && (
+        <div className="k-zoom-overlay" onClick={() => setZoomImage(null)}>
+          <img src={zoomImage} alt="Zoomed" />
+          <div className="zoom-hint">Tap anywhere to close</div>
         </div>
       )}
     </div>
   );
-}
+    }
