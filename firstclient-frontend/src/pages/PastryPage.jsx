@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
 import './PastryPage.css';
@@ -6,43 +6,37 @@ import './PastryPage.css';
 const PastryPage = ({ cart, setCart }) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [activeTab, setActiveTab] = useState(null); // Null means "Show Menu"
+  const [activeTab, setActiveTab] = useState(null); 
   const [videoUrl, setVideoUrl] = useState(null);
+  const [zoomImage, setZoomImage] = useState(null); // For close-up view
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState(null);
 
-  const categories = [
+  const categories = useMemo(() => [
     'Cake', 'Bread', 'Doughnuts', 'Bread roll', 
     'sausage', 'egg roll', 'meat pie', 'fish rolls', 
     'cookies', 'others'
-  ];
+  ], []);
 
-  // Professional filtering: Case-insensitive and handles "others"
-  const filterData = useCallback((all, tab) => {
-    if (!tab) return [];
-    const searchTab = tab.toLowerCase();
-    
-    if (searchTab === 'others') {
-      const mainCats = categories.slice(0, -1).map(c => c.toLowerCase());
-      return all.filter(p => !p.subCategory || !mainCats.includes(p.subCategory.toLowerCase()));
-    }
-    
-    return all.filter(p => p.subCategory && p.subCategory.toLowerCase() === searchTab);
-  }, [categories]);
-
+  // Fetch all pastry products once on mount
   useEffect(() => {
     setLoading(true);
     API.get('/products?category=pastry')
-      .then(res => {
-        setProducts(res.data);
-        if (activeTab) {
-          setFilteredProducts(filterData(res.data, activeTab));
-        }
-      })
+      .then(res => setProducts(res.data))
       .catch(err => console.error("Fetch error:", err))
       .finally(() => setLoading(false));
-  }, [activeTab, filterData]);
+  }, []);
+
+  // Filter products based on activeTab
+  const filteredProducts = useMemo(() => {
+    if (!activeTab) return [];
+    const search = activeTab.toLowerCase();
+    if (search === 'others') {
+      const mains = categories.slice(0, -1).map(c => c.toLowerCase());
+      return products.filter(p => !p.subCategory || !mains.includes(p.subCategory.toLowerCase()));
+    }
+    return products.filter(p => p.subCategory?.toLowerCase() === search);
+  }, [products, activeTab, categories]);
 
   const addToCart = (product) => {
     setAddingId(product.id);
@@ -60,44 +54,48 @@ const PastryPage = ({ cart, setCart }) => {
         <button onClick={() => activeTab ? setActiveTab(null) : navigate(-1)} className="back-link">
           {activeTab ? "← Back to Categories" : "← Back"}
         </button>
-        <h2 className="shop-title">{activeTab ? activeTab : "Pastry Menu"}</h2>
+        <h2 className="shop-title">{activeTab || "Pastry Menu"}</h2>
         <div className="header-exit" onClick={() => navigate('/')}>Exit</div>
       </header>
 
       {loading ? (
-        <div className="loader-container">
-          <div className="spinner"></div>
-          <p>Preparing treats...</p>
-        </div>
+        <div className="loader-container"><div className="spinner"></div><p>Loading...</p></div>
       ) : (
         <>
-          {/* VIEW 1: CATEGORY SELECTION (Vertical Grid) */}
+          {/* VIEW 1: VERTICAL MENU (Shows only when no category is selected) */}
           {!activeTab && (
-            <div className="category-menu-grid">
+            <div className="vertical-menu-container">
+              <p className="menu-instruction">Select a category to view treats</p>
               {categories.map(t => (
-                <div key={t} className="category-card" onClick={() => setActiveTab(t)}>
-                  <div className="category-icon">{t.charAt(0)}</div>
-                  <span className="category-label">{t}</span>
-                  <span className="count-badge">
-                    {products.filter(p => 
-                      t === 'others' 
-                      ? !categories.slice(0, -1).map(c => c.toLowerCase()).includes(p.subCategory?.toLowerCase())
-                      : p.subCategory?.toLowerCase() === t.toLowerCase()
-                    ).length}
-                  </span>
+                <div key={t} className="konga-menu-item" onClick={() => setActiveTab(t)}>
+                  <div className="menu-text">
+                    <span className="cat-name">{t}</span>
+                    <span className="cat-count">
+                      {products.filter(p => t === 'others' 
+                        ? !categories.slice(0, -1).map(c => c.toLowerCase()).includes(p.subCategory?.toLowerCase())
+                        : p.subCategory?.toLowerCase() === t.toLowerCase()
+                      ).length} Items
+                    </span>
+                  </div>
+                  <div className="chevron">❯</div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* VIEW 2: PRODUCT GRID */}
+          {/* VIEW 2: PRODUCT LIST (Shows only when a category is selected) */}
           {activeTab && (
             <main className="product-grid">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map(p => (
                   <div key={p.id} className="konga-product-card">
                     <div className="img-holder">
-                      <img src={p.image} alt={p.name} />
+                      <img 
+                        src={p.image} 
+                        alt={p.name} 
+                        onClick={() => setZoomImage(p.image)} /* View Closely */
+                        className="clickable-img"
+                      />
                       {p.videoUrl && (
                         <button className="vid-btn" onClick={() => setVideoUrl(p.videoUrl)}>▶ Video</button>
                       )}
@@ -117,7 +115,7 @@ const PastryPage = ({ cart, setCart }) => {
               ) : (
                 <div className="empty-state">
                   <p>No {activeTab} available right now.</p>
-                  <button className="back-to-menu-btn" onClick={() => setActiveTab(null)}>Choose another category</button>
+                  <button className="back-to-menu-btn" onClick={() => setActiveTab(null)}>Go Back</button>
                 </div>
               )}
             </main>
@@ -125,23 +123,30 @@ const PastryPage = ({ cart, setCart }) => {
         </>
       )}
 
-      {/* Mini Cart Floating */}
-      {cart?.length > 0 && (
-        <div className="mini-cart-float" onClick={() => navigate('/checkout')}>
-          <div className="badge">{cart.reduce((a, b) => a + b.quantity, 0)}</div>
-          <span className="total">
-            ₦{cart.reduce((s, i) => s + (Number(i.product?.price || i.price) * i.quantity), 0).toLocaleString()}
-          </span>
+      {/* MODAL: IMAGE ZOOM (Close-up view) */}
+      {zoomImage && (
+        <div className="zoom-overlay" onClick={() => setZoomImage(null)}>
+          <div className="zoom-content">
+            <img src={zoomImage} alt="Zoomed" />
+            <button className="close-zoom">✕ Close</button>
+          </div>
         </div>
       )}
 
-      {/* Video Modal */}
+      {/* MODAL: VIDEO */}
       {videoUrl && (
         <div className="vid-overlay" onClick={() => setVideoUrl(null)}>
           <div className="vid-content" onClick={e => e.stopPropagation()}>
-             <button className="close-modal-btn" onClick={() => setVideoUrl(null)}>✕</button>
             <video src={videoUrl} controls autoPlay className="full-vid" />
           </div>
+        </div>
+      )}
+
+      {/* CART FLOAT */}
+      {cart?.length > 0 && (
+        <div className="mini-cart-float" onClick={() => navigate('/checkout')}>
+          <div className="badge">{cart.reduce((a, b) => a + b.quantity, 0)}</div>
+          <span className="total">₦{cart.reduce((s, i) => s + (Number(i.product?.price || i.price) * i.quantity), 0).toLocaleString()}</span>
         </div>
       )}
     </div>
