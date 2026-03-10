@@ -10,7 +10,6 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
 
   const totalQuantity = cart.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 
-  // Sync internal input with external search changes (fixes the "Browse All" bug)
   useEffect(() => {
     setInputText(searchTerm);
   }, [searchTerm]);
@@ -25,7 +24,6 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      // Only trigger search if the input actually changed from the current state
       if (onSearch && inputText !== searchTerm) {
         onSearch(inputText);
       }
@@ -63,7 +61,12 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
             <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>☰</button>
             <Link to="/" className="header-brand-group">
               <span className="company-name">Essence Creations</span>
-              <span className="logo-placeholder">EC</span>
+              {/* ⭐ INTEGRATED: EC placeholder replaced with your JPEG logo */}
+              <img 
+                src="images/Essence-Logo2.jpeg" 
+                alt="Essence Logo" 
+                className="header-logo-image" 
+              />
             </Link>
           </div>
 
@@ -107,7 +110,4 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
       </header>
     </>
   );
-
-}
-
-
+  }
