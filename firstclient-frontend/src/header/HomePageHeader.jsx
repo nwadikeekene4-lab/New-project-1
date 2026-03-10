@@ -61,7 +61,7 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
             <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>☰</button>
             <Link to="/" className="header-brand-group">
               <span className="company-name">Essence Creations</span>
-              {/* ⭐ INTEGRATED: EC placeholder replaced with your JPEG logo */}
+              {/* ⭐ INTEGRATED: Replaced EC placeholder with your JPEG logo */}
               <img 
                 src="images/Essence-Logo2.jpeg" 
                 alt="Essence Logo" 
