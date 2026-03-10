@@ -1,164 +1,73 @@
-.product-page-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 15px;
-  min-height: 100vh;
-}
+.product-page-container { max-width: 800px; margin: 0 auto; padding: 15px; }
 
 .shop-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 0;
-  border-bottom: 2px solid #f1f5f9;
-  position: sticky;
-  top: 0;
-  background: white;
-  z-index: 10;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 15px 0; border-bottom: 2px solid #eee; position: sticky; top: 0; background: #fff; z-index: 100;
 }
 
-.shop-title { font-size: 24px; font-weight: 800; color: #1a2a6c; text-transform: capitalize; }
+.shop-title { font-size: 20px; font-weight: 800; color: #1a2a6c; text-transform: capitalize; }
 
-/* --- VERTICAL CATEGORY MENU --- */
-.category-menu-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 15px;
-  padding: 20px 0;
-}
+/* --- KONGA VERTICAL MENU --- */
+.vertical-menu-container { padding: 10px 0; }
+.menu-instruction { color: #888; font-size: 14px; margin-bottom: 15px; text-align: center; }
 
-.category-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 15px;
-  padding: 25px 15px;
-  text-align: center;
-  cursor: pointer;
+.konga-menu-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px; background: #fff; border: 1px solid #f0f0f0;
+  border-radius: 10px; margin-bottom: 10px; cursor: pointer;
   transition: all 0.2s ease;
-  position: relative;
 }
 
-.category-card:hover {
-  background: #fff;
-  border-color: #1a2a6c;
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
+.konga-menu-item:hover { border-color: #1a2a6c; background: #f8faff; }
 
-.category-icon {
-  width: 50px;
-  height: 50px;
-  background: #1a2a6c;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 12px;
-  font-size: 20px;
-  font-weight: bold;
-}
+.cat-name { display: block; font-size: 18px; font-weight: 700; color: #1a2a6c; }
+.cat-count { font-size: 12px; color: #777; }
+.chevron { color: #ccc; font-weight: bold; }
 
-.category-label {
-  display: block;
-  font-weight: 700;
-  color: #334155;
-  text-transform: capitalize;
-}
-
-.count-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #cbd5e1;
-  color: #1e293b;
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-/* --- PRODUCT GRID --- */
+/* --- PRODUCT GRID (Konga Responsiveness) --- */
 .product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-  padding: 20px 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px; padding: 20px 0;
 }
 
-.konga-product-card {
-  border: 1px solid #f1f5f9;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-}
-
-.img-holder { position: relative; height: 200px; }
-.img-holder img { width: 100%; height: 100%; object-fit: cover; }
+.konga-product-card { border: 1px solid #eee; border-radius: 8px; background: #fff; overflow: hidden; }
+.img-holder { position: relative; height: 160px; background: #f9f9f9; }
+.clickable-img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
 
 .vid-btn {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(0,0,0,0.8);
-  color: white;
-  border: none;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  cursor: pointer;
+  position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7);
+  color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px;
 }
 
-.p-info { padding: 15px; }
-.p-name { font-size: 15px; color: #334155; margin-bottom: 5px; height: 40px; overflow: hidden; }
-.p-price { font-size: 18px; font-weight: 800; color: #1a2a6c; margin-bottom: 12px; }
+.p-info { padding: 10px; }
+.p-name { font-size: 14px; color: #333; height: 38px; overflow: hidden; }
+.p-price { font-size: 16px; font-weight: 800; color: #1a2a6c; margin: 8px 0; }
 
 .add-cart-btn {
-  width: 100%;
-  background: #fba100;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
+  width: 100%; background: #fba100; color: #fff; border: none;
+  padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer;
 }
 
-.add-cart-btn.added { background: #10b981; }
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  grid-column: 1 / -1;
+/* --- IMAGE ZOOM MODAL --- */
+.zoom-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center;
+}
+.zoom-content img { max-width: 95%; max-height: 80vh; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+.close-zoom {
+  display: block; margin: 20px auto; background: #fff; border: none;
+  padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;
 }
 
-.back-to-menu-btn {
-  margin-top: 15px;
-  background: #1a2a6c;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
+/* --- OTHERS --- */
+.loader-container { text-align: center; padding: 50px; }
+.spinner { 
+  width: 30px; height: 30px; border: 3px solid #f3f3f3; 
+  border-top: 3px solid #1a2a6c; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;
 }
-
-/* Loader */
-.loader-container { padding: 100px 0; text-align: center; }
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #1a2a6c;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 15px;
-}
-
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Mobile Adaptations */
 @media (max-width: 480px) {
-  .category-menu-grid { grid-template-columns: repeat(2, 1fr); }
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .shop-title { font-size: 18px; }
+  .cat-name { font-size: 16px; }
   }
