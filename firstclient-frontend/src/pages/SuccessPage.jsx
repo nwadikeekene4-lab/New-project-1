@@ -69,10 +69,12 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
-  // ⭐ PDF RECEIPT GENERATOR (FULLY UPDATED)
+  // ⭐ PDF RECEIPT GENERATOR (UPDATED: 12H TIME & DELIVERY DATE LABEL)
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
-    const currentTime = dayjs().format("DD MMM YYYY, hh:mm A");
+    
+    // Explicitly formatting to 12-hour clock with AM/PM
+    const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
 
     const itemsArray = typeof orderDetails.items === 'string' ? JSON.parse(orderDetails.items) : orderDetails.items;
     
@@ -141,10 +143,10 @@ export function SuccessPage({ setCart }) {
     window.html2pdf().from(element).set(opt).save();
   };
 
-  // ⭐ WHATSAPP LOGIC (FULLY UPDATED)
+  // ⭐ WHATSAPP LOGIC (UPDATED: 12H TIME & DELIVERY DATE LABEL)
   const handleShareReceipt = async () => {
     if (!orderDetails) return;
-    const currentTime = dayjs().format("DD MMM YYYY, hh:mm A");
+    const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
     const itemsArray = typeof orderDetails.items === 'string' ? JSON.parse(orderDetails.items) : orderDetails.items;
     
     const itemSummary = itemsArray.map(item => {
@@ -223,4 +225,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-}
+            }
