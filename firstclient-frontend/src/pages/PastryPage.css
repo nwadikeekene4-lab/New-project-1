@@ -19,9 +19,9 @@
 }
 
 .k-cat-name { font-weight: 700; font-size: 15px; color: #1e293b; text-transform: capitalize; }
-.k-cat-count { font-size: 11px; color: #64748b; margin-top: 2px; }
+.k-cat-count { font-size: 11px; color: #64748b; margin-top: 2px; display: block; }
 
-/* --- GRID SYSTEM: Konga Style --- */
+/* --- GRID SYSTEM --- */
 .k-product-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px;
 }
@@ -52,7 +52,7 @@
 }
 .qty-input-group button { 
   background: #f1f5f9; border: none; width: 32px; height: 32px; 
-  cursor: pointer; font-weight: bold; color: #1a2a6c;
+  cursor: pointer; font-weight: bold; color: #1a2a6c; flex-shrink: 0;
 }
 .qty-input-group input {
   width: 100%; border: none; text-align: center; font-size: 13px; 
@@ -66,7 +66,10 @@
 }
 .k-add-btn.added { background: #10b981; }
 
-/* --- PINNED VIDEO (Draggable-style top right) --- */
+.empty-category { grid-column: 1 / -1; text-align: center; padding: 50px 0; color: #64748b; }
+.empty-category button { margin-top: 10px; background: #1a2a6c; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+
+/* --- PINNED VIDEO --- */
 .pip-video-frame {
   position: fixed; top: 70px; right: 15px; width: 260px;
   background: #000; border-radius: 8px; overflow: hidden;
@@ -76,15 +79,9 @@
 .pip-header {
   background: #1a2a6c; color: #fff; padding: 4px 10px;
   display: flex; justify-content: space-between; font-size: 10px; font-weight: 700;
-  cursor: grab;
 }
 .pip-header button { background: none; border: none; color: #fff; cursor: pointer; }
 .pip-video-frame video { width: 100%; height: 140px; object-fit: cover; display: block; }
-
-@media (max-width: 480px) {
-  .pip-video-frame { width: 180px; top: 60px; right: 10px; }
-  .pip-video-frame video { height: 100px; }
-}
 
 /* --- ZOOM --- */
 .k-zoom-overlay {
