@@ -22,14 +22,11 @@ const PastryPage = ({ cart, setCart }) => {
   useEffect(() => {
     setLoading(true);
     API.get('/products?category=pastry')
-      .then(res => {
-        setProducts(res.data);
-      })
+      .then(res => setProducts(res.data))
       .catch(err => console.error("Fetch error:", err))
       .finally(() => setLoading(false));
   }, []);
 
-  // Professional helper to count or filter items per category
   const getFilteredItems = (catName, allProducts) => {
     const search = catName.toLowerCase();
     if (search === 'others') {
@@ -50,10 +47,9 @@ const PastryPage = ({ cart, setCart }) => {
       return;
     }
     const num = parseInt(val);
-    setQuantities(prev => ({
-      ...prev,
-      [id]: isNaN(num) ? "" : Math.max(1, num)
-    }));
+    if (!isNaN(num)) {
+      setQuantities(prev => ({ ...prev, [id]: Math.max(1, num) }));
+    }
   };
 
   const addToCart = (product) => {
@@ -61,12 +57,18 @@ const PastryPage = ({ cart, setCart }) => {
     const finalQty = (qtyVal === "" || isNaN(parseInt(qtyVal))) ? 1 : parseInt(qtyVal);
     
     setAddingId(product.id);
-    API.post('/cart/add', { productId: product.id, quantity: finalQty }).then(() => {
+    
+    // Sending both id and productId to ensure Remove button works on Checkout
+    API.post('/cart/add', { 
+      id: product.id, 
+      productId: product.id, 
+      quantity: finalQty 
+    }).then(() => {
       return API.get('/cart');
     }).then(res => {
       setCart(res.data);
       setTimeout(() => setAddingId(null), 1200);
-    });
+    }).catch(() => setAddingId(null));
   };
 
   return (
@@ -105,51 +107,47 @@ const PastryPage = ({ cart, setCart }) => {
 
             {activeTab && (
               <div className="k-product-grid">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map(p => (
-                    <div key={p.id} className="k-card">
-                      <div className="k-card-media">
-                        <img src={p.image} alt={p.name} onClick={() => setZoomImage(p.image)} />
-                        {p.videoUrl && (
-                          <button className="k-vid-badge" onClick={() => setVideoUrl(p.videoUrl)}>▶ View Clip</button>
-                        )}
-                      </div>
-                      <div className="k-card-body">
-                        <h3 className="k-p-name">{p.name}</h3>
-                        <p className="k-p-price">₦{Number(p.price).toLocaleString()}</p>
-                        
-                        <div className="qty-input-group">
-                          <button type="button" onClick={() => {
-                            const current = parseInt(quantities[p.id]) || 1;
-                            handleQtyChange(p.id, current - 1);
-                          }}>−</button>
-                          <input 
-                            type="number" 
-                            placeholder="1"
-                            value={quantities[p.id] ?? 1} 
-                            onChange={(e) => handleQtyChange(p.id, e.target.value)}
-                          />
-                          <button type="button" onClick={() => {
-                            const current = parseInt(quantities[p.id]) || 1;
-                            handleQtyChange(p.id, current + 1);
-                          }}>+</button>
-                        </div>
-
-                        <button 
-                          className={`k-add-btn ${addingId === p.id ? 'added' : ''}`} 
-                          onClick={() => addToCart(p)}
-                        >
-                          {addingId === p.id ? "Success! ✅" : "Add to Cart"}
-                        </button>
-                      </div>
+                {filteredProducts.map(p => (
+                  <div key={p.id} className="k-card">
+                    <div className="k-card-media">
+                      <img src={p.image} alt={p.name} onClick={() => setZoomImage(p.image)} />
+                      {p.videoUrl && (
+                        <button className="k-vid-badge" onClick={() => setVideoUrl(p.videoUrl)}>▶ View Clip</button>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <div className="empty-category">
-                    <p>No items found in {activeTab}.</p>
-                    <button onClick={() => setActiveTab(null)}>Back to Menu</button>
+                    <div className="k-card-body">
+                      <h3 className="k-p-name">{p.name}</h3>
+                      <p className="k-p-price">₦{Number(p.price).toLocaleString()}</p>
+                      
+                      <div className="qty-input-group">
+                        <button type="button" onClick={() => {
+                          const current = parseInt(quantities[p.id]) || 1;
+                          handleQtyChange(p.id, String(current - 1));
+                        }}>−</button>
+                        
+                        <input 
+                          type="number" 
+                          placeholder="1"
+                          value={quantities[p.id] !== undefined ? quantities[p.id] : ""}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => handleQtyChange(p.id, e.target.value)}
+                        />
+                        
+                        <button type="button" onClick={() => {
+                          const current = parseInt(quantities[p.id]) || 1;
+                          handleQtyChange(p.id, String(current + 1));
+                        }}>+</button>
+                      </div>
+
+                      <button 
+                        className={`k-add-btn ${addingId === p.id ? 'added' : ''}`} 
+                        onClick={() => addToCart(p)}
+                      >
+                        {addingId === p.id ? "Success! ✅" : "Add to Cart"}
+                      </button>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             )}
           </>
