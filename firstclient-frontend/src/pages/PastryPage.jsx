@@ -11,6 +11,7 @@ const PastryPage = ({ cart, setCart }) => {
   const [zoomImage, setZoomImage] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState(null);
+  const [quantities, setQuantities] = useState({});
 
   const categories = useMemo(() => [
     'Cake', 'Bread', 'Doughnuts', 'Bread roll', 
@@ -29,20 +30,28 @@ const PastryPage = ({ cart, setCart }) => {
   const filteredProducts = useMemo(() => {
     if (!activeTab) return [];
     const search = activeTab.toLowerCase();
-    if (search === 'others') {
-      const mains = categories.slice(0, -1).map(c => c.toLowerCase());
-      return products.filter(p => !p.subCategory || !mains.includes(p.subCategory.toLowerCase()));
-    }
-    return products.filter(p => p.subCategory?.toLowerCase() === search);
+    return products.filter(p => 
+      search === 'others' 
+      ? !categories.slice(0, -1).map(c => c.toLowerCase()).includes(p.subCategory?.toLowerCase())
+      : p.subCategory?.toLowerCase() === search
+    );
   }, [products, activeTab, categories]);
 
+  const handleQtyChange = (id, delta) => {
+    setQuantities(prev => ({
+      ...prev,
+      [id]: Math.max(1, (prev[id] || 1) + delta)
+    }));
+  };
+
   const addToCart = (product) => {
+    const qty = quantities[product.id] || 1;
     setAddingId(product.id);
-    API.post('/cart/add', { productId: product.id, quantity: 1 }).then(() => {
+    API.post('/cart/add', { productId: product.id, quantity: qty }).then(() => {
       return API.get('/cart');
     }).then(res => {
       setCart(res.data);
-      setTimeout(() => setAddingId(null), 1000);
+      setTimeout(() => setAddingId(null), 1200);
     });
   };
 
@@ -51,7 +60,7 @@ const PastryPage = ({ cart, setCart }) => {
       <header className="konga-header">
         <div className="header-left">
            <button onClick={() => activeTab ? setActiveTab(null) : navigate(-1)} className="k-back-btn">
-            {activeTab ? "❮ Menu" : "❮ Back"}
+            {activeTab ? "❮ Categories" : "❮ Back"}
            </button>
            <h1 className="k-title">{activeTab || "Pastry Menu"}</h1>
         </div>
@@ -69,12 +78,7 @@ const PastryPage = ({ cart, setCart }) => {
                   <div key={t} className="k-menu-row" onClick={() => setActiveTab(t)}>
                     <div className="k-row-info">
                       <span className="k-cat-name">{t}</span>
-                      <span className="k-cat-count">
-                        {products.filter(p => t === 'others' 
-                          ? !categories.slice(0, -1).map(c => c.toLowerCase()).includes(p.subCategory?.toLowerCase())
-                          : p.subCategory?.toLowerCase() === t.toLowerCase()
-                        ).length} items
-                      </span>
+                      <span className="k-cat-count">{products.filter(p => p.subCategory?.toLowerCase() === t.toLowerCase()).length} items</span>
                     </div>
                     <span className="k-arrow">❯</span>
                   </div>
@@ -87,22 +91,26 @@ const PastryPage = ({ cart, setCart }) => {
                 {filteredProducts.map(p => (
                   <div key={p.id} className="k-card">
                     <div className="k-card-media">
-                      <img src={p.image} alt="" onClick={() => setZoomImage(p.image)} />
+                      <img src={p.image} alt={p.name} onClick={() => setZoomImage(p.image)} />
                       {p.videoUrl && (
-                        <button className="k-vid-trigger" onClick={(e) => {
-                          e.stopPropagation();
-                          setVideoUrl(p.videoUrl);
-                        }}>▶ Video</button>
+                        <button className="k-vid-badge" onClick={() => setVideoUrl(p.videoUrl)}>▶ Play</button>
                       )}
                     </div>
                     <div className="k-card-body">
                       <h3 className="k-p-name">{p.name}</h3>
                       <p className="k-p-price">₦{Number(p.price).toLocaleString()}</p>
+                      
+                      <div className="qty-selector">
+                        <button onClick={() => handleQtyChange(p.id, -1)}>−</button>
+                        <span>{quantities[p.id] || 1}</span>
+                        <button onClick={() => handleQtyChange(p.id, 1)}>+</button>
+                      </div>
+
                       <button 
                         className={`k-add-btn ${addingId === p.id ? 'added' : ''}`} 
                         onClick={() => addToCart(p)}
                       >
-                        {addingId === p.id ? "Success!" : "Add to Cart"}
+                        {addingId === p.id ? "Success! ✅" : "Add to Cart"}
                       </button>
                     </div>
                   </div>
@@ -113,29 +121,29 @@ const PastryPage = ({ cart, setCart }) => {
         )}
       </div>
 
-      {/* --- FLOATING MODALS (These do not distort the grid) --- */}
-      {zoomImage && (
-        <div className="k-modal-overlay" onClick={() => setZoomImage(null)}>
-          <div className="k-zoom-box">
-             <img src={zoomImage} alt="Zoomed" />
-             <button className="k-close-circle">✕</button>
+      {/* --- FLOATING VIDEO (PICTURE-IN-PICTURE) --- */}
+      {videoUrl && (
+        <div className="floating-video-container">
+          <div className="vid-drag-handle">
+            <span>Video Preview</span>
+            <button onClick={() => setVideoUrl(null)}>✕</button>
           </div>
+          <video src={videoUrl} controls autoPlay />
         </div>
       )}
 
-      {videoUrl && (
-        <div className="k-modal-overlay" onClick={() => setVideoUrl(null)}>
-          <div className="k-video-box" onClick={e => e.stopPropagation()}>
-            <video src={videoUrl} controls autoPlay />
-            <button className="k-close-circle" onClick={() => setVideoUrl(null)}>✕</button>
-          </div>
+      {/* --- IMAGE ZOOM (FULL OVERLAY) --- */}
+      {zoomImage && (
+        <div className="k-modal-overlay" onClick={() => setZoomImage(null)}>
+          <img src={zoomImage} className="zoomed-img" alt="Zoomed" />
+          <button className="close-zoom-btn">✕ Tap to Close</button>
         </div>
       )}
 
       {cart?.length > 0 && (
         <div className="k-cart-pill" onClick={() => navigate('/checkout')}>
-          <span className="k-cart-count">{cart.reduce((a, b) => a + b.quantity, 0)}</span>
-          <span className="k-cart-total">₦{cart.reduce((s, i) => s + (Number(i.product?.price || i.price) * i.quantity), 0).toLocaleString()}</span>
+          <div className="k-pill-badge">{cart.reduce((a, b) => a + b.quantity, 0)}</div>
+          <span className="k-pill-total">₦{cart.reduce((s, i) => s + (Number(i.product?.price || i.price) * i.quantity), 0).toLocaleString()}</span>
         </div>
       )}
     </div>
