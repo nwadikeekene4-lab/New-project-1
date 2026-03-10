@@ -7,16 +7,28 @@ const PastryPage = ({ cart, setCart }) => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [activeTab, setActiveTab] = useState('Cakes');
+  
+  // Updated with your new categories
+  const categories = [
+    'Cake', 'Bread', 'Doughnuts', 'Bread roll', 
+    'sausage', 'egg roll', 'meat pie', 'fish rolls', 
+    'cookies', 'others'
+  ];
+  
+  const [activeTab, setActiveTab] = useState('Cake');
   const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState(null);
 
+  // Professional dynamic filtering logic
   const filterData = useCallback((all, tab) => {
-    return all.filter(p => (tab === 'Others' ? (p.subCategory !== 'Cakes' && p.subCategory !== 'Breads') : p.subCategory === tab));
-  }, []);
+    if (tab === 'others') {
+      // Show products that don't match any of the specific main categories
+      return all.filter(p => !categories.slice(0, -1).includes(p.subCategory));
+    }
+    return all.filter(p => p.subCategory === tab);
+  }, [categories]);
 
-  // --- PRESERVED: FETCH LOGIC ---
   useEffect(() => {
     setLoading(true);
     API.get('/products?category=pastry').then(res => {
@@ -25,11 +37,9 @@ const PastryPage = ({ cart, setCart }) => {
     }).finally(() => setLoading(false));
   }, [activeTab, filterData]);
 
-  // ⭐ FIXED: Synced addToCart with Header Cart
   const addToCart = (product) => {
     setAddingId(product.id);
     API.post('/cart/add', { productId: product.id, quantity: 1 }).then(() => {
-      // Re-fetch cart from API to ensure sync with Header
       return API.get('/cart');
     }).then(res => {
       setCart(res.data);
@@ -45,37 +55,55 @@ const PastryPage = ({ cart, setCart }) => {
         <div className="header-exit" onClick={() => navigate('/')}>Exit</div>
       </header>
 
+      {/* Categories Bar */}
       <nav className="category-tabs">
-        {['Cakes', 'Breads', 'Others'].map(t => (
-          <button key={t} className={activeTab === t ? 'active' : ''} onClick={() => setActiveTab(t)}>{t}</button>
+        {categories.map(t => (
+          <button 
+            key={t} 
+            className={activeTab === t ? 'active' : ''} 
+            onClick={() => setActiveTab(t)}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
         ))}
       </nav>
 
       <main className="product-grid">
-        {/* ⭐ ADDED: Loading Spinner UI */}
         {loading ? (
           <div className="loader-container">
             <div className="spinner"></div>
             <p>Loading treats...</p>
           </div>
-        ) : filteredProducts.map(p => (
-          <div key={p.id} className="konga-product-card">
-            <div className="img-holder">
-              <img src={p.image} alt="" />
-              {p.videoUrl && <button className="vid-btn" onClick={() => setVideoUrl(p.videoUrl)}>▶ Video</button>}
+        ) : filteredProducts.length > 0 ? (
+          filteredProducts.map(p => (
+            <div key={p.id} className="konga-product-card">
+              <div className="img-holder">
+                <img src={p.image} alt={p.name} />
+                {p.videoUrl && (
+                  <button className="vid-btn" onClick={() => setVideoUrl(p.videoUrl)}>
+                    <span className="play-icon">▶</span> Video
+                  </button>
+                )}
+              </div>
+              <div className="p-info">
+                <h3 className="p-name">{p.name}</h3>
+                <p className="p-price">₦{Number(p.price).toLocaleString()}</p>
+                <button 
+                  className={`add-cart-btn ${addingId === p.id ? 'added' : ''}`} 
+                  onClick={() => addToCart(p)}
+                >
+                  {addingId === p.id ? "Added! ✅" : "Add to Cart"}
+                </button>
+              </div>
             </div>
-            <div className="p-info">
-              <h3 className="p-name">{p.name}</h3>
-              <p className="p-price">₦{Number(p.price).toLocaleString()}</p>
-              <button className={`add-cart-btn ${addingId === p.id ? 'added' : ''}`} onClick={() => addToCart(p)}>
-                {addingId === p.id ? "Added! ✅" : "Add to Cart"}
-              </button>
-            </div>
+          ))
+        ) : (
+          <div className="empty-state">
+            <p>No items in this category yet.</p>
           </div>
-        ))}
+        )}
       </main>
 
-      {/* ⭐ FIXED: Navigates to Checkout and handles nested price logic */}
       {cart?.length > 0 && (
         <div className="mini-cart-float" onClick={() => navigate('/checkout')}>
           <div className="badge">{cart.reduce((a, b) => a + b.quantity, 0)}</div>
@@ -85,7 +113,6 @@ const PastryPage = ({ cart, setCart }) => {
         </div>
       )}
 
-      {/* --- PRESERVED: VIDEO MODAL --- */}
       {videoUrl && (
         <div className="vid-overlay" onClick={() => setVideoUrl(null)}>
           <div className="vid-content" onClick={e => e.stopPropagation()}>
