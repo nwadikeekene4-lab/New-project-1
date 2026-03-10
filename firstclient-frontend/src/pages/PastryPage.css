@@ -1,175 +1,96 @@
-/* --- Base Structure --- */
-.pastry-module {
-  background: #f4f4f7;
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica;
-}
+/* --- Core Styles --- */
+.pastry-module { background: #f4f7f9; min-height: 100vh; font-family: 'Inter', sans-serif; }
 
 .konga-header {
-  background: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #e1e1e1;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  background: #fff; display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 1000;
 }
 
-.header-left { display: flex; align-items: center; gap: 15px; }
-.k-back-btn { background: none; border: none; font-weight: 600; color: #ed017f; cursor: pointer; }
-.k-title { font-size: 18px; font-weight: 700; color: #333; margin: 0; }
-.k-exit { color: #888; cursor: pointer; font-size: 14px; }
+.k-back-btn { background: none; border: none; font-weight: 700; color: #1a2a6c; cursor: pointer; }
+.k-title { font-size: 17px; font-weight: 800; color: #1a2a6c; margin: 0; }
+.k-exit { color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 600; }
 
-/* --- Vertical Menu View --- */
-.k-menu-list { padding: 10px; }
+/* --- Menu View --- */
+.k-menu-list { padding: 15px; }
 .k-menu-row {
-  background: #fff;
-  padding: 18px 20px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  cursor: pointer;
+  background: #fff; padding: 20px; margin-bottom: 10px; border-radius: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid #e2e8f0; cursor: pointer;
 }
 
-.k-cat-name { display: block; font-weight: 700; font-size: 16px; color: #000; }
-.k-cat-count { font-size: 12px; color: #999; }
-.k-arrow { color: #ccc; font-size: 12px; }
+.k-cat-name { font-weight: 700; font-size: 16px; color: #1e293b; }
+.k-cat-count { font-size: 12px; color: #94a3b8; display: block; }
 
-/* --- Product Grid View (Konga/Jumia standard) --- */
+/* --- Product Cards --- */
 .k-product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Default 2 per row for mobile */
-  gap: 10px;
-  padding: 10px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px;
 }
 
-@media (min-width: 768px) {
-  .k-product-grid { grid-template-columns: repeat(4, 1fr); }
+@media (min-width: 768px) { .k-product-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.k-card { background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column; }
+.k-card-media { position: relative; aspect-ratio: 1/1; background: #f8fafc; }
+.k-card-media img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+
+.k-vid-badge {
+  position: absolute; top: 8px; right: 8px; background: #1a2a6c;
+  color: #fff; border: none; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700;
 }
 
-.k-card {
-  background: #fff;
-  border-radius: 4px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
+.k-card-body { padding: 10px; }
+.k-p-name { font-size: 13px; color: #475569; height: 34px; overflow: hidden; margin-bottom: 4px; }
+.k-p-price { font-size: 16px; font-weight: 800; color: #1a2a6c; margin-bottom: 10px; }
 
-.k-card-media {
-  position: relative;
-  aspect-ratio: 1 / 1;
-  background: #f9f9f9;
+/* --- Quantity Selector --- */
+.qty-selector {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f1f5f9; border-radius: 6px; margin-bottom: 10px; padding: 2px;
 }
-
-.k-card-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  cursor: pointer;
+.qty-selector button {
+  background: #fff; border: 1px solid #e2e8f0; width: 30px; height: 30px;
+  border-radius: 4px; font-weight: bold; cursor: pointer; color: #1a2a6c;
 }
+.qty-selector span { font-weight: 700; font-size: 14px; color: #1a2a6c; }
 
-.k-vid-trigger {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(237, 1, 127, 0.9);
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 10px;
-  padding: 4px 8px;
-  font-weight: bold;
-}
-
-.k-card-body { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
-.k-p-name { font-size: 13px; color: #333; font-weight: 400; height: 34px; overflow: hidden; margin-bottom: 5px; }
-.k-p-price { font-size: 16px; font-weight: 700; color: #000; margin-bottom: 10px; }
 .k-add-btn {
-  background: #ed017f;
-  color: #fff;
-  border: none;
-  padding: 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 12px;
-  cursor: pointer;
-  margin-top: auto;
+  width: 100%; background: #fba100; color: #fff; border: none;
+  padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.3s;
 }
+.k-add-btn.added { background: #10b981; }
 
-.k-add-btn.added { background: #4caf50; }
+/* --- FLOAT VIDEO (The Magic Part) --- */
+.floating-video-container {
+  position: fixed; bottom: 80px; right: 20px; width: 220px;
+  background: #000; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 2000;
+  border: 2px solid #1a2a6c;
+}
+.vid-drag-handle {
+  background: #1a2a6c; color: #fff; padding: 5px 10px;
+  display: flex; justify-content: space-between; font-size: 10px; font-weight: 700;
+}
+.vid-drag-handle button { background: none; border: none; color: #fff; cursor: pointer; }
+.floating-video-container video { width: 100%; display: block; }
 
-/* --- Fixed Modals (The "Clean Way") --- */
+/* --- Image Zoom Overlay --- */
 .k-modal-overlay {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.85);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.9); z-index: 3000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-
-.k-zoom-box img {
-  max-width: 100%;
-  max-height: 85vh;
-  border-radius: 8px;
-  object-fit: contain;
-}
-
-.k-video-box {
-  width: 100%;
-  max-width: 500px;
-  background: #000;
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.k-video-box video { width: 100%; display: block; }
-
-.k-close-circle {
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: #fff;
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font-weight: bold;
-  cursor: pointer;
-}
+.zoomed-img { max-width: 90%; max-height: 70vh; border-radius: 8px; }
+.close-zoom-btn { margin-top: 20px; background: #fff; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; }
 
 /* --- Cart Pill --- */
 .k-cart-pill {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #000;
-  color: #fff;
-  padding: 12px 25px;
-  border-radius: 30px;
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  z-index: 1500;
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: #1a2a6c; color: #fff; padding: 12px 24px; border-radius: 50px;
+  display: flex; align-items: center; gap: 12px; z-index: 1001;
 }
+.k-pill-badge { background: #fba100; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 
-.k-cart-count { background: #ed017f; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
-
-/* --- Utils --- */
-.k-loader { padding: 100px; text-align: center; }
 .k-spinner { 
-  width: 30px; height: 30px; border: 3px solid #ddd; 
-  border-top: 3px solid #ed017f; border-radius: 50%; 
-  animation: spin 1s linear infinite; margin: 0 auto; 
+  width: 30px; height: 30px; border: 3px solid #e2e8f0; border-top: 3px solid #1a2a6c; 
+  border-radius: 50%; animation: spin 1s linear infinite; margin: 100px auto; 
 }
 @keyframes spin { to { transform: rotate(360deg); } }
