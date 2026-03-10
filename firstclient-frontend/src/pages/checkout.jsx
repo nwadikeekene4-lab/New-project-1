@@ -4,9 +4,24 @@ import dayjs from 'dayjs';
 import API from '../api'; 
 import './checkout.css';
 
-export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantity }) {
+export function Checkout({ cart = [], setCart, updateCartQuantity }) {
   
-  // ⭐ UPDATED: Now includes the year in the date string
+  // Local function to handle permanent removal
+  const handleRemoveItem = (productId) => {
+    // 1. Tell the backend to delete it forever
+    API.post('/cart/remove', { productId })
+      .then(res => {
+        // 2. The backend sends back the NEW cart list
+        // 3. Updating setCart here updates the UI and the Cart Icon everywhere
+        setCart(res.data); 
+      })
+      .catch(err => {
+        console.error("Remove failed. Did you add the backend route?", err);
+        // Fallback: local filter if backend isn't ready yet
+        setCart(cart.filter(item => (item.product?.id || item.productId) !== productId));
+      });
+  };
+
   const getWorkDay = (index) => {
     let daysAdded = 0;
     let targetDate = dayjs();
@@ -15,7 +30,7 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       if (targetDate.day() === 0) continue;
       daysAdded++;
     }
-    return targetDate.format("dddd, MMMM D, YYYY"); // e.g., Monday, March 9, 2026
+    return targetDate.format("dddd, MMMM D, YYYY");
   };
 
   const deliveryOptions = [
@@ -104,7 +119,6 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
     <div className="checkout-page-wrapper">
       <div className="checkout-minimal-header">
         <div className="header-inner">
-          {/* ⭐ BRANDING UPDATED */}
           <Link to="/" className="checkout-logo">Essence Creations</Link>
           <div className="checkout-step-label">Secure Checkout</div>
           <Link to="/shop" className="back-link">Continue Shopping</Link>
@@ -122,6 +136,7 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
               <div className="checkout-items-list">
                 {cart.map(cartItem => {
                    const productData = cartItem.product || cartItem;
+                   const pid = productData.id || cartItem.productId;
                    return (
                     <div key={cartItem.id} className="checkout-product-row">
                       <img className="checkout-item-img" src={getImageUrl(productData.image)} alt="" />
@@ -132,7 +147,7 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                             <span>Qty: </span>
                             <input 
                               type="number" 
-                              min="0" 
+                              min="1" 
                               className={`qty-input-enhanced ${cartItem.quantity <= 0 ? 'qty-error' : ''}`}
                               value={cartItem.quantity} 
                               onChange={(e) => updateCartQuantity(cartItem.id, parseInt(e.target.value) || 0)}
@@ -140,7 +155,8 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
                             <span className="unit-price"> • ₦{Number(productData.price).toLocaleString()}</span>
                           </div>
                         </div>
-                        <button className="delete-btn" onClick={() => removeFromCart(cartItem.id)}>Remove</button>
+                        {/* ⭐ UPDATED REMOVE BUTTON */}
+                        <button className="delete-btn" onClick={() => handleRemoveItem(pid)}>Remove</button>
                       </div>
                     </div>
                   );
@@ -202,4 +218,4 @@ export function Checkout({ cart = [], setCart, removeFromCart, updateCartQuantit
       </div>
     </div>
   );
-        }
+}
