@@ -7,6 +7,9 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
   const [visibleProducts, setVisibleProducts] = useState([]);
   const [quantities, setQuantities] = useState({}); 
   const [addedItemId, setAddedItemId] = useState(null);
+  
+  // ⭐ NEW: State for the Responsive Image Modal
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
@@ -18,7 +21,7 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
     }
   }, [allProducts]);
 
-  // ⭐ UPDATED: Flexible quantity logic (Typed or Buttons)
+  // Handle manual typing or button clicks for quantity
   const handleQuantityChange = (productId, value) => {
     if (value === "") {
       setQuantities(prev => ({ ...prev, [productId]: "" }));
@@ -33,7 +36,6 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
   const handleAddToCart = (product) => {
     if (!product || !product.id) return;
     
-    // Fallback to 1 if the input is empty or invalid
     const qtyVal = quantities[product.id];
     const finalQty = (qtyVal === "" || isNaN(parseInt(qtyVal))) ? 1 : parseInt(qtyVal);
 
@@ -97,15 +99,19 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
 
                   return (
                     <div key={product.id} className="product-card">
-                      <div className="product-image-wrapper">
+                      {/* ⭐ ENHANCED: Click to view image */}
+                      <div 
+                        className="product-image-wrapper" 
+                        onClick={() => setSelectedImage({ url: displayImage, name: product.name, price: product.price })}
+                      >
                         <img className="product-img" src={displayImage} alt={product.name} loading="lazy" />
+                        <div className="image-hover-hint">Quick View</div>
                       </div>
 
                       <div className="product-details">
                         <h3 className="product-title">{product.name}</h3>
                         <div className="product-price">₦{Number(product.price || 0).toLocaleString()}</div>
 
-                        {/* ⭐ NEW QUANTITY CONTROLS INTEGRATED HERE */}
                         <div className="product-action-row">
                           <div className="qty-input-group">
                             <button 
@@ -152,7 +158,7 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
                         </div>
 
                         {addedItemId === product.id && (
-                          <div className="status-badge">✅ Added to Cart</div>
+                          <div className="status-badge">✅ Added</div>
                         )}
                       </div>
                     </div>
@@ -171,6 +177,22 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
           </>
         )}
       </main>
+
+      {/* ⭐ NEW: RESPONSIVE IMAGE MODAL */}
+      {selectedImage && (
+        <div className="img-modal-overlay" onClick={() => setSelectedImage(null)}>
+          <div className="img-modal-container" onClick={(e) => e.stopPropagation()}>
+            <button className="img-modal-close-btn" onClick={() => setSelectedImage(null)}>✕</button>
+            <div className="img-modal-body">
+              <img src={selectedImage.url} alt={selectedImage.name} className="img-modal-responsive-img" />
+            </div>
+            <div className="img-modal-info">
+              <h4>{selectedImage.name}</h4>
+              <p className="modal-price">₦{Number(selectedImage.price || 0).toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-  }
+}
