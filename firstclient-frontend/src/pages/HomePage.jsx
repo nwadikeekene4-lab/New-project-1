@@ -3,13 +3,11 @@ import API from '../api';
 import { HomePageHeader } from '../header/HomePageHeader';
 import './HomePage.css';
 
-// Added searchTerm and setSearchTerm as props to sync with App.jsx and Header
 export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm, setSearchTerm }) {
   const [visibleProducts, setVisibleProducts] = useState([]);
   const [quantities, setQuantities] = useState({}); 
   const [addedItemId, setAddedItemId] = useState(null);
 
-  // Initial load and staggered animation effect (PRESERVED)
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
       setVisibleProducts(allProducts.slice(0, 12));
@@ -20,17 +18,28 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
     }
   }, [allProducts]);
 
+  // ⭐ UPDATED: Flexible quantity logic (Typed or Buttons)
   const handleQuantityChange = (productId, value) => {
-    setQuantities({ ...quantities, [productId]: Number(value) });
+    if (value === "") {
+      setQuantities(prev => ({ ...prev, [productId]: "" }));
+      return;
+    }
+    const num = parseInt(value);
+    if (!isNaN(num)) {
+      setQuantities(prev => ({ ...prev, [productId]: Math.max(1, num) }));
+    }
   };
 
   const handleAddToCart = (product) => {
     if (!product || !product.id) return;
-    const quantity = quantities[product.id] || 1;
+    
+    // Fallback to 1 if the input is empty or invalid
+    const qtyVal = quantities[product.id];
+    const finalQty = (qtyVal === "" || isNaN(parseInt(qtyVal))) ? 1 : parseInt(qtyVal);
 
     API.post('/cart/add', {
       productId: product.id,
-      quantity: quantity,
+      quantity: finalQty,
       deliveryOptionId: 'standard'
     })
     .then(() => API.get('/cart'))
@@ -42,15 +51,13 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
     .catch(err => console.error("Error adding to cart:", err));
   };
 
-  // Improved Search: Now updates the global state (PRESERVED)
   const handleSearch = (value) => {
     setSearchTerm(value);
   };
 
-  // ⭐ FIXED: Filter products based on global searchTerm AND exclude category 'pastry'
   const filteredProducts = allProducts.filter((p) => {
     const matchesSearch = p.name?.toLowerCase().includes((searchTerm || '').toLowerCase());
-    const isNotPastry = p.category !== 'pastry'; // This keeps the shops separate
+    const isNotPastry = p.category !== 'pastry'; 
     return matchesSearch && isNotPastry;
   });
 
@@ -60,7 +67,6 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
 
   return (
     <div className="shop-layout">
-      {/* Header now receives searchTerm to keep the input box in sync */}
       <HomePageHeader 
         cart={cart} 
         onSearch={handleSearch} 
@@ -78,7 +84,6 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
             {filteredProducts.length > 0 ? (
               <div className="products-grid">
                 {filteredProducts.map((product) => {
-                  // ⭐ CLOUDINARY LOGIC (PRESERVED EXACTLY)
                   let displayImage = `https://placehold.co/300x300?text=${product.name || 'Product'}`;
                   
                   if (product.image && typeof product.image === 'string' && product.image !== "null") {
@@ -91,34 +96,49 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
                   }
 
                   return (
-                    <div
-                      key={product.id}
-                      id={`product-${product.id}`}
-                      className="product-card"
-                    >
+                    <div key={product.id} className="product-card">
                       <div className="product-image-wrapper">
-                        <img 
-                          className="product-img" 
-                          src={displayImage} 
-                          alt={product.name}
-                          loading="lazy"
-                        />
+                        <img className="product-img" src={displayImage} alt={product.name} loading="lazy" />
                       </div>
 
                       <div className="product-details">
                         <h3 className="product-title">{product.name}</h3>
                         <div className="product-price">₦{Number(product.price || 0).toLocaleString()}</div>
 
+                        {/* ⭐ NEW QUANTITY CONTROLS INTEGRATED HERE */}
                         <div className="product-action-row">
-                          <select
-                            className="qty-selector"
-                            value={quantities[product.id] || 1}
-                            onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                          >
-                            {[...Array(10).keys()].map((n) => (
-                              <option key={n + 1} value={n + 1}>{n + 1}</option>
-                            ))}
-                          </select>
+                          <div className="qty-input-group">
+                            <button 
+                              type="button" 
+                              className="qty-btn"
+                              onClick={() => {
+                                const current = parseInt(quantities[product.id]) || 1;
+                                handleQuantityChange(product.id, String(current - 1));
+                              }}
+                            >
+                              −
+                            </button>
+                            
+                            <input 
+                              type="number" 
+                              className="qty-main-input"
+                              placeholder="1"
+                              value={quantities[product.id] !== undefined ? quantities[product.id] : ""}
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                            />
+                            
+                            <button 
+                              type="button" 
+                              className="qty-btn"
+                              onClick={() => {
+                                const current = parseInt(quantities[product.id]) || 1;
+                                handleQuantityChange(product.id, String(current + 1));
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
                           
                           <button
                             className="buy-btn"
@@ -127,12 +147,12 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
                               handleAddToCart(product);
                             }}
                           >
-                            Add
+                            {addedItemId === product.id ? "Done!" : "Add"}
                           </button>
                         </div>
 
                         {addedItemId === product.id && (
-                          <div className="status-badge">✅ Added</div>
+                          <div className="status-badge">✅ Added to Cart</div>
                         )}
                       </div>
                     </div>
@@ -140,12 +160,9 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
                 })}
               </div>
             ) : (
-              /* PROFESSIONAL NO RESULTS STATE (PRESERVED) */
               <div className="no-results-container animate-fade-in">
                 <div className="no-results-icon">🧁</div>
                 <h3>No treats found for "{searchTerm}"</h3>
-                <p>We couldn't find any products matching your search. Try a different keyword or browse our full collection.</p>
-                
                 <button className="clear-results-btn" onClick={handleClearSearch}>
                   Browse All Products
                 </button>
@@ -156,4 +173,4 @@ export function HomePage({ cart, setCart, allProducts, globalLoading, searchTerm
       </main>
     </div>
   );
-    }
+  }
