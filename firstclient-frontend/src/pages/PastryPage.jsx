@@ -37,10 +37,11 @@ const PastryPage = ({ cart, setCart }) => {
     );
   }, [products, activeTab, categories]);
 
-  const handleQtyChange = (id, delta) => {
+  const handleQtyChange = (id, val) => {
+    const num = parseInt(val);
     setQuantities(prev => ({
       ...prev,
-      [id]: Math.max(1, (prev[id] || 1) + delta)
+      [id]: isNaN(num) || num < 1 ? 1 : num
     }));
   };
 
@@ -78,7 +79,9 @@ const PastryPage = ({ cart, setCart }) => {
                   <div key={t} className="k-menu-row" onClick={() => setActiveTab(t)}>
                     <div className="k-row-info">
                       <span className="k-cat-name">{t}</span>
-                      <span className="k-cat-count">{products.filter(p => p.subCategory?.toLowerCase() === t.toLowerCase()).length} items</span>
+                      <span className="k-cat-count">
+                        {products.filter(p => p.subCategory?.toLowerCase() === t.toLowerCase()).length} items
+                      </span>
                     </div>
                     <span className="k-arrow">❯</span>
                   </div>
@@ -93,17 +96,22 @@ const PastryPage = ({ cart, setCart }) => {
                     <div className="k-card-media">
                       <img src={p.image} alt={p.name} onClick={() => setZoomImage(p.image)} />
                       {p.videoUrl && (
-                        <button className="k-vid-badge" onClick={() => setVideoUrl(p.videoUrl)}>▶ Play</button>
+                        <button className="k-vid-badge" onClick={() => setVideoUrl(p.videoUrl)}>▶ View Clip</button>
                       )}
                     </div>
                     <div className="k-card-body">
                       <h3 className="k-p-name">{p.name}</h3>
                       <p className="k-p-price">₦{Number(p.price).toLocaleString()}</p>
                       
-                      <div className="qty-selector">
-                        <button onClick={() => handleQtyChange(p.id, -1)}>−</button>
-                        <span>{quantities[p.id] || 1}</span>
-                        <button onClick={() => handleQtyChange(p.id, 1)}>+</button>
+                      <div className="qty-input-group">
+                        <button onClick={() => handleQtyChange(p.id, (quantities[p.id] || 1) - 1)}>−</button>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          value={quantities[p.id] || 1} 
+                          onChange={(e) => handleQtyChange(p.id, e.target.value)}
+                        />
+                        <button onClick={() => handleQtyChange(p.id, (quantities[p.id] || 1) + 1)}>+</button>
                       </div>
 
                       <button 
@@ -121,22 +129,22 @@ const PastryPage = ({ cart, setCart }) => {
         )}
       </div>
 
-      {/* --- FLOATING VIDEO (PICTURE-IN-PICTURE) --- */}
+      {/* --- DRAGGABLE-STYLE PINNED VIDEO --- */}
       {videoUrl && (
-        <div className="floating-video-container">
-          <div className="vid-drag-handle">
-            <span>Video Preview</span>
-            <button onClick={() => setVideoUrl(null)}>✕</button>
+        <div className="pip-video-frame">
+          <div className="pip-header">
+             <span>Preview</span>
+             <button onClick={() => setVideoUrl(null)}>✕</button>
           </div>
-          <video src={videoUrl} controls autoPlay />
+          <video src={videoUrl} controls autoPlay muted />
         </div>
       )}
 
-      {/* --- IMAGE ZOOM (FULL OVERLAY) --- */}
+      {/* --- IMAGE ZOOM --- */}
       {zoomImage && (
-        <div className="k-modal-overlay" onClick={() => setZoomImage(null)}>
-          <img src={zoomImage} className="zoomed-img" alt="Zoomed" />
-          <button className="close-zoom-btn">✕ Tap to Close</button>
+        <div className="k-zoom-overlay" onClick={() => setZoomImage(null)}>
+          <img src={zoomImage} alt="Zoomed" />
+          <div className="zoom-hint">Tap anywhere to close</div>
         </div>
       )}
 
