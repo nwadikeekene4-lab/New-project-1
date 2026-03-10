@@ -207,7 +207,12 @@ router.get("/cart", async (req, res) => {
     res.json(cartItems.filter(item => item.product !== null));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
+router.post("/cart/remove", async (req, res) => {
+  const { productId } = req.body;
+  await CartItem.destroy({ where: { productId } }); // This kills it in the database
+  const updatedCart = await CartItem.findAll({ include: [{ model: Product, as: "product" }] });
+  res.json(updatedCart); // This sends the fresh, clean list back to the frontend
+});
 router.post("/cart/add", async (req, res) => {
   try {
     const { productId, quantity, overrideQuantity } = req.body;
@@ -219,6 +224,7 @@ router.post("/cart/add", async (req, res) => {
     res.json(item);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 
 router.delete("/cart/clear", async (req, res) => {
   try { await CartItem.destroy({ where: {} }); res.json({ success: true }); }
@@ -441,3 +447,4 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
 });
 
 module.exports = router;
+
