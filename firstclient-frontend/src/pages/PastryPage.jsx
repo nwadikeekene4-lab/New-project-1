@@ -22,33 +22,46 @@ const PastryPage = ({ cart, setCart }) => {
   useEffect(() => {
     setLoading(true);
     API.get('/products?category=pastry')
-      .then(res => setProducts(res.data))
+      .then(res => {
+        setProducts(res.data);
+      })
       .catch(err => console.error("Fetch error:", err))
       .finally(() => setLoading(false));
   }, []);
 
+  // Professional helper to count or filter items per category
+  const getFilteredItems = (catName, allProducts) => {
+    const search = catName.toLowerCase();
+    if (search === 'others') {
+      const mains = categories.slice(0, -1).map(c => c.toLowerCase());
+      return allProducts.filter(p => !p.subCategory || !mains.includes(p.subCategory.toLowerCase()));
+    }
+    return allProducts.filter(p => p.subCategory?.toLowerCase() === search);
+  };
+
   const filteredProducts = useMemo(() => {
     if (!activeTab) return [];
-    const search = activeTab.toLowerCase();
-    return products.filter(p => 
-      search === 'others' 
-      ? !categories.slice(0, -1).map(c => c.toLowerCase()).includes(p.subCategory?.toLowerCase())
-      : p.subCategory?.toLowerCase() === search
-    );
+    return getFilteredItems(activeTab, products);
   }, [products, activeTab, categories]);
 
   const handleQtyChange = (id, val) => {
+    if (val === "") {
+      setQuantities(prev => ({ ...prev, [id]: "" }));
+      return;
+    }
     const num = parseInt(val);
     setQuantities(prev => ({
       ...prev,
-      [id]: isNaN(num) || num < 1 ? 1 : num
+      [id]: isNaN(num) ? "" : Math.max(1, num)
     }));
   };
 
   const addToCart = (product) => {
-    const qty = quantities[product.id] || 1;
+    const qtyVal = quantities[product.id];
+    const finalQty = (qtyVal === "" || isNaN(parseInt(qtyVal))) ? 1 : parseInt(qtyVal);
+    
     setAddingId(product.id);
-    API.post('/cart/add', { productId: product.id, quantity: qty }).then(() => {
+    API.post('/cart/add', { productId: product.id, quantity: finalQty }).then(() => {
       return API.get('/cart');
     }).then(res => {
       setCart(res.data);
@@ -75,61 +88,74 @@ const PastryPage = ({ cart, setCart }) => {
           <>
             {!activeTab && (
               <div className="k-menu-list">
-                {categories.map(t => (
-                  <div key={t} className="k-menu-row" onClick={() => setActiveTab(t)}>
-                    <div className="k-row-info">
-                      <span className="k-cat-name">{t}</span>
-                      <span className="k-cat-count">
-                        {products.filter(p => p.subCategory?.toLowerCase() === t.toLowerCase()).length} items
-                      </span>
+                {categories.map(t => {
+                  const itemCount = getFilteredItems(t, products).length;
+                  return (
+                    <div key={t} className="k-menu-row" onClick={() => setActiveTab(t)}>
+                      <div className="k-row-info">
+                        <span className="k-cat-name">{t}</span>
+                        <span className="k-cat-count">{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
+                      </div>
+                      <span className="k-arrow">❯</span>
                     </div>
-                    <span className="k-arrow">❯</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {activeTab && (
               <div className="k-product-grid">
-                {filteredProducts.map(p => (
-                  <div key={p.id} className="k-card">
-                    <div className="k-card-media">
-                      <img src={p.image} alt={p.name} onClick={() => setZoomImage(p.image)} />
-                      {p.videoUrl && (
-                        <button className="k-vid-badge" onClick={() => setVideoUrl(p.videoUrl)}>▶ View Clip</button>
-                      )}
-                    </div>
-                    <div className="k-card-body">
-                      <h3 className="k-p-name">{p.name}</h3>
-                      <p className="k-p-price">₦{Number(p.price).toLocaleString()}</p>
-                      
-                      <div className="qty-input-group">
-                        <button onClick={() => handleQtyChange(p.id, (quantities[p.id] || 1) - 1)}>−</button>
-                        <input 
-                          type="number" 
-                          min="1" 
-                          value={quantities[p.id] || 1} 
-                          onChange={(e) => handleQtyChange(p.id, e.target.value)}
-                        />
-                        <button onClick={() => handleQtyChange(p.id, (quantities[p.id] || 1) + 1)}>+</button>
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map(p => (
+                    <div key={p.id} className="k-card">
+                      <div className="k-card-media">
+                        <img src={p.image} alt={p.name} onClick={() => setZoomImage(p.image)} />
+                        {p.videoUrl && (
+                          <button className="k-vid-badge" onClick={() => setVideoUrl(p.videoUrl)}>▶ View Clip</button>
+                        )}
                       </div>
+                      <div className="k-card-body">
+                        <h3 className="k-p-name">{p.name}</h3>
+                        <p className="k-p-price">₦{Number(p.price).toLocaleString()}</p>
+                        
+                        <div className="qty-input-group">
+                          <button type="button" onClick={() => {
+                            const current = parseInt(quantities[p.id]) || 1;
+                            handleQtyChange(p.id, current - 1);
+                          }}>−</button>
+                          <input 
+                            type="number" 
+                            placeholder="1"
+                            value={quantities[p.id] ?? 1} 
+                            onChange={(e) => handleQtyChange(p.id, e.target.value)}
+                          />
+                          <button type="button" onClick={() => {
+                            const current = parseInt(quantities[p.id]) || 1;
+                            handleQtyChange(p.id, current + 1);
+                          }}>+</button>
+                        </div>
 
-                      <button 
-                        className={`k-add-btn ${addingId === p.id ? 'added' : ''}`} 
-                        onClick={() => addToCart(p)}
-                      >
-                        {addingId === p.id ? "Success! ✅" : "Add to Cart"}
-                      </button>
+                        <button 
+                          className={`k-add-btn ${addingId === p.id ? 'added' : ''}`} 
+                          onClick={() => addToCart(p)}
+                        >
+                          {addingId === p.id ? "Success! ✅" : "Add to Cart"}
+                        </button>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="empty-category">
+                    <p>No items found in {activeTab}.</p>
+                    <button onClick={() => setActiveTab(null)}>Back to Menu</button>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </>
         )}
       </div>
 
-      {/* --- DRAGGABLE-STYLE PINNED VIDEO --- */}
       {videoUrl && (
         <div className="pip-video-frame">
           <div className="pip-header">
@@ -140,7 +166,6 @@ const PastryPage = ({ cart, setCart }) => {
         </div>
       )}
 
-      {/* --- IMAGE ZOOM --- */}
       {zoomImage && (
         <div className="k-zoom-overlay" onClick={() => setZoomImage(null)}>
           <img src={zoomImage} alt="Zoomed" />
