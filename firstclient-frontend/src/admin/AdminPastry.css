@@ -1,4 +1,8 @@
-:root { --p-blue: #1a2a6c; --p-gold: #fba100; --p-red: #ef4444; }
+:root { 
+  --p-blue: #1a2a6c; 
+  --p-gold: #fba100; 
+  --p-red: #ef4444; 
+}
 
 .pastry-admin-page { background: #f0f2f5; min-height: 100vh; padding: 20px 10px; font-family: sans-serif; }
 .pastry-max-width { max-width: 1200px; margin: 0 auto; }
@@ -6,7 +10,7 @@
 /* 📱 FORCED GRID: 2 Columns on Mobile, 4+ on Desktop */
 .p-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Force side-by-side */
+  grid-template-columns: repeat(2, 1fr); 
   gap: 12px;
   width: 100%;
 }
@@ -14,6 +18,62 @@
 @media (min-width: 800px) {
   .p-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
   .p-form-grid { flex-direction: row !important; align-items: flex-end; }
+}
+
+/* --- NEW: CATEGORY TAB SCROLLING --- */
+.tabs-container-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.p-tabs { 
+  display: flex; 
+  gap: 10px; 
+  overflow-x: auto; 
+  padding: 10px 5px; 
+  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+
+/* Hide scrollbar for Chrome/Safari */
+.p-tabs::-webkit-scrollbar { display: none; }
+
+.p-t { 
+  padding: 10px 22px; 
+  border-radius: 20px; 
+  border: 1px solid #e2e8f0; 
+  background: #f8fafc; 
+  font-weight: bold; 
+  cursor: pointer; 
+  white-space: nowrap; 
+  color: #64748b;
+  transition: 0.2s;
+}
+
+.p-t.active { 
+  background: var(--p-blue); 
+  color: white; 
+  border-color: var(--p-blue);
+}
+
+/* ➡️ THE SCROLL HINT ARROW */
+.scroll-hint {
+  padding: 0 10px;
+  color: var(--p-blue);
+  font-weight: 900;
+  font-size: 18px;
+  background: linear-gradient(to right, rgba(255,255,255,0), white 40%);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 0;
+  pointer-events: none; /* Click "through" it to buttons below */
 }
 
 /* MODAL */
@@ -26,13 +86,10 @@
 .video-modal-content video { width: 100%; border-radius: 12px; border: 2px solid var(--p-gold); }
 .close-modal { position: absolute; top: -45px; right: 0; color: white; background: none; border: 2px solid white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
 
-/* HEADER & TABS */
+/* HEADER */
 .p-header { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
 .p-nav-row { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
 .p-back { text-decoration: none; font-size: 24px; color: var(--p-blue); font-weight: bold; }
-.p-tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-.p-t { padding: 10px 20px; border-radius: 20px; border: none; background: #eee; font-weight: bold; cursor: pointer; white-space: nowrap; }
-.p-t.active { background: var(--p-blue); color: white; }
 
 /* UPLOAD FORM */
 .p-upload-card { background: #f8fafc; padding: 12px; border-radius: 10px; }
