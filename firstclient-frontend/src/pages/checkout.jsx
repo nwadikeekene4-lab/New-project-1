@@ -6,20 +6,28 @@ import './checkout.css';
 
 export function Checkout({ cart = [], setCart, updateCartQuantity }) {
   
-  // Local function to handle permanent removal
   const handleRemoveItem = (productId) => {
-    // 1. Tell the backend to delete it forever
     API.post('/cart/remove', { productId })
       .then(res => {
-        // 2. The backend sends back the NEW cart list
-        // 3. Updating setCart here updates the UI and the Cart Icon everywhere
         setCart(res.data); 
       })
       .catch(err => {
-        console.error("Remove failed. Did you add the backend route?", err);
-        // Fallback: local filter if backend isn't ready yet
+        console.error("Remove failed.", err);
         setCart(cart.filter(item => (item.product?.id || item.productId) !== productId));
       });
+  };
+
+  // ⭐ NEW: Specific logic for Checkout quantity adjustments
+  const handleManualQtyChange = (cartItemId, value) => {
+    if (value === "") {
+      // Allow user to backspace completely without jumping to 1 immediately
+      updateCartQuantity(cartItemId, ""); 
+      return;
+    }
+    const num = parseInt(value);
+    if (!isNaN(num)) {
+      updateCartQuantity(cartItemId, Math.max(1, num));
+    }
   };
 
   const getWorkDay = (index) => {
@@ -33,11 +41,7 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
     return targetDate.format("dddd, MMMM D, YYYY");
   };
 
-  const deliveryOptions = [
-    { date: getWorkDay(1) },
-    { date: getWorkDay(2) },
-    { date: getWorkDay(3) }
-  ];
+  const deliveryOptions = [{ date: getWorkDay(1) }, { date: getWorkDay(2) }, { date: getWorkDay(3) }];
 
   const [selectedDate, setSelectedDate] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -51,9 +55,7 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
     setCustomerDetails({ ...customerDetails, [e.target.name]: e.target.value });
   };
 
-  const handleDateSelection = (dateString) => {
-    setSelectedDate(dateString);
-  };
+  const handleDateSelection = (dateString) => { setSelectedDate(dateString); };
 
   const handleClearCart = () => {
     if (window.confirm("Remove all items from cart?")) {
@@ -65,7 +67,8 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
 
   const itemsTotal = cart.reduce((sum, item) => {
     const itemPrice = item.product?.price || item.price || 0;
-    return sum + (Number(itemPrice) * (Number(item.quantity) || 0));
+    const qty = item.quantity === "" ? 0 : Number(item.quantity);
+    return sum + (Number(itemPrice) * qty);
   }, 0);
   
   const getShippingFee = (loc) => {
@@ -142,20 +145,32 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
                       <img className="checkout-item-img" src={getImageUrl(productData.image)} alt="" />
                       <div className="checkout-item-info">
                         <div className="item-title">{productData.name}</div>
+                        
                         <div className="item-meta">
-                          <div className="qty-edit-wrapper">
-                            <span>Qty: </span>
+                          {/* ⭐ UPDATED: Quantity Group with Buttons */}
+                          <div className="qty-control-group">
+                            <button 
+                              className="qty-adj-btn"
+                              onClick={() => handleManualQtyChange(cartItem.id, (Number(cartItem.quantity) || 1) - 1)}
+                            >−</button>
+                            
                             <input 
                               type="number" 
-                              min="1" 
-                              className={`qty-input-enhanced ${cartItem.quantity <= 0 ? 'qty-error' : ''}`}
-                              value={cartItem.quantity} 
-                              onChange={(e) => updateCartQuantity(cartItem.id, parseInt(e.target.value) || 0)}
+                              className={`qty-input-field ${cartItem.quantity === "" || cartItem.quantity <= 0 ? 'qty-err' : ''}`}
+                              value={cartItem.quantity}
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) => handleManualQtyChange(cartItem.id, e.target.value)}
                             />
-                            <span className="unit-price"> • ₦{Number(productData.price).toLocaleString()}</span>
+
+                            <button 
+                              className="qty-adj-btn"
+                              onClick={() => handleManualQtyChange(cartItem.id, (Number(cartItem.quantity) || 0) + 1)}
+                            >+</button>
+                            
+                            <span className="unit-price-tag"> @ ₦{Number(productData.price).toLocaleString()}</span>
                           </div>
                         </div>
-                        {/* ⭐ UPDATED REMOVE BUTTON */}
+
                         <button className="delete-btn" onClick={() => handleRemoveItem(pid)}>Remove</button>
                       </div>
                     </div>
@@ -164,6 +179,7 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
               </div>
             </div>
 
+            {/* Delivery Date Section */}
             <div className="checkout-section-card">
               <div className="section-header"><h3>2. Delivery Date</h3></div>
               <div className="delivery-date-picker">
@@ -176,6 +192,7 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
               </div>
             </div>
 
+            {/* Shipping Information */}
             <div className="checkout-section-card">
               <div className="section-header"><h3>3. Shipping Information</h3></div>
               <div className="shipping-form-grid">
@@ -197,6 +214,7 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
             </div>
           </div>
 
+          {/* Right Column Summary */}
           <div className="checkout-right-column">
             <div className="order-summary-box">
               <h3>Order Summary</h3>
