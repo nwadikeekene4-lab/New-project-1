@@ -1,5 +1,12 @@
 /* HomePage.css - Compact Marketplace Layout */
 
+:root {
+  --essence-green: #28a745;
+  --essence-dark-green: #218838;
+  --essence-blue: #1a2a6c;
+  --border-light: #e0e0e0;
+}
+
 .shop-layout {
   background-color: #f4f4f4; 
   min-height: 100vh;
@@ -13,7 +20,7 @@
   padding-bottom: 40px;
 }
 
-/* GRID LOGIC */
+/* GRID LOGIC - Preserved your 2-column mobile layout */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -45,10 +52,11 @@
 .product-card {
   background: #ffffff;
   border-radius: 4px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
 }
 
 .product-card:hover {
@@ -71,7 +79,7 @@
 .product-img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Changed to cover for a fuller look */
+  object-fit: cover;
 }
 
 .product-details {
@@ -100,23 +108,72 @@
   color: #1a1a1a;
 }
 
+/* ⭐ NEW QUANTITY GROUP STYLES */
 .product-action-row {
   display: flex;
-  gap: 4px;
-  margin-top: 4px;
+  flex-direction: column; /* Stacked on small mobile for better fit */
+  gap: 6px;
+  margin-top: 6px;
 }
 
-.qty-selector {
-  width: 45px;
-  padding: 4px;
+@media (min-width: 400px) {
+  .product-action-row {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.qty-input-group {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 11px;
+  overflow: hidden;
+  height: 32px;
+}
+
+.qty-btn {
+  background: white;
+  border: none;
+  width: 24px;
+  height: 100%;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--essence-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.qty-btn:hover {
+  background: #eee;
+}
+
+.qty-main-input {
+  width: 30px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  outline: none;
+  -moz-appearance: textfield; /* Remove arrows Firefox */
+}
+
+/* Remove arrows Chrome/Safari */
+.qty-main-input::-webkit-outer-spin-button,
+.qty-main-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .buy-btn {
   flex-grow: 1;
-  background-color: #28a745; /* Essence Green */
+  height: 32px;
+  background-color: var(--essence-green);
   color: white;
   border: none;
   border-radius: 4px;
@@ -124,11 +181,25 @@
   font-size: 11px;
   cursor: pointer;
   text-transform: uppercase;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .buy-btn:hover {
-  background-color: #218838;
+  background-color: var(--essence-dark-green);
+}
+
+.buy-btn:active {
+  transform: scale(0.95);
+}
+
+/* Status Badge */
+.status-badge {
+  font-size: 10px;
+  color: var(--essence-dark-green);
+  font-weight: bold;
+  text-align: center;
+  margin-top: 2px;
+  animation: fadeIn 0.3s ease;
 }
 
 /* NO RESULTS STATE */
@@ -176,15 +247,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 /* MOBILE REFINEMENTS */
 @media (max-width: 600px) {
   .home-page-container {
-    padding-top: 130px; /* Extra space for mobile header rows */
+    padding-top: 130px; 
     padding-left: 5px;
     padding-right: 5px;
   }
-}
+  }
