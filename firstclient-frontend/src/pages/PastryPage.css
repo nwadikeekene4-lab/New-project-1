@@ -1,5 +1,5 @@
-/* --- Core Styles --- */
-.pastry-module { background: #f4f7f9; min-height: 100vh; font-family: 'Inter', sans-serif; }
+/* --- Professional Layout --- */
+.pastry-module { background: #f8fafc; min-height: 100vh; font-family: 'Inter', sans-serif; position: relative; }
 
 .konga-header {
   background: #fff; display: flex; justify-content: space-between; align-items: center;
@@ -7,90 +7,104 @@
 }
 
 .k-back-btn { background: none; border: none; font-weight: 700; color: #1a2a6c; cursor: pointer; }
-.k-title { font-size: 17px; font-weight: 800; color: #1a2a6c; margin: 0; }
-.k-exit { color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 600; }
+.k-title { font-size: 16px; font-weight: 800; color: #1a2a6c; margin: 0; }
+.k-exit { color: #94a3b8; cursor: pointer; font-size: 12px; font-weight: 600; }
 
 /* --- Menu View --- */
-.k-menu-list { padding: 15px; }
+.k-menu-list { padding: 15px; max-width: 600px; margin: 0 auto; }
 .k-menu-row {
-  background: #fff; padding: 20px; margin-bottom: 10px; border-radius: 12px;
+  background: #fff; padding: 18px 20px; margin-bottom: 8px; border-radius: 10px;
   display: flex; justify-content: space-between; align-items: center;
-  border: 1px solid #e2e8f0; cursor: pointer;
+  border: 1px solid #e2e8f0; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.k-cat-name { font-weight: 700; font-size: 16px; color: #1e293b; }
-.k-cat-count { font-size: 12px; color: #94a3b8; display: block; }
+.k-cat-name { font-weight: 700; font-size: 15px; color: #1e293b; text-transform: capitalize; }
+.k-cat-count { font-size: 11px; color: #64748b; margin-top: 2px; }
 
-/* --- Product Cards --- */
+/* --- GRID SYSTEM: Konga Style --- */
 .k-product-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px;
 }
 
-@media (min-width: 768px) { .k-product-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 768px) { .k-product-grid { grid-template-columns: repeat(4, 1fr); max-width: 1100px; margin: 0 auto; } }
 
-.k-card { background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column; }
-.k-card-media { position: relative; aspect-ratio: 1/1; background: #f8fafc; }
-.k-card-media img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+.k-card { 
+  background: #fff; border-radius: 6px; border: 1px solid #e2e8f0; 
+  overflow: hidden; display: flex; flex-direction: column; 
+}
+
+.k-card-media { position: relative; width: 100%; aspect-ratio: 1/1; background: #f1f5f9; }
+.k-card-media img { width: 100%; height: 100%; object-fit: cover; }
 
 .k-vid-badge {
-  position: absolute; top: 8px; right: 8px; background: #1a2a6c;
-  color: #fff; border: none; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  position: absolute; top: 6px; right: 6px; background: rgba(26, 42, 108, 0.9);
+  color: #fff; border: none; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 700;
 }
 
-.k-card-body { padding: 10px; }
-.k-p-name { font-size: 13px; color: #475569; height: 34px; overflow: hidden; margin-bottom: 4px; }
-.k-p-price { font-size: 16px; font-weight: 800; color: #1a2a6c; margin-bottom: 10px; }
+.k-card-body { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; }
+.k-p-name { font-size: 13px; color: #334155; font-weight: 500; height: 32px; overflow: hidden; margin-bottom: 4px; line-height: 1.3; }
+.k-p-price { font-size: 16px; font-weight: 800; color: #1a2a6c; margin-bottom: 12px; }
 
-/* --- Quantity Selector --- */
-.qty-selector {
-  display: flex; align-items: center; justify-content: space-between;
-  background: #f1f5f9; border-radius: 6px; margin-bottom: 10px; padding: 2px;
+/* --- Quantity Field --- */
+.qty-input-group {
+  display: flex; align-items: center; border: 1px solid #cbd5e1;
+  border-radius: 4px; overflow: hidden; margin-bottom: 10px;
 }
-.qty-selector button {
-  background: #fff; border: 1px solid #e2e8f0; width: 30px; height: 30px;
-  border-radius: 4px; font-weight: bold; cursor: pointer; color: #1a2a6c;
+.qty-input-group button { 
+  background: #f1f5f9; border: none; width: 32px; height: 32px; 
+  cursor: pointer; font-weight: bold; color: #1a2a6c;
 }
-.qty-selector span { font-weight: 700; font-size: 14px; color: #1a2a6c; }
+.qty-input-group input {
+  width: 100%; border: none; text-align: center; font-size: 13px; 
+  font-weight: 700; color: #1a2a6c; outline: none; -moz-appearance: textfield;
+}
+.qty-input-group input::-webkit-inner-spin-button { -webkit-appearance: none; }
 
 .k-add-btn {
-  width: 100%; background: #fba100; color: #fff; border: none;
-  padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.3s;
+  background: #fba100; color: #fff; border: none; padding: 9px;
+  border-radius: 4px; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s;
 }
 .k-add-btn.added { background: #10b981; }
 
-/* --- FLOAT VIDEO (The Magic Part) --- */
-.floating-video-container {
-  position: fixed; bottom: 80px; right: 20px; width: 220px;
-  background: #000; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 2000;
-  border: 2px solid #1a2a6c;
+/* --- PINNED VIDEO (Draggable-style top right) --- */
+.pip-video-frame {
+  position: fixed; top: 70px; right: 15px; width: 260px;
+  background: #000; border-radius: 8px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000;
+  border: 1px solid #1a2a6c;
 }
-.vid-drag-handle {
-  background: #1a2a6c; color: #fff; padding: 5px 10px;
+.pip-header {
+  background: #1a2a6c; color: #fff; padding: 4px 10px;
   display: flex; justify-content: space-between; font-size: 10px; font-weight: 700;
+  cursor: grab;
 }
-.vid-drag-handle button { background: none; border: none; color: #fff; cursor: pointer; }
-.floating-video-container video { width: 100%; display: block; }
+.pip-header button { background: none; border: none; color: #fff; cursor: pointer; }
+.pip-video-frame video { width: 100%; height: 140px; object-fit: cover; display: block; }
 
-/* --- Image Zoom Overlay --- */
-.k-modal-overlay {
+@media (max-width: 480px) {
+  .pip-video-frame { width: 180px; top: 60px; right: 10px; }
+  .pip-video-frame video { height: 100px; }
+}
+
+/* --- ZOOM --- */
+.k-zoom-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9); z-index: 3000;
+  background: rgba(0,0,0,0.95); z-index: 3000;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.zoomed-img { max-width: 90%; max-height: 70vh; border-radius: 8px; }
-.close-zoom-btn { margin-top: 20px; background: #fff; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; }
+.k-zoom-overlay img { max-width: 95%; max-height: 80vh; object-fit: contain; }
+.zoom-hint { color: #fff; margin-top: 15px; font-size: 12px; opacity: 0.7; }
 
-/* --- Cart Pill --- */
+/* --- CART PILL --- */
 .k-cart-pill {
   position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: #1a2a6c; color: #fff; padding: 12px 24px; border-radius: 50px;
-  display: flex; align-items: center; gap: 12px; z-index: 1001;
+  background: #1a2a6c; color: #fff; padding: 10px 20px; border-radius: 40px;
+  display: flex; align-items: center; gap: 10px; z-index: 1001;
 }
-.k-pill-badge { background: #fba100; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+.k-pill-badge { background: #fba100; font-weight: 800; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
 
 .k-spinner { 
-  width: 30px; height: 30px; border: 3px solid #e2e8f0; border-top: 3px solid #1a2a6c; 
-  border-radius: 50%; animation: spin 1s linear infinite; margin: 100px auto; 
+  width: 25px; height: 25px; border: 3px solid #f3f4f6; border-top-color: #1a2a6c;
+  border-radius: 50%; animation: spin 1s linear infinite; margin: 100px auto;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
