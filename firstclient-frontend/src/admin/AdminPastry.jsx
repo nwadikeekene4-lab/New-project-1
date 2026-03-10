@@ -1,14 +1,21 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import API from "../api";
 import './AdminPastry.css'; 
 
 export default function AdminPastry() {
   const [pastries, setPastries] = useState([]);
-  const [activeTab, setActiveTab] = useState("Cakes");
+  const [activeTab, setActiveTab] = useState("Cake"); // Matches User Side
   const [searchTerm, setSearchTerm] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [previewVideo, setPreviewVideo] = useState(null);
+
+  // All categories from the user side
+  const categories = useMemo(() => [
+    'Cake', 'Bread', 'Doughnuts', 'Bread roll', 
+    'sausage', 'egg roll', 'meat pie', 'fish rolls', 
+    'cookies', 'others'
+  ], []);
 
   // Form States
   const [newName, setNewName] = useState("");
@@ -37,17 +44,13 @@ export default function AdminPastry() {
     } catch (err) { console.error(err); }
   };
 
-  // ⭐ INSTANT SIZE CHECKER FUNCTION
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
-
     if (type === 'video') {
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
-        alert("❌ File too large! Video must be under 10MB to ensure fast upload.");
-        e.target.value = ""; // Clear the input
-        setNewVideoFile(null);
+      if (file.size > 10 * 1024 * 1024) {
+        alert("❌ Video must be under 10MB");
+        e.target.value = ""; 
         return;
       }
       setNewVideoFile(file);
@@ -65,7 +68,8 @@ export default function AdminPastry() {
     formData.append("name", newName);
     formData.append("price", newPrice);
     formData.append("category", "pastry");
-    formData.append("subCategory", activeTab); 
+    formData.append("subCategory", activeTab.toLowerCase()); 
+
     if (newImageFile) formData.append("image", newImageFile);
     if (newVideoFile) formData.append("video", newVideoFile);
 
@@ -80,10 +84,8 @@ export default function AdminPastry() {
       setNewName(""); setNewPrice(""); 
       alert("Uploaded successfully! ✅");
     } catch (err) { 
-      alert("Upload failed. Try a smaller video or check connection."); 
-    } finally { 
-      setIsUploading(false); 
-    }
+      alert("Upload failed."); 
+    } finally { setIsUploading(false); }
   };
 
   const updatePastry = async (id) => {
@@ -103,7 +105,6 @@ export default function AdminPastry() {
       });
       setPastries(pastries.map(p => p.id === id ? res.data.updatedProduct : p));
       setEditingId(null);
-      setEditImageFile(null); setEditVideoFile(null);
       alert("Updated! ✅");
     } catch (err) { alert("Update failed."); }
     finally { setIsSaving(false); }
@@ -119,16 +120,21 @@ export default function AdminPastry() {
     } catch (err) { alert("Delete failed"); }
   };
 
+  // Logic to filter items by Tab
   const tabFiltered = pastries.filter(p => {
     const match = p.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    return activeTab === "Others" 
-      ? (match && p.subCategory !== "Cakes" && p.subCategory !== "Breads")
-      : (match && p.subCategory === activeTab);
+    const sub = p.subCategory?.toLowerCase();
+    const currentTab = activeTab.toLowerCase();
+
+    if (currentTab === 'others') {
+        const mains = categories.slice(0, -1).map(c => c.toLowerCase());
+        return match && (!sub || !mains.includes(sub));
+    }
+    return match && sub === currentTab;
   });
 
   return (
     <div className="pastry-admin-page">
-      {/* 🎬 CINEMA MODE MODAL */}
       {previewVideo && (
         <div className="video-modal-overlay" onClick={() => setPreviewVideo(null)}>
           <div className="video-modal-content" onClick={e => e.stopPropagation()}>
@@ -142,63 +148,59 @@ export default function AdminPastry() {
         <header className="p-header">
           <div className="p-nav-row">
             <Link to="/admin" className="p-back">←</Link>
-            <h1>{activeTab} Shop</h1>
+            <h1>Manage {activeTab}s</h1>
           </div>
 
-          <nav className="p-tabs">
-            {["Cakes", "Breads", "Others"].map(t => (
-              <button key={t} className={activeTab === t ? "p-t active" : "p-t"} onClick={() => setActiveTab(t)}>{t}</button>
-            ))}
-          </nav>
+          {/* ↔️ SCROLLABLE TABS WITH INDICATOR */}
+          <div className="tabs-container-wrapper">
+            <nav className="p-tabs scrollable-tabs">
+              {categories.map(t => (
+                <button 
+                  key={t} 
+                  className={activeTab === t ? "p-t active" : "p-t"} 
+                  onClick={() => setActiveTab(t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </nav>
+            <div className="scroll-hint">❯</div>
+          </div>
 
           <form className="p-upload-card" onSubmit={addPastry}>
              <div className="p-form-grid">
-                <input type="text" placeholder="Product Name" value={newName} onChange={e=>setNewName(e.target.value)} required />
+                <input type="text" placeholder={`${activeTab} Name`} value={newName} onChange={e=>setNewName(e.target.value)} required />
                 <input type="number" placeholder="Price (₦)" value={newPrice} onChange={e=>setNewPrice(e.target.value)} required />
                 <div className="p-file">
-                  <label>Image (JPG/PNG)</label>
+                  <label>Image</label>
                   <input type="file" accept="image/*" onChange={e => handleFileChange(e, 'image')} required />
                 </div>
                 <div className="p-file">
-                  <label>Video (MP4 - MAX 10MB)</label>
+                  <label>Video Clip</label>
                   <input type="file" accept="video/mp4" onChange={e => handleFileChange(e, 'video')} />
                 </div>
                 <button type="submit" className="p-main-btn" disabled={isUploading}>
-                  {isUploading ? <div className="spinner"></div> : `Add to ${activeTab}`}
+                  {isUploading ? <div className="spinner"></div> : `Post to ${activeTab} Section`}
                 </button>
              </div>
           </form>
         </header>
 
-        {/* 📱 SMART GRID VIEW */}
         <div className="p-grid">
           {tabFiltered.map((p) => (
             <div key={p.id} className="p-card">
               {editingId === p.id ? (
                 <div className="p-edit-overlay">
-                  <h3 style={{fontSize:'14px', marginBottom:'10px'}}>Editing {p.name}</h3>
                   <input value={editName} onChange={e => setEditName(e.target.value)} />
                   <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} />
-                  <div className="p-edit-files">
-                    <label>Update Photo: <input type="file" accept="image/*" onChange={e => setEditImageFile(e.target.files[0])} /></label>
-                    <label>Update Video: <input type="file" accept="video/*" onChange={e => setEditVideoFile(e.target.files[0])} /></label>
-                  </div>
-                  <div className="p-edit-actions">
-                    <button className="p-save-btn" onClick={() => updatePastry(p.id)} disabled={isSaving}>
-                      {isSaving ? "Saving..." : "Update"}
-                    </button>
-                    <button className="p-cancel-btn" onClick={() => setEditingId(null)}>✕</button>
-                  </div>
+                  <button className="p-save-btn" onClick={() => updatePastry(p.id)} disabled={isSaving}>Update</button>
+                  <button className="p-cancel-btn" onClick={() => setEditingId(null)}>✕</button>
                 </div>
               ) : (
                 <>
                   <div className="p-card-media">
                     <img src={p.image} alt="" />
-                    {p.videoUrl && (
-                      <button className="p-vid-badge-btn" onClick={() => setPreviewVideo(p.videoUrl)}>
-                        🎥 PREVIEW
-                      </button>
-                    )}
+                    {p.videoUrl && <button className="p-vid-badge-btn" onClick={() => setPreviewVideo(p.videoUrl)}>🎥 CLIP</button>}
                   </div>
                   <div className="p-card-info">
                     <h4>{p.name}</h4>
@@ -216,4 +218,4 @@ export default function AdminPastry() {
       </div>
     </div>
   );
-  }
+        }
