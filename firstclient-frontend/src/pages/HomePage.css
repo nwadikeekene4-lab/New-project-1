@@ -1,50 +1,50 @@
-/* HomePage.css - Compact Marketplace Layout */
+/* HomePage.css - Integrated Professional Marketplace Layout */
 
 :root {
-  --essence-green: #28a745;
-  --essence-dark-green: #218838;
   --essence-blue: #1a2a6c;
+  --konga-orange: #fba100;
+  --success-green: #10b981;
   --border-light: #e0e0e0;
+  --bg-light: #f4f4f4;
 }
 
 .shop-layout {
-  background-color: #f4f4f4; 
+  background-color: var(--bg-light);
   min-height: 100vh;
 }
 
 .home-page-container {
-  max-width: 1450px; 
+  max-width: 1450px;
   margin: 0 auto;
-  padding: 0 10px; 
-  padding-top: 100px; 
-  padding-bottom: 40px;
+  padding: 110px 10px 40px;
 }
 
-/* GRID LOGIC */
+/* --- GRID SYSTEM --- */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px; 
+  gap: 10px;
   grid-auto-rows: max-content;
 }
 
 @media (min-width: 768px) {
-  .products-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .products-grid { grid-template-columns: repeat(4, 1fr); gap: 15px; }
 }
 
 @media (min-width: 1024px) {
   .products-grid { grid-template-columns: repeat(6, 1fr); gap: 15px; }
 }
 
-/* PRODUCT CARD */
+/* --- PRODUCT CARD --- */
 .product-card {
   background: #ffffff;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, box-shadow 0.2s;
   overflow: hidden;
+  position: relative;
 }
 
 .product-card:hover {
@@ -58,6 +58,7 @@
   aspect-ratio: 1 / 1;
   cursor: zoom-in;
   overflow: hidden;
+  background: #f8f9fa;
 }
 
 .product-img {
@@ -65,10 +66,6 @@
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
-}
-
-.product-card:hover .product-img {
-  transform: scale(1.05);
 }
 
 .image-hover-hint {
@@ -89,150 +86,165 @@
 }
 
 .product-details {
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 }
 
 .product-title {
   font-size: 13px;
   font-weight: 500;
   color: #333;
-  margin: 0 0 5px 0;
+  margin: 0 0 8px 0;
   height: 34px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-height: 1.3;
 }
 
 .product-price {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: #1a1a1a;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-/* QUANTITY & BUY BUTTON */
+/* --- ⭐ PROFESSIONAL BUTTONS & QUANTITY (KONGA STYLE) --- */
 .product-action-row {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-@media (min-width: 480px) {
-  .product-action-row { flex-direction: row; align-items: center; }
+  margin-top: auto;
 }
 
 .qty-input-group {
   display: flex;
   align-items: center;
-  background: #f1f3f5;
-  border: 1px solid #ced4da;
+  background: #fff;
+  border: 1px solid #cbd5e1;
   border-radius: 4px;
-  height: 34px;
+  height: 40px; /* Tall & professional */
+  overflow: hidden;
 }
 
 .qty-btn {
-  background: transparent;
+  background: #f1f5f9;
   border: none;
-  width: 28px;
+  width: 35px;
   height: 100%;
   cursor: pointer;
   font-weight: bold;
+  font-size: 18px;
   color: var(--essence-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:active {
+  background: #e2e8f0;
 }
 
 .qty-main-input {
-  width: 32px;
+  flex: 1;
+  width: 100%;
   border: none;
   background: transparent;
   text-align: center;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
 }
 
-.buy-btn {
-  flex: 1;
-  height: 34px;
-  background-color: var(--essence-green);
+.k-add-btn {
+  background: var(--konga-orange);
   color: white;
   border: none;
+  height: 40px; /* Matches quantity height */
   border-radius: 4px;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  width: 100%;
+  letter-spacing: 0.5px;
 }
 
-.status-badge {
-  font-size: 11px;
-  color: var(--essence-dark-green);
-  text-align: center;
-  margin-top: 5px;
+/* Success Indicator State */
+.k-add-btn.added {
+  background: var(--success-green) !important;
 }
 
-/* ⭐ RESPONSIVE MODAL STYLES */
-.img-modal-overlay {
+.k-add-btn:active {
+  transform: scale(0.98);
+}
+
+/* --- ⭐ IMAGE ZOOM OVERLAY (PASTRY STYLE) --- */
+.k-zoom-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.85);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 10000;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding: 15px;
-  backdrop-filter: blur(4px);
-}
-
-.img-modal-container {
-  position: relative;
-  background: white;
-  width: 100%;
-  max-width: 500px;
-  border-radius: 12px;
-  overflow: hidden;
-  animation: modalPop 0.25s ease-out;
-}
-
-.img-modal-close-btn {
-  position: absolute;
-  top: 10px; right: 10px;
-  width: 30px; height: 30px;
-  background: white;
-  border-radius: 50%;
-  border: none;
-  font-weight: bold;
   cursor: pointer;
-  z-index: 10;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  animation: fadeIn 0.2s ease-out;
 }
 
-.img-modal-responsive-img {
-  width: 100%;
-  max-height: 70vh;
+.k-zoom-overlay img {
+  max-width: 95%;
+  max-height: 80vh;
   object-fit: contain;
-  background: #f8f8f8;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-.img-modal-info {
-  padding: 20px;
-  text-align: center;
+.zoom-hint {
+  color: #fff;
+  margin-top: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.8;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.modal-price {
-  color: var(--essence-green);
-  font-weight: 800;
-  font-size: 1.2rem;
-  margin-top: 5px;
+/* --- UTILITIES & LOADING --- */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100px 0;
 }
 
-@keyframes modalPop {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--essence-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
 }
 
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Mobile Adjustments */
 @media (max-width: 600px) {
   .home-page-container { padding-top: 130px; }
+  .product-price { font-size: 15px; }
+  .k-add-btn { height: 38px; font-size: 11px; }
+  .qty-input-group { height: 38px; }
   }
