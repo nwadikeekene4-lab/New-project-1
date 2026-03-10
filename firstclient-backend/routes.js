@@ -242,7 +242,7 @@ router.post("/paystack/init", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Paystack Init Failed" }); }
 });
 
-// ⭐ INTEGRATED: VERIFICATION LOGIC WITH ALL MISSING INFO ADDED
+// ⭐ INTEGRATED: VERIFICATION LOGIC WITH 12H TIME AND DELIVERY DATE LABEL
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
@@ -257,7 +257,17 @@ router.post("/orders/verify", async (req, res) => {
     });
 
     if (response.data.data.status === "success") {
-      const paymentDate = new Date().toLocaleString('en-NG', { timeZone: 'Africa/Lagos' });
+      // FIX: Force 12-hour AM/PM format for Nigerian Time
+      const paymentDate = new Date().toLocaleString('en-GB', { 
+        timeZone: 'Africa/Lagos', 
+        hour12: true,
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
 
       await Order.create({
          reference: reference,
@@ -302,7 +312,7 @@ router.post("/orders/verify", async (req, res) => {
                 <h4 style="margin: 0 0 10px 0; color: #1c1c1c; text-transform: uppercase; font-size: 13px;">Delivery Details</h4>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Address:</strong> ${customerDetails.address}, ${customerDetails.city}</p>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Location Area:</strong> ${customerDetails.location}</p>
-                <p style="margin: 5px 0; font-size: 14px;"><strong>Target Date:</strong> ${customerDetails.selectedDate}</p>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Delivery Date:</strong> ${customerDetails.selectedDate}</p>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Phone:</strong> ${customerDetails.phone}</p>
               </div>
 
