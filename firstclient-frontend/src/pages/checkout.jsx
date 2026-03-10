@@ -17,10 +17,8 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
       });
   };
 
-  // ⭐ NEW: Specific logic for Checkout quantity adjustments
   const handleManualQtyChange = (cartItemId, value) => {
     if (value === "") {
-      // Allow user to backspace completely without jumping to 1 immediately
       updateCartQuantity(cartItemId, ""); 
       return;
     }
@@ -140,6 +138,8 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
                 {cart.map(cartItem => {
                    const productData = cartItem.product || cartItem;
                    const pid = productData.id || cartItem.productId;
+                   const itemSubtotal = (Number(productData.price || 0) * (cartItem.quantity === "" ? 0 : Number(cartItem.quantity)));
+
                    return (
                     <div key={cartItem.id} className="checkout-product-row">
                       <img className="checkout-item-img" src={getImageUrl(productData.image)} alt="" />
@@ -147,7 +147,6 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
                         <div className="item-title">{productData.name}</div>
                         
                         <div className="item-meta">
-                          {/* ⭐ UPDATED: Quantity Group with Buttons */}
                           <div className="qty-control-group">
                             <button 
                               className="qty-adj-btn"
@@ -167,7 +166,12 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
                               onClick={() => handleManualQtyChange(cartItem.id, (Number(cartItem.quantity) || 0) + 1)}
                             >+</button>
                             
-                            <span className="unit-price-tag"> @ ₦{Number(productData.price).toLocaleString()}</span>
+                            {/* ⭐ LIVE UPDATE SECTION */}
+                            <span className="unit-price-tag"> 
+                              @ ₦{Number(productData.price).toLocaleString()} 
+                              <span className="math-equal"> = </span>
+                              <strong className="item-live-total">₦{itemSubtotal.toLocaleString()}</strong>
+                            </span>
                           </div>
                         </div>
 
@@ -179,7 +183,6 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
               </div>
             </div>
 
-            {/* Delivery Date Section */}
             <div className="checkout-section-card">
               <div className="section-header"><h3>2. Delivery Date</h3></div>
               <div className="delivery-date-picker">
@@ -192,7 +195,6 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
               </div>
             </div>
 
-            {/* Shipping Information */}
             <div className="checkout-section-card">
               <div className="section-header"><h3>3. Shipping Information</h3></div>
               <div className="shipping-form-grid">
@@ -214,7 +216,6 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
             </div>
           </div>
 
-          {/* Right Column Summary */}
           <div className="checkout-right-column">
             <div className="order-summary-box">
               <h3>Order Summary</h3>
