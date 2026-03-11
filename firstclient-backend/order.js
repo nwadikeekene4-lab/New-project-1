@@ -7,15 +7,17 @@ const Order = sequelize.define("Order", {
     allowNull: false,
     unique: true 
   },
+  // Use DECIMAL(10, 2) for money to prevent rounding errors
   amount: {
-    type: DataTypes.FLOAT,
+    type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
   shippingFee: {
-    type: DataTypes.FLOAT,
+    type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
     defaultValue: 0
   },
+  // TEXT is fine for SQLite, but if you move to MySQL/Postgres later, JSON is better
   items: {
     type: DataTypes.TEXT, 
     allowNull: false
@@ -32,20 +34,20 @@ const Order = sequelize.define("Order", {
   country: { type: DataTypes.STRING, allowNull: true },
   phone: { type: DataTypes.STRING, allowNull: true },
   
-  // ⭐ INTEGRATED: This allows the database to remember the shipping area (e.g. Island)
+  // Stores the delivery area (e.g., "Lagos Island", "Mainland")
   location: { 
     type: DataTypes.STRING, 
     allowNull: true 
   },
 
-  // ⭐ INTEGRATED: Stores the delivery date selected at checkout
+  // Stores the delivery date selected at checkout
   selectedDate: { 
     type: DataTypes.STRING, 
     allowNull: true 
   }
 }, {
   timestamps: true,
-  paranoid: true // Allows for soft delete (records remain in DB but hidden from Admin)
+  paranoid: true // Keeps deleted orders in the database for your records
 });
 
 module.exports = Order;
