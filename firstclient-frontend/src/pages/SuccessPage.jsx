@@ -12,7 +12,7 @@ export function SuccessPage({ setCart }) {
   const hasVerified = useRef(false); 
   const location = useLocation();
 
-  // --- NEW: Helper to ensure cart is wiped everywhere ---
+  // --- Helper to ensure cart is wiped everywhere ---
   const clearSessionCart = () => {
     setCart([]); // Clear UI state
     localStorage.removeItem("pendingCustomerDetails"); // Clear Local Storage
@@ -60,7 +60,7 @@ export function SuccessPage({ setCart }) {
       .then((res) => {
         syncOrderData(res.data);
         setStatus('success');
-        clearSessionCart(); // FIX: Clear cart once payment is verified
+        clearSessionCart(); // ✅ Wipe cart on verification success
       })
       .catch((err) => {
         console.error("Verification Error:", err);
@@ -71,7 +71,7 @@ export function SuccessPage({ setCart }) {
       .then((res) => {
         syncOrderData(res.data);
         setStatus('success');
-        clearSessionCart(); // FIX: Clear cart if viewing existing receipt
+        clearSessionCart(); // ✅ Wipe cart if viewing existing receipt
       })
       .catch((err) => {
         console.error("Fetch Error:", err);
@@ -80,7 +80,7 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
-  // ⭐ PDF RECEIPT GENERATOR (Preserved your exact logic with Location added)
+  // ⭐ PDF RECEIPT GENERATOR
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
     const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
@@ -104,7 +104,6 @@ export function SuccessPage({ setCart }) {
             <h1 style="margin: 0; color: #1a202c; font-size: 32px; letter-spacing: 2px;">ESSENCE CREATIONS</h1>
             <p style="color: #28a745; font-weight: bold; margin-top: 5px; font-size: 14px;">OFFICIAL PAYMENT RECEIPT</p>
           </div>
-
           <div style="display: flex; justify-content: space-between; margin-bottom: 40px; line-height: 1.6; font-size: 14px;">
             <div style="width: 45%;">
               <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 11px;">Billed To:</strong><br>
@@ -120,7 +119,6 @@ export function SuccessPage({ setCart }) {
               <strong>Delivery Date: ${orderDetails.selectedDate}</strong>
             </div>
           </div>
-
           <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
             <thead>
               <tr style="background: #f7fafc;">
@@ -131,7 +129,6 @@ export function SuccessPage({ setCart }) {
             </thead>
             <tbody>${itemsHtml}</tbody>
           </table>
-          
           <div style="float: right; min-width: 280px; border-top: 2px solid #1c1c1c; padding-top: 15px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; color: #718096;">
               <span style="padding-right: 20px;">Subtotal:</span>
@@ -147,7 +144,6 @@ export function SuccessPage({ setCart }) {
             </div>
           </div>
           <div style="clear: both;"></div>
-
           <div style="margin-top: 60px; text-align: center; font-size: 12px; color: #cbd5e0; border-top: 1px solid #f0f0f0; padding-top: 20px;">
             This is an automated receipt for your payment to Essence Creations. Thank you!
           </div>
@@ -164,7 +160,7 @@ export function SuccessPage({ setCart }) {
     window.html2pdf().from(element).set(opt).save();
   };
 
-  // ⭐ WHATSAPP RECEIPT (Preserved logic with Location added)
+  // ⭐ UPDATED WHATSAPP RECEIPT (All details integrated)
   const handleShareReceipt = async () => {
     if (!orderDetails) return;
     const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
@@ -179,10 +175,15 @@ export function SuccessPage({ setCart }) {
       `*Ref:* #${reference}\n` +
       `*Paid On:* ${currentTime}\n` +
       `*Customer:* ${orderDetails.customerName || orderDetails.name}\n` +
+      `*Phone:* ${orderDetails.phone || 'N/A'}\n` +
+      `*Address:* ${orderDetails.address}, ${orderDetails.city || ''}\n` +
       `*Delivery Location:* ${orderDetails.location || 'N/A'}\n\n` +
       `*Items Ordered:* \n${itemSummary}\n\n` +
+      `*Subtotal:* ₦${prices.subtotal.toLocaleString()}\n` +
+      `*Shipping Fee:* ₦${prices.shipping.toLocaleString()} (${orderDetails.location || 'N/A'})\n` +
       `*Total Paid:* ₦${prices.total.toLocaleString()}\n\n` +
       `*Delivery Date:* ${orderDetails.selectedDate}\n\n` +
+      `*View Online:* ${window.location.origin}/success?reference=${reference}\n\n` +
       `Thank you for choosing Essence Creations! 🎂`;
 
     if (navigator.share) {
@@ -214,7 +215,6 @@ export function SuccessPage({ setCart }) {
         <p className="thanks-text">Thank you, <strong>{orderDetails?.customerName || orderDetails?.name}</strong>!</p>
         
         <div className="order-summary-box">
-          {/* FIX: Added Delivery Location to the summary UI */}
           <div className="summary-item"><span>Delivery Location:</span><strong>{orderDetails?.location || 'N/A'}</strong></div>
           <div className="summary-item"><span>Subtotal:</span><strong>₦{prices.subtotal.toLocaleString()}</strong></div>
           <div className="summary-item"><span>Shipping:</span><strong>₦{prices.shipping.toLocaleString()}</strong></div>
@@ -232,7 +232,6 @@ export function SuccessPage({ setCart }) {
           <button onClick={handleShareReceipt} className="share-btn">WhatsApp Receipt</button>
         </div>
         
-        {/* FIX: Added onClick to clear cart when going back */}
         <Link 
           to="/shop" 
           onClick={clearSessionCart} 
