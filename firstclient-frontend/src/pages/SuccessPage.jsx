@@ -69,7 +69,7 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
-  // ⭐ PDF RECEIPT GENERATOR (INTEGRATED BREAKDOWN: Subtotal, Shipping, Total)
+  // ⭐ PDF RECEIPT GENERATOR (FIXED WIDTH & MARGINS TO PREVENT CUTOUT)
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
     const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
@@ -79,41 +79,41 @@ export function SuccessPage({ setCart }) {
         const p = item.product || item;
         return `
           <tr>
-            <td style="padding: 12px; border-bottom: 1px solid #edf2f7; color: #4a5568;">${p.name}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: center;">${item.quantity}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: bold;">₦${Number(p.price).toLocaleString()}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #edf2f7; color: #4a5568;">${p.name}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: center;">${item.quantity}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #edf2f7; text-align: right; font-weight: bold;">₦${Number(p.price).toLocaleString()}</td>
           </tr>
         `;
     }).join('');
 
     const element = document.createElement('div');
     element.innerHTML = `
-      <div style="font-family: sans-serif; max-width: 700px; margin: auto; padding: 40px; color: #2d3748; background: white;">
+      <div style="font-family: sans-serif; width: 620px; margin: auto; padding: 20px; color: #2d3748; background: white;">
           <div style="text-align: center; border-bottom: 4px solid #1c1c1c; padding-bottom: 20px; margin-bottom: 30px;">
-            <h1 style="margin: 0; color: #1a202c; font-size: 32px; letter-spacing: 2px;">ESSENCE CREATIONS</h1>
+            <h1 style="margin: 0; color: #1a202c; font-size: 28px; letter-spacing: 2px;">ESSENCE CREATIONS</h1>
             <p style="color: #28a745; font-weight: bold; margin-top: 5px;">OFFICIAL PAYMENT RECEIPT</p>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 40px; line-height: 1.6;">
-            <div>
-              <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Billed To:</strong><br>
-              <span style="font-size: 18px; font-weight: bold;">${orderDetails.name || orderDetails.customerName}</span><br>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 40px; line-height: 1.6; font-size: 13px;">
+            <div style="max-width: 50%;">
+              <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 10px; letter-spacing: 1px;">Billed To:</strong><br>
+              <span style="font-size: 16px; font-weight: bold;">${orderDetails.name || orderDetails.customerName}</span><br>
               ${orderDetails.phone}<br>
               <strong>Address:</strong> ${orderDetails.address}, ${orderDetails.city || ''}<br>
-              <strong>Delivery Location:</strong> ${orderDetails.location || 'N/A'}
+              <strong>Location:</strong> ${orderDetails.location || 'N/A'}
             </div>
-            <div style="text-align: right;">
-              <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Order Summary:</strong><br>
+            <div style="text-align: right; max-width: 50%;">
+              <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 10px; letter-spacing: 1px;">Order Summary:</strong><br>
               Ref: #${reference}<br>
               Paid On: ${currentTime}<br>
               <strong>Delivery Date: ${orderDetails.selectedDate}</strong>
             </div>
           </div>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px;">
             <thead>
               <tr style="background: #f7fafc;">
-                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Item Description</th>
-                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Qty</th>
-                <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Price</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Item Description</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">Qty</th>
+                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0;">Price</th>
               </tr>
             </thead>
             <tbody>${itemsHtml}</tbody>
@@ -129,22 +129,22 @@ export function SuccessPage({ setCart }) {
               <span>₦${prices.shipping.toLocaleString()}</span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #edf2f7; padding-top: 12px;">
-              <strong style="color: #1c1c1c; font-size: 18px; text-transform: uppercase;">Total:</strong>
-              <strong style="color: #1c1c1c; font-size: 26px;">₦${prices.total.toLocaleString()}</strong>
+              <strong style="color: #1c1c1c; font-size: 16px; text-transform: uppercase;">Total:</strong>
+              <strong style="color: #1c1c1c; font-size: 22px;">₦${prices.total.toLocaleString()}</strong>
             </div>
           </div>
 
-          <div style="margin-top: 50px; text-align: center; font-size: 11px; color: #cbd5e0; border-top: 1px solid #f0f0f0; padding-top: 20px;">
+          <div style="margin-top: 50px; text-align: center; font-size: 10px; color: #cbd5e0; border-top: 1px solid #f0f0f0; padding-top: 20px;">
             This is an automated receipt for your payment to Essence Creations. Thank you for your business!
           </div>
       </div>
     `;
 
     const opt = {
-      margin: 0,
+      margin: 0.5, // ⭐ Added 0.5 inch margin to prevent edges being cut
       filename: `EssenceCreations_Receipt_${reference}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
     window.html2pdf().from(element).set(opt).save();
@@ -165,15 +165,11 @@ export function SuccessPage({ setCart }) {
     const receiptText = `*ESSENCE CREATIONS RECEIPT* 🛍️\n\n` +
       `*Ref:* #${reference}\n` +
       `*Paid On:* ${currentTime}\n` +
-      `*Customer:* ${orderDetails.name || orderDetails.customerName}\n` +
-      `*Phone:* ${orderDetails.phone}\n` +
-      `*Address:* ${orderDetails.address}, ${orderDetails.city || ''}\n` +
-      `*Delivery Location:* ${orderDetails.location || 'N/A'}\n\n` +
+      `*Customer:* ${orderDetails.name || orderDetails.customerName}\n\n` +
       `*Items Ordered:* \n${itemSummary}\n\n` +
-      `*Shipping Fee:* ₦${prices.shipping.toLocaleString()} (${orderDetails.location || 'Standard'})\n` +
+      `*Shipping Fee:* ₦${prices.shipping.toLocaleString()}\n` +
       `*Total:* ₦${prices.total.toLocaleString()}\n\n` +
       `*Delivery Date:* ${orderDetails.selectedDate}\n\n` +
-      `*View Online:* ${persistentLink}\n\n` +
       `Thank you for choosing Essence Creations! 🎂`;
 
     if (navigator.share) {
@@ -233,4 +229,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-      }
+                                                                                                                         }
