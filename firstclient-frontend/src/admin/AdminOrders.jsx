@@ -32,9 +32,11 @@ export default function AdminOrders() {
       .catch(err => console.error("Error fetching orders:", err));
   };
 
-  // ⭐ INTEGRATED FIX: Added Toolbar for Preview & Print Control
+  // ⭐ INTEGRATED FIX: Added Shipping Location and Subtotal to Print Logic
   const handlePrint = (order) => {
     const printWindow = window.open('', '_blank');
+    const subtotal = Number(order.amount) - Number(order.shippingFee || 0);
+
     const itemsHtml = order.items.map(item => {
       const p = item.product || item;
       const price = p.price || 0;
@@ -71,8 +73,8 @@ export default function AdminOrders() {
             .ref-no { font-family: 'Courier New', monospace; color: #3b82f6; font-weight: bold; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
             th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; color: #64748b; text-transform: uppercase; font-size: 12px; }
-            .summary-table { width: 250px; margin-left: auto; margin-top: 20px; border-top: 2px solid #1e293b; }
-            .summary-row { display: flex; justify-content: space-between; padding: 8px 0; }
+            .summary-table { width: 300px; margin-left: auto; margin-top: 20px; border-top: 2px solid #1e293b; }
+            .summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
             .total-row { font-size: 1.5rem; font-weight: 800; color: #059669; padding-top: 10px; border-top: 1px solid #e2e8f0; }
             .footer { margin-top: 60px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #edf2f7; padding-top: 20px; }
           </style>
@@ -88,7 +90,8 @@ export default function AdminOrders() {
           </div>
           <div class="details-grid">
             <div>
-              <p><strong>BILLED TO:</strong><br>${order.customerName}<br>${order.phone}<br>${order.address}, ${order.city}</p>
+              <p><strong>BILLED TO:</strong><br>${order.customerName}<br>${order.phone}<br>${order.address}, ${order.city}<br>
+              <strong>Location:</strong> ${order.location || 'N/A'}</p>
             </div>
             <div style="text-align: right;">
               <p><strong>ORDER REF:</strong> <span class="ref-no">#${order.reference}</span><br>
@@ -104,11 +107,15 @@ export default function AdminOrders() {
           </table>
           <div class="summary-table">
             <div class="summary-row">
-              <span style="color: #64748b;">Shipping Fee (${order.city}):</span>
+              <span style="color: #64748b;">Subtotal:</span>
+              <span>₦${subtotal.toLocaleString()}</span>
+            </div>
+            <div class="summary-row">
+              <span style="color: #64748b;">Shipping (${order.location || 'Standard'}):</span>
               <span>₦${Number(order.shippingFee || 0).toLocaleString()}</span>
             </div>
             <div class="summary-row total-row">
-              <span>TOTAL</span>
+              <span>TOTAL PAID</span>
               <span>₦${Number(order.amount).toLocaleString()}</span>
             </div>
           </div>
@@ -210,6 +217,8 @@ export default function AdminOrders() {
                     <p className="cust-name">{order.customerName}</p>
                     <p className="cust-detail">{order.phone}</p>
                     <p className="cust-detail address">{order.address}, <strong>{order.city}</strong></p>
+                    {/* FIXED: Displaying the Area/Branch Location */}
+                    <p className="cust-detail">Location: <strong>{order.location || 'N/A'}</strong></p>
                   </div>
                   <div className="grid-section">
                     <h4>Items</h4>
