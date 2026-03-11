@@ -69,13 +69,9 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
-  // ⭐ PDF RECEIPT GENERATOR (UPDATED: 12H TIME & DELIVERY DATE LABEL)
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
-    
-    // Explicitly formatting to 12-hour clock with AM/PM
     const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
-
     const itemsArray = typeof orderDetails.items === 'string' ? JSON.parse(orderDetails.items) : orderDetails.items;
     
     const itemsHtml = itemsArray.map(item => {
@@ -102,7 +98,7 @@ export function SuccessPage({ setCart }) {
               ${orderDetails.name || orderDetails.customerName}<br>
               ${orderDetails.phone}<br>
               <strong>Address:</strong> ${orderDetails.address}, ${orderDetails.city || ''}<br>
-              <strong>Location:</strong> ${orderDetails.location || 'N/A'}
+              <strong>Delivery Location:</strong> ${orderDetails.location || 'N/A'}
             </div>
             <div style="text-align: right;">
               <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 12px;">Order Summary:</strong><br>
@@ -123,11 +119,8 @@ export function SuccessPage({ setCart }) {
           </table>
           <div style="text-align: right; margin-top: 30px; padding-top: 20px; border-top: 2px solid #1c1c1c;">
             <p style="margin-bottom: 5px; font-size: 14px; color: #718096;">Subtotal: ₦${Number(orderDetails.itemsTotal || prices.subtotal).toLocaleString()}</p>
-            <p style="margin-bottom: 10px; font-size: 14px; color: #718096;">Shipping (${orderDetails.location || 'Delivery'}): ₦${prices.shipping.toLocaleString()}</p>
+            <p style="margin-bottom: 10px; font-size: 14px; color: #718096;">Shipping ${orderDetails.location ? `(${orderDetails.location})` : ''}: ₦${prices.shipping.toLocaleString()}</p>
             <h2 style="margin: 0; color: #1c1c1c; font-size: 24px;">Total Paid: ₦${prices.total.toLocaleString()}</h2>
-          </div>
-          <div style="margin-top: 50px; text-align: center; font-size: 11px; color: #cbd5e0; border-top: 1px solid #f0f0f0; padding-top: 20px;">
-            This is an automated receipt for your payment to Essence Creations. Thank you for your business!
           </div>
       </div>
     `;
@@ -139,11 +132,9 @@ export function SuccessPage({ setCart }) {
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
-
     window.html2pdf().from(element).set(opt).save();
   };
 
-  // ⭐ WHATSAPP LOGIC (UPDATED: 12H TIME & DELIVERY DATE LABEL)
   const handleShareReceipt = async () => {
     if (!orderDetails) return;
     const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
@@ -162,9 +153,9 @@ export function SuccessPage({ setCart }) {
       `*Customer:* ${orderDetails.name || orderDetails.customerName}\n` +
       `*Phone:* ${orderDetails.phone}\n` +
       `*Address:* ${orderDetails.address}, ${orderDetails.city || ''}\n` +
-      `*Area:* ${orderDetails.location || 'N/A'}\n\n` +
+      `*Delivery Location:* ${orderDetails.location || 'N/A'}\n\n` +
       `*Items Ordered:* \n${itemSummary}\n\n` +
-      `*Shipping Fee:* ₦${prices.shipping.toLocaleString()}\n` +
+      `*Shipping Fee:* ₦${prices.shipping.toLocaleString()} (${orderDetails.location || 'Standard'})\n` +
       `*Total Paid:* ₦${prices.total.toLocaleString()}\n\n` +
       `*Delivery Date:* ${orderDetails.selectedDate}\n\n` +
       `*View Online:* ${persistentLink}\n\n` +
@@ -203,7 +194,11 @@ export function SuccessPage({ setCart }) {
         
         <div className="order-summary-box">
           <div className="summary-item"><span>Items Total:</span><strong>₦{prices.subtotal.toLocaleString()}</strong></div>
-          <div className="summary-item"><span>Shipping (${orderDetails?.location}):</span><strong>₦{prices.shipping.toLocaleString()}</strong></div>
+          <div className="summary-item">
+            {/* ⭐ INTEGRATED: Only show location text if orderDetails.location exists */}
+            <span>Shipping {orderDetails?.location ? `(${orderDetails.location})` : ''}:</span>
+            <strong>₦{prices.shipping.toLocaleString()}</strong>
+          </div>
           <div className="summary-item total-row"><span>Grand Total:</span><strong className="total-amount">₦{prices.total.toLocaleString()}</strong></div>
           <hr />
           <div className="summary-item"><span>Delivery Date:</span><strong>{orderDetails?.selectedDate}</strong></div>
@@ -213,16 +208,12 @@ export function SuccessPage({ setCart }) {
         <p className="email-note">Your receipt was sent to <strong>{orderDetails?.email || orderDetails?.customerEmail}</strong></p>
 
         <div className="success-action-buttons">
-          <button onClick={handleDownloadReceipt} className="download-receipt-btn">
-            Download PDF Receipt
-          </button>
-          <button onClick={handleShareReceipt} className="share-btn">
-            WhatsApp Receipt
-          </button>
+          <button onClick={handleDownloadReceipt} className="download-receipt-btn">Download PDF Receipt</button>
+          <button onClick={handleShareReceipt} className="share-btn">WhatsApp Receipt</button>
         </div>
 
         <Link to="/shop" className="continue-btn" style={{marginTop: '20px', display: 'block', textAlign: 'center'}}>Continue Shopping</Link>
       </div>
     </div>
   );
-            }
+    }
