@@ -30,8 +30,14 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      // ⭐ UPDATED: Added Cloudinary and common Render patterns to prevent blocks
-      connectSrc: ["'self'", "https://api.paystack.co", "https://*.onrender.com", "http://localhost:5000"],
+      // ⭐ INTEGRATED: Added Resend API to the allowed connections
+      connectSrc: [
+        "'self'", 
+        "https://api.paystack.co", 
+        "https://api.resend.com", 
+        "https://*.onrender.com", 
+        "http://localhost:5000"
+      ],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "*.cloudinary.com"],
       videoSrc: ["'self'", "https://res.cloudinary.com", "*.cloudinary.com"],
     },
@@ -87,22 +93,18 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // --- 🧹 AUTOMATIC CLEANUP TASK ---
 const startCleanupTask = () => {
-  // Logic to run immediate cleanup on boot, then every 24 hours
   const runCleanup = async () => {
     try {
       const now = new Date();
-      
-      // 1. Permanent delete Products older than 15 days in archive
       const productLimit = new Date(now.getTime() - (15 * 24 * 60 * 60 * 1000));
       await Product.destroy({
         where: { 
           deletedAt: { [Op.lt]: productLimit } 
         },
         force: true,
-        paranoid: false // Required to find already-soft-deleted items
+        paranoid: false 
       });
 
-      // 2. Permanent delete Messages older than 60 days in archive
       const messageLimit = new Date(now.getTime() - (60 * 24 * 60 * 60 * 1000));
       await Message.destroy({
         where: { 
@@ -118,7 +120,7 @@ const startCleanupTask = () => {
     }
   };
 
-  runCleanup(); // Run once on startup
+  runCleanup(); 
   setInterval(runCleanup, 24 * 60 * 60 * 1000); 
 };
 
@@ -127,7 +129,6 @@ async function startServer() {
   try {
     console.log("⏳ Starting database synchronization...");
     
-    // ⭐ These { alter: true } calls will now pick up your shippingFee field!
     await Product.sync({ alter: true }); 
     await Admin.sync({ alter: true }); 
     await Message.sync({ alter: true }); 
