@@ -29,8 +29,9 @@ export function SuccessPage({ setCart }) {
 
     const syncOrderData = (data) => {
       setOrderDetails(data);
+      // Backend uses 'amount' for the total paid from Paystack
+      const total = Number(data.amount || data.totalAmount || 0);
       const shipping = Number(data.shippingFee || 0);
-      const total = Number(data.totalAmount || data.amount || 0);
       setPrices({ 
         shipping, 
         total, 
@@ -38,25 +39,33 @@ export function SuccessPage({ setCart }) {
       });
     };
 
+    // LOGIC: If we have details in storage, verify and then RE-FETCH from DB
+    // This ensures the PDF and WhatsApp see exactly what the server saved.
     if (savedDetails) {
       const customerDetails = JSON.parse(savedDetails);
-      syncOrderData(customerDetails);
+      syncOrderData(customerDetails); // Immediate UI update
 
-      API.post("/orders/verify", { reference: ref, customerDetails })
+      API.post("/orders/verify", { reference: ref })
       .then((res) => {
         if (res.data.success) {
-          setStatus('success');
-          setCart([]); 
-          localStorage.removeItem("pendingCustomerDetails"); 
+          // Success! Now fetch the official record for the receipt
+          return API.get(`/orders/receipt/${ref}`);
         } else {
-          setStatus('error');
+          throw new Error("Verification failed");
         }
+      })
+      .then((res) => {
+        syncOrderData(res.data);
+        setStatus('success');
+        setCart([]); 
+        localStorage.removeItem("pendingCustomerDetails"); 
       })
       .catch((err) => {
         console.error("Verification Error:", err);
         setStatus('error');
       });
     } else {
+      // If user is returning via a shared link/refresh
       API.get(`/orders/receipt/${ref}`)
       .then((res) => {
         syncOrderData(res.data);
@@ -97,7 +106,7 @@ export function SuccessPage({ setCart }) {
           <div style="display: flex; justify-content: space-between; margin-bottom: 40px; line-height: 1.6; font-size: 14px;">
             <div style="width: 45%;">
               <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 11px;">Billed To:</strong><br>
-              <span style="font-size: 18px; font-weight: bold;">${orderDetails.name || orderDetails.customerName}</span><br>
+              <span style="font-size: 18px; font-weight: bold;">${orderDetails.customerName || orderDetails.name}</span><br>
               ${orderDetails.phone}<br>
               <strong>Address:</strong> ${orderDetails.address}, ${orderDetails.city || ''}<br>
               <strong>Location:</strong> ${orderDetails.location || 'N/A'}
@@ -124,7 +133,7 @@ export function SuccessPage({ setCart }) {
           <div style="float: right; min-width: 280px; border-top: 2px solid #1c1c1c; padding-top: 15px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; color: #718096;">
               <span style="padding-right: 20px;">Subtotal:</span>
-              <span>₦${Number(orderDetails.itemsTotal || prices.subtotal).toLocaleString()}</span>
+              <span>₦${prices.subtotal.toLocaleString()}</span>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #718096;">
               <span style="padding-right: 20px;">Shipping:</span>
@@ -169,7 +178,7 @@ export function SuccessPage({ setCart }) {
     const receiptText = `*ESSENCE CREATIONS RECEIPT* 🛍️\n\n` +
       `*Ref:* #${reference}\n` +
       `*Paid On:* ${currentTime}\n` +
-      `*Customer:* ${orderDetails.name || orderDetails.customerName}\n` +
+      `*Customer:* ${orderDetails.customerName || orderDetails.name}\n` +
       `*Phone:* ${orderDetails.phone}\n` +
       `*Address:* ${orderDetails.address}, ${orderDetails.city || ''}\n` +
       `*Delivery Location:* ${orderDetails.location || 'N/A'}\n\n` +
@@ -208,7 +217,7 @@ export function SuccessPage({ setCart }) {
       <div className="success-card">
         <div className="checkmark-circle"><div className="checkmark"></div></div>
         <h1>Payment Successful!</h1>
-        <p className="thanks-text">Thank you, <strong>{orderDetails?.name || orderDetails?.customerName}</strong>!</p>
+        <p className="thanks-text">Thank you, <strong>{orderDetails?.customerName || orderDetails?.name}</strong>!</p>
         
         <div className="order-summary-box">
           <div className="summary-item"><span>Subtotal:</span><strong>₦{prices.subtotal.toLocaleString()}</strong></div>
@@ -230,4 +239,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-                      }
+      }
