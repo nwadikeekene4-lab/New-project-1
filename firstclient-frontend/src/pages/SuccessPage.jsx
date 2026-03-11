@@ -69,6 +69,7 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
+  // ⭐ PDF RECEIPT GENERATOR (INTEGRATED BREAKDOWN & "TOTAL PAID")
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
     const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
@@ -94,33 +95,49 @@ export function SuccessPage({ setCart }) {
           </div>
           <div style="display: flex; justify-content: space-between; margin-bottom: 40px; line-height: 1.6;">
             <div>
-              <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 12px;">Customer Details:</strong><br>
-              ${orderDetails.name || orderDetails.customerName}<br>
+              <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Billed To:</strong><br>
+              <span style="font-size: 18px; font-weight: bold;">${orderDetails.name || orderDetails.customerName}</span><br>
               ${orderDetails.phone}<br>
               <strong>Address:</strong> ${orderDetails.address}, ${orderDetails.city || ''}<br>
               <strong>Delivery Location:</strong> ${orderDetails.location || 'N/A'}
             </div>
             <div style="text-align: right;">
-              <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 12px;">Order Summary:</strong><br>
+              <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Order Summary:</strong><br>
               Ref: #${reference}<br>
               Paid On: ${currentTime}<br>
-              <strong>Delivery Date: ${orderDetails.selectedDate}</strong>
+              <span style="background: #1c1c1c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-block; margin-top: 5px;">
+                Delivery Date: ${orderDetails.selectedDate}
+              </span>
             </div>
           </div>
-          <table style="width: 100%; border-collapse: collapse;">
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
               <tr style="background: #f7fafc;">
-                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Item Description</th>
-                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Qty</th>
-                <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e2e8f0;">Amount</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Item Description</th>
+                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Qty</th>
+                <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e2e8f0; font-size: 13px;">Price</th>
               </tr>
             </thead>
             <tbody>${itemsHtml}</tbody>
           </table>
-          <div style="text-align: right; margin-top: 30px; padding-top: 20px; border-top: 2px solid #1c1c1c;">
-            <p style="margin-bottom: 5px; font-size: 14px; color: #718096;">Subtotal: ₦${Number(orderDetails.itemsTotal || prices.subtotal).toLocaleString()}</p>
-            <p style="margin-bottom: 10px; font-size: 14px; color: #718096;">Shipping ${orderDetails.location ? `(${orderDetails.location})` : ''}: ₦${prices.shipping.toLocaleString()}</p>
-            <h2 style="margin: 0; color: #1c1c1c; font-size: 24px;">Total Paid: ₦${prices.total.toLocaleString()}</h2>
+          
+          <div style="margin-left: auto; width: 300px; border-top: 2px solid #1c1c1c; padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #718096;">
+              <span>Subtotal:</span>
+              <span>₦${Number(orderDetails.itemsTotal || prices.subtotal).toLocaleString()}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: #718096;">
+              <span>Shipping ${orderDetails.location ? `(${orderDetails.location})` : ''}:</span>
+              <span>₦${prices.shipping.toLocaleString()}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #edf2f7; padding-top: 12px;">
+              <strong style="color: #1c1c1c; font-size: 16px; text-transform: uppercase;">Total Paid:</strong>
+              <strong style="color: #1c1c1c; font-size: 24px;">₦${prices.total.toLocaleString()}</strong>
+            </div>
+          </div>
+
+          <div style="margin-top: 50px; text-align: center; font-size: 11px; color: #cbd5e0; border-top: 1px solid #f0f0f0; padding-top: 20px;">
+            This is an automated receipt for your payment to Essence Creations. Thank you for your business!
           </div>
       </div>
     `;
@@ -195,11 +212,14 @@ export function SuccessPage({ setCart }) {
         <div className="order-summary-box">
           <div className="summary-item"><span>Items Total:</span><strong>₦{prices.subtotal.toLocaleString()}</strong></div>
           <div className="summary-item">
-            {/* ⭐ INTEGRATED: Only show location text if orderDetails.location exists */}
             <span>Shipping {orderDetails?.location ? `(${orderDetails.location})` : ''}:</span>
             <strong>₦{prices.shipping.toLocaleString()}</strong>
           </div>
-          <div className="summary-item total-row"><span>Grand Total:</span><strong className="total-amount">₦{prices.total.toLocaleString()}</strong></div>
+          {/* ⭐ UI CHANGE: Changed Grand Total to Total Paid */}
+          <div className="summary-item total-row">
+            <span>Total Paid:</span>
+            <strong className="total-amount">₦{prices.total.toLocaleString()}</strong>
+          </div>
           <hr />
           <div className="summary-item"><span>Delivery Date:</span><strong>{orderDetails?.selectedDate}</strong></div>
           <div className="summary-item"><span>Reference:</span><small>{reference}</small></div>
@@ -216,4 +236,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-    }
+      }
