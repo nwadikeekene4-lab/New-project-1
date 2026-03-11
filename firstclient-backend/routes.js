@@ -101,14 +101,13 @@ router.post("/paystack/webhook", async (req, res) => {
       
       const existingOrder = await Order.findOne({ where: { reference } });
       if (!existingOrder) {
-        // SECURE: Use metadata stashed during initialization
         const details = data.metadata.customer_details;
 
         await Order.create({
           reference: reference,
           customerName: details.name,
           customerEmail: data.customer.email,
-          amount: data.amount / 100, // SECURE: Price from Paystack server
+          amount: data.amount / 100, 
           shippingFee: details.shippingFee || 0,
           address: details.address,
           city: details.city,
@@ -250,7 +249,6 @@ router.post("/cart/add", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-
 router.delete("/cart/clear", async (req, res) => {
   try { await CartItem.destroy({ where: {} }); res.json({ success: true }); }
   catch (err) { res.status(500).json({ error: err.message }); }
@@ -271,7 +269,6 @@ router.post("/orders/verify", async (req, res) => {
   try {
     const { reference } = req.body;
     
-    // Check if order already exist (possibly saved by Webhook already)
     let order = await Order.findOne({ where: { reference } });
 
     if (!order) {
@@ -291,7 +288,7 @@ router.post("/orders/verify", async (req, res) => {
            reference: reference,
            customerName: details.name,
            customerEmail: payData.customer.email,
-           amount: payData.amount / 100, // SECURE: Use Paystack's amount
+           amount: payData.amount / 100, 
            shippingFee: details.shippingFee || 0,
            address: details.address,
            city: details.city,
@@ -304,7 +301,7 @@ router.post("/orders/verify", async (req, res) => {
 
         await CartItem.destroy({ where: {} });
 
-        if (process.env.RESEND_API_KEY && details.email) {
+        if (process.env.RESEND_API_KEY) {
           try {
             const itemsHtml = details.items.map(item => {
               const p = item.product || item;
@@ -319,7 +316,7 @@ router.post("/orders/verify", async (req, res) => {
 
             await resend.emails.send({
               from: 'Essence Creations <onboarding@resend.dev>',
-              to: details.email,
+              to: payData.customer.email, 
               subject: `Receipt for Order #${reference}`,
               html: emailHtml
             });
