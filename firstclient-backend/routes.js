@@ -268,21 +268,24 @@ router.post("/paystack/init", async (req, res) => {
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference } = req.body;
+    console.log(`Step 1: Starting verification for ref: ${reference}`);
+    
     let order = await Order.findOne({ where: { reference } });
+    let payData;
+    let details;
 
-    if (!order) {
-      const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
-        headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
-      });
+    // Fetch the latest status from Paystack regardless to ensure we have data for the email
+    const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
+    });
 
-      if (response.data.data.status === "success") {
-        const payData = response.data.data;
-        const details = payData.metadata.customer_details;
+    if (response.data.data.status === "success") {
+      payData = response.data.data;
+      details = payData.metadata.customer_details;
 
-        const paymentDate = new Date().toLocaleString('en-GB', { 
-          timeZone: 'Africa/Lagos', hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
-        });
-
+      // If Webhook hasn't saved the order yet, create it here
+      if (!order) {
+        console.log("Step 2: Order not found in DB, creating now...");
         order = await Order.create({
            reference: reference,
            customerName: details.name,
@@ -297,48 +300,56 @@ router.post("/orders/verify", async (req, res) => {
            items: JSON.stringify(details.items),
            status: "Paid" 
         });
-
         await CartItem.destroy({ where: {} });
+      } else {
+        console.log("Step 2: Order already existed in DB (via Webhook).");
+      }
 
-        if (process.env.RESEND_API_KEY) {
-          try {
-            const itemsHtml = details.items.map(item => {
-              const p = item.product || item;
-              return `<tr><td style="padding: 12px; border-bottom: 1px solid #edf2f7;">${p.name}</td><td style="text-align: center;">${item.quantity}</td><td style="text-align: right;">₦${Number(p.price).toLocaleString()}</td></tr>`;
-            }).join('');
+      // ⭐ TRIGGER EMAIL RECEIPT
+      if (process.env.RESEND_API_KEY) {
+        try {
+          console.log("Step 3: Attempting to send email receipt...");
+          const paymentDate = new Date().toLocaleString('en-GB', { 
+            timeZone: 'Africa/Lagos', hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+          });
 
-            const emailHtml = `
-              <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; padding: 20px;">
-                <h2 style="color: #1a202c; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">ESSENCE CREATIONS RECEIPT</h2>
-                <p>Hello <strong>${details.name}</strong>, your payment of <strong>₦${(payData.amount/100).toLocaleString()}</strong> was successful on ${paymentDate}.</p>
-                <p><strong>Order Ref:</strong> #${reference}</p>
-                <p><strong>Shipping Location:</strong> ${details.location}</p>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                  <thead>
-                    <tr style="background: #f8fafc;">
-                      <th style="padding: 10px; border-bottom: 1px solid #eee;">Item</th>
-                      <th style="padding: 10px; border-bottom: 1px solid #eee;">Qty</th>
-                      <th style="padding: 10px; border-bottom: 1px solid #eee;">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody>${itemsHtml}</tbody>
-                </table>
-                <div style="margin-top: 20px; text-align: right; font-weight: bold;">
-                  Total Paid: ₦${(payData.amount/100).toLocaleString()}
-                </div>
-              </div>`;
+          // Ensure items are handled correctly if they arrive as a string or object
+          const itemsArray = typeof details.items === 'string' ? JSON.parse(details.items) : details.items;
+          const itemsHtml = itemsArray.map(item => {
+            const p = item.product || item;
+            return `<tr><td style="padding: 12px; border-bottom: 1px solid #edf2f7;">${p.name}</td><td style="text-align: center;">${item.quantity}</td><td style="text-align: right;">₦${Number(p.price).toLocaleString()}</td></tr>`;
+          }).join('');
 
-            // ⭐ RESTORED LOGIC: Using Sandbox address for verified email
-            await resend.emails.send({
-              from: 'Essence Creations <onboarding@resend.dev>',
-              to: 'nwadikeekene4@gmail.com', 
-              subject: `Receipt for Order #${reference}`,
-              html: emailHtml
-            });
-            console.log("Receipt email sent successfully to sandbox email.");
-          } catch (e) { 
-            console.log("Email skip (Domain not ready or Resend error):", e.message); 
-          }
+          const emailHtml = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; padding: 20px;">
+              <h2 style="color: #1a202c; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">ESSENCE CREATIONS RECEIPT</h2>
+              <p>Hello <strong>${details.name}</strong>, your payment of <strong>₦${(payData.amount/100).toLocaleString()}</strong> was successful on ${paymentDate}.</p>
+              <p><strong>Order Ref:</strong> #${reference}</p>
+              <p><strong>Shipping Location:</strong> ${details.location}</p>
+              <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead>
+                  <tr style="background: #f8fafc;">
+                    <th style="padding: 10px; border-bottom: 1px solid #eee;">Item</th>
+                    <th style="padding: 10px; border-bottom: 1px solid #eee;">Qty</th>
+                    <th style="padding: 10px; border-bottom: 1px solid #eee;">Price</th>
+                  </tr>
+                </thead>
+                <tbody>${itemsHtml}</tbody>
+              </table>
+              <div style="margin-top: 20px; text-align: right; font-weight: bold;">
+                Total Paid: ₦${(payData.amount/100).toLocaleString()}
+              </div>
+            </div>`;
+
+          await resend.emails.send({
+            from: 'Essence Creations <onboarding@resend.dev>',
+            to: 'nwadikeekene4@gmail.com', 
+            subject: `Receipt for Order #${reference}`,
+            html: emailHtml
+          });
+          console.log("✅ Step 4: Receipt email sent successfully.");
+        } catch (e) { 
+          console.log("❌ Email Error:", e.message); 
         }
       }
     }
@@ -346,6 +357,7 @@ router.post("/orders/verify", async (req, res) => {
     if (order) return res.json({ success: true });
     res.status(400).json({ success: false });
   } catch (err) {
+    console.error("Critical Verification Error:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
