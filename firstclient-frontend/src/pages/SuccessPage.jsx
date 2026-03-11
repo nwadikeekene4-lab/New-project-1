@@ -69,7 +69,7 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
-  // ⭐ PDF RECEIPT GENERATOR (INTEGRATED BREAKDOWN & "TOTAL PAID")
+  // ⭐ PDF RECEIPT GENERATOR (INTEGRATED BREAKDOWN: Subtotal, Shipping, Total)
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
     const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
@@ -105,9 +105,7 @@ export function SuccessPage({ setCart }) {
               <strong style="color: #1c1c1c; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Order Summary:</strong><br>
               Ref: #${reference}<br>
               Paid On: ${currentTime}<br>
-              <span style="background: #1c1c1c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-block; margin-top: 5px;">
-                Delivery Date: ${orderDetails.selectedDate}
-              </span>
+              <strong>Delivery Date: ${orderDetails.selectedDate}</strong>
             </div>
           </div>
           <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
@@ -131,8 +129,8 @@ export function SuccessPage({ setCart }) {
               <span>₦${prices.shipping.toLocaleString()}</span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #edf2f7; padding-top: 12px;">
-              <strong style="color: #1c1c1c; font-size: 16px; text-transform: uppercase;">Total Paid:</strong>
-              <strong style="color: #1c1c1c; font-size: 24px;">₦${prices.total.toLocaleString()}</strong>
+              <strong style="color: #1c1c1c; font-size: 18px; text-transform: uppercase;">Total:</strong>
+              <strong style="color: #1c1c1c; font-size: 26px;">₦${prices.total.toLocaleString()}</strong>
             </div>
           </div>
 
@@ -173,7 +171,7 @@ export function SuccessPage({ setCart }) {
       `*Delivery Location:* ${orderDetails.location || 'N/A'}\n\n` +
       `*Items Ordered:* \n${itemSummary}\n\n` +
       `*Shipping Fee:* ₦${prices.shipping.toLocaleString()} (${orderDetails.location || 'Standard'})\n` +
-      `*Total Paid:* ₦${prices.total.toLocaleString()}\n\n` +
+      `*Total:* ₦${prices.total.toLocaleString()}\n\n` +
       `*Delivery Date:* ${orderDetails.selectedDate}\n\n` +
       `*View Online:* ${persistentLink}\n\n` +
       `Thank you for choosing Essence Creations! 🎂`;
@@ -215,9 +213,8 @@ export function SuccessPage({ setCart }) {
             <span>Shipping {orderDetails?.location ? `(${orderDetails.location})` : ''}:</span>
             <strong>₦{prices.shipping.toLocaleString()}</strong>
           </div>
-          {/* ⭐ UI CHANGE: Changed Grand Total to Total Paid */}
           <div className="summary-item total-row">
-            <span>Total Paid:</span>
+            <span>Total:</span>
             <strong className="total-amount">₦{prices.total.toLocaleString()}</strong>
           </div>
           <hr />
