@@ -242,7 +242,7 @@ router.post("/paystack/init", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Paystack Init Failed" }); }
 });
 
-// ⭐ INTEGRATED: VERIFICATION LOGIC WITH 12H TIME AND DELIVERY DATE LABEL
+// ⭐ INTEGRATED: VERIFICATION LOGIC WITH LOCATION STORAGE AND RECEIPT FIXES
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference, customerDetails } = req.body;
@@ -257,7 +257,6 @@ router.post("/orders/verify", async (req, res) => {
     });
 
     if (response.data.data.status === "success") {
-      // FIX: Force 12-hour AM/PM format for Nigerian Time
       const paymentDate = new Date().toLocaleString('en-GB', { 
         timeZone: 'Africa/Lagos', 
         hour12: true,
@@ -269,6 +268,7 @@ router.post("/orders/verify", async (req, res) => {
         second: '2-digit'
       });
 
+      // ⭐ INTEGRATED: Added 'location' to ensure it saves to database
       await Order.create({
          reference: reference,
          customerName: customerDetails.name,
@@ -278,6 +278,7 @@ router.post("/orders/verify", async (req, res) => {
          address: customerDetails.address,
          city: customerDetails.city,
          phone: customerDetails.phone,
+         location: customerDetails.location, // Saved here!
          selectedDate: customerDetails.selectedDate,
          items: JSON.stringify(customerDetails.items),
          status: "Pending" 
@@ -311,7 +312,7 @@ router.post("/orders/verify", async (req, res) => {
               <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #28a745;">
                 <h4 style="margin: 0 0 10px 0; color: #1c1c1c; text-transform: uppercase; font-size: 13px;">Delivery Details</h4>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Address:</strong> ${customerDetails.address}, ${customerDetails.city}</p>
-                <p style="margin: 5px 0; font-size: 14px;"><strong>Location Area:</strong> ${customerDetails.location}</p>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Delivery Area:</strong> ${customerDetails.location}</p>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Delivery Date:</strong> ${customerDetails.selectedDate}</p>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Phone:</strong> ${customerDetails.phone}</p>
               </div>
@@ -391,10 +392,11 @@ router.delete("/admin/orders/:id", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Delete failed" }); }
 });
 
+// ⭐ INTEGRATED: Changed 'truncate: true' to soft delete
 router.delete("/admin/orders/all/bulk", verifyToken, async (req, res) => {
   try {
-    await Order.destroy({ where: {}, truncate: true });
-    res.json({ success: true, message: "All orders cleared" });
+    await Order.destroy({ where: {} }); // Removed truncate for safety
+    res.json({ success: true, message: "All orders cleared (Archived)" });
   } catch (err) { res.status(500).json({ error: "Bulk delete failed" }); }
 });
 
