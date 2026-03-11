@@ -274,7 +274,6 @@ router.post("/orders/verify", async (req, res) => {
     let payData;
     let details;
 
-    // Fetch the latest status from Paystack regardless to ensure we have data for the email
     const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` }
     });
@@ -283,9 +282,8 @@ router.post("/orders/verify", async (req, res) => {
       payData = response.data.data;
       details = payData.metadata.customer_details;
 
-      // If Webhook hasn't saved the order yet, create it here
       if (!order) {
-        console.log("Step 2: Order not found in DB, creating now...");
+        console.log("Step 2: Order created via Verify Route.");
         order = await Order.create({
            reference: reference,
            customerName: details.name,
@@ -302,42 +300,46 @@ router.post("/orders/verify", async (req, res) => {
         });
         await CartItem.destroy({ where: {} });
       } else {
-        console.log("Step 2: Order already existed in DB (via Webhook).");
+        console.log("Step 2: Order already exists in DB.");
       }
 
-      // ⭐ TRIGGER EMAIL RECEIPT
       if (process.env.RESEND_API_KEY) {
         try {
-          console.log("Step 3: Attempting to send email receipt...");
+          console.log("Step 3: Sending original formatted email...");
           const paymentDate = new Date().toLocaleString('en-GB', { 
             timeZone: 'Africa/Lagos', hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
           });
 
-          // Ensure items are handled correctly if they arrive as a string or object
           const itemsArray = typeof details.items === 'string' ? JSON.parse(details.items) : details.items;
           const itemsHtml = itemsArray.map(item => {
             const p = item.product || item;
             return `<tr><td style="padding: 12px; border-bottom: 1px solid #edf2f7;">${p.name}</td><td style="text-align: center;">${item.quantity}</td><td style="text-align: right;">₦${Number(p.price).toLocaleString()}</td></tr>`;
           }).join('');
 
+          const totalAmount = payData.amount / 100;
+          const shipping = Number(details.shippingFee) || 0;
+          const subtotal = totalAmount - shipping;
+
           const emailHtml = `
             <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; padding: 20px;">
               <h2 style="color: #1a202c; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">ESSENCE CREATIONS RECEIPT</h2>
-              <p>Hello <strong>${details.name}</strong>, your payment of <strong>₦${(payData.amount/100).toLocaleString()}</strong> was successful on ${paymentDate}.</p>
+              <p>Hello <strong>${details.name}</strong>, your payment was successful on ${paymentDate}.</p>
               <p><strong>Order Ref:</strong> #${reference}</p>
               <p><strong>Shipping Location:</strong> ${details.location}</p>
               <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                 <thead>
                   <tr style="background: #f8fafc;">
-                    <th style="padding: 10px; border-bottom: 1px solid #eee;">Item</th>
-                    <th style="padding: 10px; border-bottom: 1px solid #eee;">Qty</th>
-                    <th style="padding: 10px; border-bottom: 1px solid #eee;">Price</th>
+                    <th style="padding: 10px; border-bottom: 1px solid #eee; text-align: left;">Item</th>
+                    <th style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">Qty</th>
+                    <th style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Price</th>
                   </tr>
                 </thead>
                 <tbody>${itemsHtml}</tbody>
               </table>
-              <div style="margin-top: 20px; text-align: right; font-weight: bold;">
-                Total Paid: ₦${(payData.amount/100).toLocaleString()}
+              <div style="margin-top: 20px; border-top: 2px solid #edf2f7; padding-top: 10px; text-align: right;">
+                <p style="margin: 5px 0;">Subtotal: <strong>₦${subtotal.toLocaleString()}</strong></p>
+                <p style="margin: 5px 0;">Shipping Fee: <strong>₦${shipping.toLocaleString()}</strong></p>
+                <h3 style="color: #3b82f6; margin-top: 10px;">Total Paid: ₦${totalAmount.toLocaleString()}</h3>
               </div>
             </div>`;
 
@@ -347,17 +349,14 @@ router.post("/orders/verify", async (req, res) => {
             subject: `Receipt for Order #${reference}`,
             html: emailHtml
           });
-          console.log("✅ Step 4: Receipt email sent successfully.");
-        } catch (e) { 
-          console.log("❌ Email Error:", e.message); 
-        }
+          console.log("✅ Step 4: Receipt email sent.");
+        } catch (e) { console.log("❌ Email Error:", e.message); }
       }
     }
 
     if (order) return res.json({ success: true });
     res.status(400).json({ success: false });
   } catch (err) {
-    console.error("Critical Verification Error:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
