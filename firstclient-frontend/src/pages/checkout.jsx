@@ -99,10 +99,14 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
     };
 
     try {
+      // ⭐ INTEGRATED FIX: Added metadata to ensure the Webhook works securely
       const response = await API.post("/paystack/init", {
         email: customerDetails.email, 
         amount: orderTotal,
-        customerDetails: detailsToSave,
+        customerDetails: detailsToSave, // For the immediate verification
+        metadata: {
+          customer_details: detailsToSave // For the secure background webhook
+        },
         callback_url: `${window.location.origin}/success` 
       });
 
@@ -166,7 +170,6 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
                               onClick={() => handleManualQtyChange(cartItem.id, (Number(cartItem.quantity) || 0) + 1)}
                             >+</button>
                             
-                            {/* ⭐ LIVE UPDATE SECTION */}
                             <span className="unit-price-tag"> 
                               @ ₦{Number(productData.price).toLocaleString()} 
                               <span className="math-equal"> = </span>
@@ -237,4 +240,4 @@ export function Checkout({ cart = [], setCart, updateCartQuantity }) {
       </div>
     </div>
   );
-}
+  }
