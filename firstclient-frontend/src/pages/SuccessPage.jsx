@@ -69,6 +69,7 @@ export function SuccessPage({ setCart }) {
     }
   }, [location, setCart]);
 
+  // ⭐ PDF RECEIPT GENERATOR (FIXED LAYOUT & NO CUTOUT)
   const handleDownloadReceipt = () => {
     if (!orderDetails) return;
     const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
@@ -86,7 +87,6 @@ export function SuccessPage({ setCart }) {
     }).join('');
 
     const element = document.createElement('div');
-    // ⭐ Fix: Set fixed pixel width for the container to match A4 proportions
     element.innerHTML = `
       <div style="font-family: sans-serif; width: 750px; margin: 0; padding: 40px; color: #2d3748; background: white; box-sizing: border-box;">
           <div style="text-align: center; border-bottom: 4px solid #1c1c1c; padding-bottom: 20px; margin-bottom: 30px;">
@@ -147,32 +147,61 @@ export function SuccessPage({ setCart }) {
       margin: 0.3,
       filename: `EssenceCreations_Receipt_${reference}.pdf`,
       image: { type: 'jpeg', quality: 1 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true, 
-        width: 750, // ⭐ Force canvas width to match element width
-        windowWidth: 750 
-      },
+      html2canvas: { scale: 2, useCORS: true, width: 750, windowWidth: 750 },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
     window.html2pdf().from(element).set(opt).save();
   };
 
+  // ⭐ WHATSAPP RECEIPT (FULL CONTENT RESTORED)
   const handleShareReceipt = async () => {
     if (!orderDetails) return;
+    const currentTime = dayjs().format("DD MMM YYYY, hh:mm:ss A");
     const itemsArray = typeof orderDetails.items === 'string' ? JSON.parse(orderDetails.items) : orderDetails.items;
-    const itemSummary = itemsArray.map(item => `• ${item.quantity}x ${(item.product || item).name}`).join('\n');
-    const receiptText = `*ESSENCE CREATIONS RECEIPT* 🛍️\n\nRef: #${reference}\nTotal: ₦${prices.total.toLocaleString()}\n\nThank you!`;
+    
+    const itemSummary = itemsArray.map(item => {
+        const p = item.product || item;
+        return `• ${item.quantity}x ${p.name} (₦${Number(p.price).toLocaleString()})`;
+    }).join('\n');
+
+    const persistentLink = `${window.location.origin}/success?reference=${reference}`;
+
+    const receiptText = `*ESSENCE CREATIONS RECEIPT* 🛍️\n\n` +
+      `*Ref:* #${reference}\n` +
+      `*Paid On:* ${currentTime}\n` +
+      `*Customer:* ${orderDetails.name || orderDetails.customerName}\n` +
+      `*Phone:* ${orderDetails.phone}\n` +
+      `*Address:* ${orderDetails.address}, ${orderDetails.city || ''}\n` +
+      `*Delivery Location:* ${orderDetails.location || 'N/A'}\n\n` +
+      `*Items Ordered:* \n${itemSummary}\n\n` +
+      `*Subtotal:* ₦${prices.subtotal.toLocaleString()}\n` +
+      `*Shipping Fee:* ₦${prices.shipping.toLocaleString()} (${orderDetails.location || 'Standard'})\n` +
+      `*Total Paid:* ₦${prices.total.toLocaleString()}\n\n` +
+      `*Delivery Date:* ${orderDetails.selectedDate}\n\n` +
+      `*View Online:* ${persistentLink}\n\n` +
+      `Thank you for choosing Essence Creations! 🎂`;
 
     if (navigator.share) {
-      try { await navigator.share({ title: 'Receipt', text: receiptText }); } catch (err) {}
+      try {
+        await navigator.share({ title: 'Essence Creations Receipt', text: receiptText });
+      } catch (err) { console.log("Share cancelled"); }
     } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(receiptText)}`, '_blank');
+      const encodedMsg = encodeURIComponent(receiptText);
+      window.open(`https://wa.me/?text=${encodedMsg}`, '_blank');
     }
   };
 
   if (status === 'processing') return <div className="success-wrapper"><div className="status-box"><h2>Verifying Payment...</h2></div></div>;
-  if (status === 'error') return <div className="success-wrapper"><h1>Verification Failed</h1></div>;
+  
+  if (status === 'error') return (
+    <div className="success-wrapper">
+      <div className="success-card error-card">
+        <h1>Oops!</h1>
+        <p>Verification failed. Contact support with Ref: <strong>{reference}</strong></p>
+        <Link to="/shop" className="continue-btn">Back to Shop</Link>
+      </div>
+    </div>
+  );
 
   return (
     <div className="success-wrapper">
@@ -201,4 +230,4 @@ export function SuccessPage({ setCart }) {
       </div>
     </div>
   );
-            }
+                      }
