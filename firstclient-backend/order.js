@@ -11,7 +11,6 @@ const Order = sequelize.define("Order", {
     type: DataTypes.FLOAT,
     allowNull: false
   },
-  // ⭐ ADDED: To store the shipping cost separately from the total amount
   shippingFee: {
     type: DataTypes.FLOAT,
     allowNull: true,
@@ -24,19 +23,29 @@ const Order = sequelize.define("Order", {
   status: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: "Pending" // Changed to Pending to match your new Admin logic
+    defaultValue: "Pending" 
   },
   customerName: { type: DataTypes.STRING, allowNull: true },
-  customerEmail: { type: DataTypes.STRING, allowNull: true }, // Added for Resend receipts
+  customerEmail: { type: DataTypes.STRING, allowNull: true },
   address: { type: DataTypes.TEXT, allowNull: true },
   city: { type: DataTypes.STRING, allowNull: true },
   country: { type: DataTypes.STRING, allowNull: true },
   phone: { type: DataTypes.STRING, allowNull: true },
-  // ⭐ INTEGRATED: Added this field to store the delivery date
-  selectedDate: { type: DataTypes.STRING, allowNull: true }
+  
+  // ⭐ INTEGRATED: This allows the database to remember the shipping area (e.g. Island)
+  location: { 
+    type: DataTypes.STRING, 
+    allowNull: true 
+  },
+
+  // ⭐ INTEGRATED: Stores the delivery date selected at checkout
+  selectedDate: { 
+    type: DataTypes.STRING, 
+    allowNull: true 
+  }
 }, {
   timestamps: true,
-  paranoid: true // Keeps records for the "Archive" section instead of hard deleting
+  paranoid: true // Allows for soft delete (records remain in DB but hidden from Admin)
 });
 
 module.exports = Order;
