@@ -112,7 +112,7 @@ router.post("/paystack/webhook", async (req, res) => {
           address: details.address,
           city: details.city,
           phone: details.phone,
-          location: details.location,
+          location: details.location, // Logic: ensure location is saved from webhook
           selectedDate: details.selectedDate,
           items: JSON.stringify(details.items),
           status: "Paid" 
@@ -268,7 +268,6 @@ router.post("/paystack/init", async (req, res) => {
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference } = req.body;
-    
     let order = await Order.findOne({ where: { reference } });
 
     if (!order) {
@@ -311,12 +310,14 @@ router.post("/orders/verify", async (req, res) => {
             const emailHtml = `<div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; padding: 20px;">
               <h2>ESSENCE CREATIONS RECEIPT</h2>
               <p>Hello <strong>${details.name}</strong>, your payment of <strong>₦${(payData.amount/100).toLocaleString()}</strong> was successful on ${paymentDate}.</p>
-              <table>${itemsHtml}</table>
+              <p><strong>Shipping Location:</strong> ${details.location}</p>
+              <table style="width: 100%; border-collapse: collapse;">${itemsHtml}</table>
             </div>`;
 
+            // Logic restored: sending to your verified Resend account email for testing
             await resend.emails.send({
               from: 'Essence Creations <onboarding@resend.dev>',
-              to: payData.customer.email, 
+              to: 'nwadikeekene4@gmail.com', 
               subject: `Receipt for Order #${reference}`,
               html: emailHtml
             });
