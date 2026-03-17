@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("./database"); // Use your existing DB connection
+const sequelize = require("./config"); // ✅ INTEGRATED: Changed from ./database to match your Product.js config
 
 const Training = sequelize.define("Training", {
   id: {
@@ -19,6 +19,8 @@ const Training = sequelize.define("Training", {
     type: DataTypes.INTEGER,
     defaultValue: 0,
   }
+}, {
+  timestamps: true // ✅ Added to match your project's data structure
 });
 
 module.exports = Training;
