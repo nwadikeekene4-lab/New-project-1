@@ -198,3 +198,26 @@
   .welcome-title { font-size: 28px; }
   .title-container { padding-left: 32px; }
 }
+
+/* Styling for the new Training School button */
+.school-btn {
+  margin-top: 12px; /* Professional gap below the pastry button */
+  background: rgba(255, 255, 255, 0.1); 
+  border: 2px solid #fff;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.school-btn:hover {
+  background: #fff;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Ensure all full-width buttons stack nicely */
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+    }
