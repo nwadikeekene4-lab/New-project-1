@@ -10,7 +10,10 @@ import EmergencyReset from './admin/EmergencyReset';
 import { AdminLogin } from "./admin/AdminLogin";
 import { ProtectedRoute } from './ProtectedRoute';
 
+// --- 🎓 Training School Imports ---
 import Training from "./pages/Training"; 
+import AdminTraining from "./admin/AdminTraining"; // ✅ Integrated Admin Manager
+
 import WelcomeScreen from './pages/WelcomeScreen';
 import NavigationHub from './pages/NavigationHub';
 import AboutPage from './pages/AboutPage';
@@ -18,7 +21,7 @@ import ContactPage from './pages/ContactPage';
 import SocialMediaPage from './pages/SocialMediaPage';
 import { SuccessPage } from './pages/SuccessPage';
 import AdminCMS from './admin/AdminCMS';
-import AdminArchive from './admin/AdminArchive'; // New Integration
+import AdminArchive from './admin/AdminArchive';
 import PastryPage from './pages/PastryPage';
 import AdminPastry from "./admin/AdminPastry";
 
@@ -78,8 +81,10 @@ function App () {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} /> 
         <Route path="/socials" element={<SocialMediaPage />} />
-      <Route path="/pastries" element={<PastryPage cart={cart} setCart={setCart} />} />
-      <Route path="/admin/pastries" element={<AdminPastry />} />
+        <Route path="/pastries" element={<PastryPage cart={cart} setCart={setCart} />} />
+        
+        {/* --- 🌍 PUBLIC SCHOOL ROUTE --- */}
+        <Route path="/school" element={<Training />} />
         
         <Route path="/shop" element={
           <HomePage 
@@ -92,24 +97,6 @@ function App () {
           />
         }/>
 
-        <Route 
-          path="/admin/cms" 
-          element={
-            <ProtectedRoute>
-              <AdminCMS />
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/admin/archive" 
-          element={
-            <ProtectedRoute>
-              <AdminArchive />
-            </ProtectedRoute>
-          } 
-        />
-
         <Route path="/checkout" element={
           <Checkout 
             cart={cart} 
@@ -119,13 +106,28 @@ function App () {
           />
         }/>
 
-         <Route path="/school" element={<Training />} />
         <Route path="/success" element={<SuccessPage setCart={setCart} />} />
+        
+        {/* --- 🔐 ADMIN ROUTES --- */}
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/emergency-reset" element={<EmergencyReset />} />
+
+        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/products" element={<ProtectedRoute><AdminProducts /></ProtectedRoute>} />
         <Route path="/admin/orders" element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
+        <Route path="/admin/pastries" element={<ProtectedRoute><AdminPastry /></ProtectedRoute>} />
+        <Route path="/admin/cms" element={<ProtectedRoute><AdminCMS /></ProtectedRoute>} />
+        <Route path="/admin/archive" element={<ProtectedRoute><AdminArchive /></ProtectedRoute>} />
+
+        {/* ✅ NEW: ADMIN TRAINING ROUTE */}
+        <Route 
+          path="/admin/training" 
+          element={
+            <ProtectedRoute>
+              <AdminTraining />
+            </ProtectedRoute>
+          } 
+        />
     </Routes>
   );
 }
