@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import API from "../api";
+import API from "../api"; // Keeping your existing API instance
 import "./Training.css";
 
 export default function Training() {
@@ -9,7 +9,7 @@ export default function Training() {
   useEffect(() => {
     const fetchTrainingData = async () => {
       try {
-        // This hits the new router.get("/training") endpoint
+        // This hits your backend: https://firstclient-backend.onrender.com/api/training
         const res = await API.get("/training");
         setSessions(res.data);
       } catch (err) {
@@ -40,28 +40,33 @@ export default function Training() {
                 <p>{session.description}</p>
               </div>
 
+              {/* The gallery now loops through the media array associated with this session */}
               <div className="section-gallery">
-                {session.media && session.media.map((item) => (
-                  <div key={item.id} className="media-card">
-                    {item.type === 'video' ? (
-                      <video 
-                        src={item.url} 
-                        controls 
-                        controlsList="nodownload"
-                        playsInline
-                        webkit-playsinline="true"
-                        className="school-media" 
-                        preload="metadata"
-                      />
-                    ) : (
-                      <img 
-                        src={item.url} 
-                        alt={session.title} 
-                        className="school-media" 
-                      />
-                    )}
-                  </div>
-                ))}
+                {session.media && session.media.length > 0 ? (
+                  session.media.map((item) => (
+                    <div key={item.id} className="media-card">
+                      {item.type === 'video' ? (
+                        <video 
+                          src={item.url} 
+                          controls 
+                          controlsList="nodownload"
+                          playsInline
+                          webkit-playsinline="true"
+                          className="school-media" 
+                          preload="metadata"
+                        />
+                      ) : (
+                        <img 
+                          src={item.url} 
+                          alt={session.title} 
+                          className="school-media" 
+                        />
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-media-text">No media available for this session.</p>
+                )}
               </div>
             </article>
           ))
@@ -95,4 +100,4 @@ export default function Training() {
       </div>
     </div>
   );
-    }
+}
