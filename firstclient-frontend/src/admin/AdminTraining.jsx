@@ -8,7 +8,6 @@ const AdminTraining = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // ✅ Your Render Backend URL
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
   const token = localStorage.getItem('token');
 
@@ -23,50 +22,32 @@ const AdminTraining = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (selectedFiles.length === 0) {
-      return showMsg('error', 'Please select at least one media file.');
-    }
+    if (selectedFiles.length === 0) return showMsg('error', 'Please select media files.');
 
     setLoading(true);
-    
-    // ⭐ LOGIC: Sort files so Images come before Videos
+
+    // ⭐ Sorting: Images first, then Videos
     const sortedFiles = [...selectedFiles].sort((a, b) => {
-      const aIsImage = a.type.startsWith('image');
-      const bIsImage = b.type.startsWith('image');
-      if (aIsImage && !bIsImage) return -1;
-      if (!aIsImage && bIsImage) return 1;
-      return 0;
+      const aImg = a.type.startsWith('image');
+      const bImg = b.type.startsWith('image');
+      return aImg === bImg ? 0 : aImg ? -1 : 1;
     });
 
     const data = new FormData();
     data.append('title', formData.title);
     data.append('description', formData.description);
-    
-    // Append sorted files (Images first)
-    sortedFiles.forEach((file) => {
-      data.append('files', file);
-    });
+    sortedFiles.forEach(file => data.append('files', file));
 
     try {
-      // ⭐ FIX: Removed manual Content-Type to prevent "Infinite Spin/Size" errors
       await axios.post(`${API_BASE}/admin/training`, data, {
-        headers: { 
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-
-      showMsg('success', 'Masterclass published! Images and videos are now live.');
-      
-      // Reset
+      showMsg('success', 'Masterclass published successfully!');
       setFormData({ title: '', description: '' });
       setSelectedFiles([]);
-      e.target.reset(); 
-      
+      e.target.reset();
     } catch (err) {
-      console.error("Upload Error:", err);
-      const errorResponse = err.response?.data?.error || 'Upload failed. Try smaller files or check connection.';
-      showMsg('error', errorResponse);
+      showMsg('error', err.response?.data?.error || 'Upload failed. Check file sizes.');
     } finally {
       setLoading(false);
     }
@@ -75,13 +56,12 @@ const AdminTraining = () => {
   return (
     <div className="admin-training-container">
       <header className="admin-header">
-        <div className="header-badge">Admin Portal</div>
         <h2>🎓 Training School Manager</h2>
-        <p>Create and publish new pastry masterclasses for your students.</p>
+        <p>Upload your professional pastry masterclasses</p>
       </header>
 
       {message.text && (
-        <div className={`alert-toast ${message.type}`}>
+        <div className={`alert ${message.type}`}>
           {message.type === 'success' ? '✅' : '❌'} {message.text}
         </div>
       )}
@@ -92,7 +72,7 @@ const AdminTraining = () => {
             <label>Masterclass Title</label>
             <input 
               type="text" 
-              placeholder="e.g., Croissant Lamination Masterclass" 
+              placeholder="e.g., The Ultimate Croissant Guide" 
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
               required 
@@ -100,9 +80,9 @@ const AdminTraining = () => {
           </div>
 
           <div className="form-group">
-            <label>Recipe Details & Instructions</label>
+            <label>Description & Recipe Notes</label>
             <textarea 
-              placeholder="Enter the full recipe and lesson details here..." 
+              placeholder="Provide details about what students will learn..." 
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               required 
@@ -110,29 +90,24 @@ const AdminTraining = () => {
           </div>
 
           <div className="form-group">
-            <label>Upload Media</label>
-            <div className="file-drop-zone">
-              <input 
-                type="file" 
-                multiple 
-                onChange={handleFileChange} 
-                accept="video/*,image/*" 
-                id="file-upload"
-              />
-              <label htmlFor="file-upload" className="custom-file-label">
-                {selectedFiles.length > 0 
-                  ? `${selectedFiles.length} files selected (Images will be sorted first)` 
-                  : "Click to browse Videos & Images"}
-              </label>
-            </div>
+            <label>Select Media (Videos & Images)</label>
+            <input 
+              type="file" 
+              multiple 
+              onChange={handleFileChange} 
+              accept="video/*,image/*" 
+            />
+            <p style={{fontSize: '11px', color: '#888', marginTop: '5px'}}>
+              {selectedFiles.length > 0 ? `Selected: ${selectedFiles.length} files` : "Images will automatically appear before videos."}
+            </p>
           </div>
 
-          <button type="submit" disabled={loading} className={`submit-btn ${loading ? 'loading' : ''}`}>
+          <button type="submit" disabled={loading} className="submit-btn">
             {loading ? (
-              <>
+              <div className="loader-container">
                 <span className="spinner"></span>
-                Publishing to School...
-              </>
+                <span>Publishing to School...</span>
+              </div>
             ) : "Publish Masterclass"}
           </button>
         </form>
