@@ -9,6 +9,7 @@ export default function Training() {
   useEffect(() => {
     const fetchTrainingData = async () => {
       try {
+        // This hits the new router.get("/training") endpoint
         const res = await API.get("/training");
         setSessions(res.data);
       } catch (err) {
@@ -34,6 +35,7 @@ export default function Training() {
           sessions.map((session) => (
             <article key={session.id} className="training-section">
               <div className="section-text">
+                <span className="section-badge">Masterclass Session</span>
                 <h2>{session.title}</h2>
                 <p>{session.description}</p>
               </div>
@@ -45,6 +47,9 @@ export default function Training() {
                       <video 
                         src={item.url} 
                         controls 
+                        controlsList="nodownload"
+                        playsInline
+                        webkit-playsinline="true"
                         className="school-media" 
                         preload="metadata"
                       />
@@ -90,4 +95,4 @@ export default function Training() {
       </div>
     </div>
   );
-}
+    }
