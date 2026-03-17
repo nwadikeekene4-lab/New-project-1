@@ -62,7 +62,6 @@
   justify-content: center;
   gap: 12px;
   position: relative;
-  /* Balanced to account for the emoji on the right */
   padding-left: 38px; 
 }
 
@@ -123,11 +122,11 @@
   margin-bottom: 30px;
 }
 
-/* ACTIONS - BORDERS REMOVED */
+/* ACTIONS */
 .welcome-actions {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .top-grid-actions {
@@ -144,19 +143,19 @@
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: none; /* Borders globally removed */
+  border: none; 
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .grid-btn {
-  background-color: #2c3e50; /* Navy Grey */
+  background-color: #2c3e50; 
   color: white;
 }
 
 .primary-shop-btn {
-  background-color: #1a1a1a; /* Solid Black */
+  background-color: #1a1a1a; 
   color: white;
 }
 
@@ -166,8 +165,15 @@
   width: 100%;
 }
 
+/* FIXED: Training School Button - Now matches solid theme */
+.school-btn {
+  background-color: #1a1a1a; 
+  color: white;
+  width: 100%;
+}
+
 .option-btn:hover {
-  background-color: #28a745 !important; /* Green Hover */
+  background-color: #28a745 !important; 
   color: white;
   transform: translateY(-5px) scale(1.02);
   box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
@@ -198,26 +204,3 @@
   .welcome-title { font-size: 28px; }
   .title-container { padding-left: 32px; }
 }
-
-/* Styling for the new Training School button */
-.school-btn {
-  margin-top: 12px; /* Professional gap below the pastry button */
-  background: rgba(255, 255, 255, 0.1); 
-  border: 2px solid #fff;
-  color: #fff;
-  transition: all 0.3s ease;
-}
-
-.school-btn:hover {
-  background: #fff;
-  color: #000;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
-}
-
-/* Ensure all full-width buttons stack nicely */
-.welcome-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-    }
