@@ -474,6 +474,10 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
 
 // --- 🎓 PASTRY SCHOOL ROUTES ---
 
+// ⭐ Define the relationship for the router context
+Training.hasMany(TrainingMedia, { as: 'media', foreignKey: 'trainingId', onDelete: 'CASCADE' });
+TrainingMedia.belongsTo(Training, { foreignKey: 'trainingId' });
+
 router.get("/training", async (req, res) => {
   try {
     const sessions = await Training.findAll({
@@ -488,14 +492,12 @@ router.post("/admin/training", verifyToken, upload.array('files', 10), async (re
   try {
     const { title, description, order } = req.body;
     
-    // 1. Create main entry
     const newTraining = await Training.create({
       title: sanitizeInput(title),
       description: sanitizeInput(description),
       order: order || 0
     });
 
-    // 2. Map through multiple uploaded files
     if (req.files && req.files.length > 0) {
       const mediaEntries = req.files.map(file => ({
         url: file.path || file.secure_url,
@@ -514,6 +516,22 @@ router.post("/admin/training", verifyToken, upload.array('files', 10), async (re
   } catch (err) {
     res.status(500).json({ error: "Failed to upload training session" });
   }
+});
+
+// Update Training Session (Admin Only)
+router.put("/admin/training/:id", verifyToken, async (req, res) => {
+  try {
+    const { title, description, order } = req.body;
+    const session = await Training.findByPk(req.params.id);
+    if (!session) return res.status(404).json({ error: "Session not found" });
+
+    session.title = sanitizeInput(title) || session.title;
+    session.description = sanitizeInput(description) || session.description;
+    session.order = order !== undefined ? order : session.order;
+
+    await session.save();
+    res.json({ success: true, updated: session });
+  } catch (err) { res.status(500).json({ error: "Update failed" }); }
 });
 
 router.delete("/admin/training/:id", verifyToken, async (req, res) => {
