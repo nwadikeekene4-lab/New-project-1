@@ -474,14 +474,14 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
 
 // --- 🎓 PASTRY SCHOOL ROUTES ---
 
-// ⭐ Define the relationship for the router context
+// ⭐ ALIAS FIX: Correctly defined relationship
 Training.hasMany(TrainingMedia, { as: 'media', foreignKey: 'trainingId', onDelete: 'CASCADE' });
 TrainingMedia.belongsTo(Training, { foreignKey: 'trainingId' });
 
 router.get("/training", async (req, res) => {
   try {
     const sessions = await Training.findAll({
-      include: [{ model: TrainingMedia, as: 'media' }],
+      include: [{ model: TrainingMedia, as: 'media' }], // ⭐ Using the alias
       order: [['order', 'ASC'], ['createdAt', 'DESC']]
     });
     res.json(sessions);
@@ -509,7 +509,7 @@ router.post("/admin/training", verifyToken, upload.array('files', 10), async (re
     }
 
     const result = await Training.findByPk(newTraining.id, {
-      include: [{ model: TrainingMedia, as: 'media' }]
+      include: [{ model: TrainingMedia, as: 'media' }] // ⭐ Alias used here too
     });
 
     res.json(result);
