@@ -14,6 +14,11 @@ const CMS = require("./cms");
 const Message = require("./Message"); 
 const { CartItem } = require("./cart");
 const { DeliveryOption = { sync: () => Promise.resolve() } } = require("./deliveryoptions");
+
+// ⭐ NEW SCHOOL MODELS INTEGRATED
+const Training = require("./Training");
+const TrainingMedia = require("./TrainingMedia");
+
 const routes = require("./routes"); 
 
 const app = express();
@@ -30,7 +35,6 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      // ⭐ INTEGRATED: Added Resend API to the allowed connections
       connectSrc: [
         "'self'", 
         "https://api.paystack.co", 
@@ -75,7 +79,6 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Explicit Options Handling (Kept exactly as yours)
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
     const origin = req.headers.origin;
@@ -128,7 +131,15 @@ const startCleanupTask = () => {
 async function startServer() {
   try {
     console.log("⏳ Starting database synchronization...");
+
+    // ⭐ ESTABLISH TRAINING RELATIONSHIPS
+    Training.hasMany(TrainingMedia, { as: 'media', foreignKey: 'trainingId', onDelete: 'CASCADE' });
+    TrainingMedia.belongsTo(Training, { foreignKey: 'trainingId' });
     
+    // ⭐ SYNC NEW TRAINING TABLES
+    await Training.sync({ alter: true });
+    await TrainingMedia.sync({ alter: true });
+
     await Product.sync({ alter: true }); 
     await Admin.sync({ alter: true }); 
     await Message.sync({ alter: true }); 
@@ -140,10 +151,8 @@ async function startServer() {
     
     console.log("✅ All Database tables synced successfully");
 
-    // Use the routes
     app.use("/api", routes);
     
-    // Initialize Cleanup Task
     startCleanupTask();
 
     const PORT = process.env.PORT || 5000;
