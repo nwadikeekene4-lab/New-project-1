@@ -22,6 +22,10 @@ const { CartItem } = require("./cart");
 const Order = require("./order");
 const Admin = require("./Admin"); 
 
+// ⭐ NEW SCHOOL MODELS IMPORTED
+const Training = require("./Training");
+const TrainingMedia = require("./TrainingMedia");
+
 const sanitizeInput = (data) => {
   if (typeof data === 'string') return DOMPurify.sanitize(data);
   if (typeof data === 'object' && data !== null) {
@@ -465,6 +469,57 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
   try {
     await Message.destroy({ where: { id: req.params.id }, force: true });
     res.json({ success: true, message: "Deleted permanently" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- 🎓 PASTRY SCHOOL ROUTES ---
+
+router.get("/training", async (req, res) => {
+  try {
+    const sessions = await Training.findAll({
+      include: [{ model: TrainingMedia, as: 'media' }],
+      order: [['order', 'ASC'], ['createdAt', 'DESC']]
+    });
+    res.json(sessions);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post("/admin/training", verifyToken, upload.array('files', 10), async (req, res) => {
+  try {
+    const { title, description, order } = req.body;
+    
+    // 1. Create main entry
+    const newTraining = await Training.create({
+      title: sanitizeInput(title),
+      description: sanitizeInput(description),
+      order: order || 0
+    });
+
+    // 2. Map through multiple uploaded files
+    if (req.files && req.files.length > 0) {
+      const mediaEntries = req.files.map(file => ({
+        url: file.path || file.secure_url,
+        type: file.mimetype.startsWith('video') ? 'video' : 'image',
+        trainingId: newTraining.id
+      }));
+
+      await TrainingMedia.bulkCreate(mediaEntries);
+    }
+
+    const result = await Training.findByPk(newTraining.id, {
+      include: [{ model: TrainingMedia, as: 'media' }]
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload training session" });
+  }
+});
+
+router.delete("/admin/training/:id", verifyToken, async (req, res) => {
+  try {
+    await Training.destroy({ where: { id: req.params.id } });
+    res.json({ success: true, message: "Session and media deleted" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
