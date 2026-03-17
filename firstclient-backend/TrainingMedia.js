@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("./database");
+const sequelize = require("./config"); // ✅ INTEGRATED: Changed from ./database to ./config to match your project
 
 const TrainingMedia = sequelize.define("TrainingMedia", {
   id: {
@@ -8,7 +8,7 @@ const TrainingMedia = sequelize.define("TrainingMedia", {
     primaryKey: true,
   },
   url: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT, // Changed to TEXT to ensure long Cloudinary URLs never get cut off
     allowNull: false,
   },
   type: {
@@ -24,6 +24,8 @@ const TrainingMedia = sequelize.define("TrainingMedia", {
     },
     onDelete: 'CASCADE', // If the training is deleted, the photos are deleted too
   }
+}, {
+  timestamps: true // Added timestamps to match your other models
 });
 
 module.exports = TrainingMedia;
