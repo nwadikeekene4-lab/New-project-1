@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../api";
-import "./Training.css"; // We'll create this next
+import "./Training.css";
 
 export default function Training() {
   const [sessions, setSessions] = useState([]);
@@ -30,35 +30,63 @@ export default function Training() {
       </header>
 
       <div className="school-container">
-        {sessions.map((session) => (
-          <article key={session.id} className="training-section">
-            <div className="section-text">
-              <h2>{session.title}</h2>
-              <p>{session.description}</p>
-            </div>
+        {sessions.length > 0 ? (
+          sessions.map((session) => (
+            <article key={session.id} className="training-section">
+              <div className="section-text">
+                <h2>{session.title}</h2>
+                <p>{session.description}</p>
+              </div>
 
-            <div className="section-gallery">
-              {session.media && session.media.map((item) => (
-                <div key={item.id} className="media-card">
-                  {item.type === 'video' ? (
-                    <video 
-                      src={item.url} 
-                      controls 
-                      className="school-media" 
-                      preload="metadata"
-                    />
-                  ) : (
-                    <img 
-                      src={item.url} 
-                      alt={session.title} 
-                      className="school-media" 
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </article>
-        ))}
+              <div className="section-gallery">
+                {session.media && session.media.map((item) => (
+                  <div key={item.id} className="media-card">
+                    {item.type === 'video' ? (
+                      <video 
+                        src={item.url} 
+                        controls 
+                        className="school-media" 
+                        preload="metadata"
+                      />
+                    ) : (
+                      <img 
+                        src={item.url} 
+                        alt={session.title} 
+                        className="school-media" 
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="no-content">
+            <p>Our upcoming masterclasses are being prepared. Stay tuned!</p>
+          </div>
+        )}
+
+        {/* --- 🎯 INTEGRATED: ENROLLMENT CALL TO ACTION --- */}
+        <section className="enrollment-cta">
+          <div className="cta-content">
+            <span className="cta-badge">Enrollment Open</span>
+            <h2>Ready to start your baking journey?</h2>
+            <p>
+              Join our next masterclass and learn the secrets of Essence Creations. 
+              Click below to chat with our instructors about pricing and schedules.
+            </p>
+            
+            <a 
+              href="https://wa.me/2348028136371?text=Hello!%20I'm%20interested%20in%20enrolling%20in%20the%20Pastry%20Training%20School%20at%20Essence%20Creations." 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="whatsapp-enroll-btn"
+            >
+              <span className="whatsapp-icon">💬</span>
+              Enroll via WhatsApp
+            </a>
+          </div>
+        </section>
       </div>
     </div>
   );
