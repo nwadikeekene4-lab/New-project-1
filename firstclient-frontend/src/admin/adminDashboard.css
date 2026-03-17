@@ -179,3 +179,10 @@
   background: #fff0f7;
   color: #ed017f;
 }
+.training-card {
+  border-left: 4px solid #ff9800; /* Academic Gold accent */
+}
+
+.training-card .card-icon {
+  color: #ff9800;
+}
