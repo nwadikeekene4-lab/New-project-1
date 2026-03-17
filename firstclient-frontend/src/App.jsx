@@ -10,6 +10,7 @@ import EmergencyReset from './admin/EmergencyReset';
 import { AdminLogin } from "./admin/AdminLogin";
 import { ProtectedRoute } from './ProtectedRoute';
 
+import Training from "./pages/Training"; 
 import WelcomeScreen from './pages/WelcomeScreen';
 import NavigationHub from './pages/NavigationHub';
 import AboutPage from './pages/AboutPage';
@@ -118,6 +119,7 @@ function App () {
           />
         }/>
 
+         <Route path="/school" element={<Training />} />
         <Route path="/success" element={<SuccessPage setCart={setCart} />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
