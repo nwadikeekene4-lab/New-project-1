@@ -1,23 +1,37 @@
+/* --- PAGE WRAPPER & HERO --- */
 .school-page-wrapper {
-  background: #fff;
+  background: #ffffff;
   min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
 .school-hero {
-  background: #fdf2f8; /* Soft pink/creme */
-  padding: 60px 20px;
+  background: #f8f9fa; /* Neutral light grey instead of pink */
+  padding: 80px 20px 40px;
   text-align: center;
   border-bottom: 1px solid #eee;
 }
 
-.school-hero h1 { font-size: 2.5rem; color: #1a1a1a; margin-bottom: 10px; }
+.school-hero h1 {
+  font-size: 2.8rem;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  letter-spacing: -1px;
+}
 
+.school-hero p {
+  color: #666;
+  font-size: 1.2rem;
+}
+
+/* --- CONTENT CONTAINER --- */
 .school-container {
-  max-width: 1100px;
+  max-width: 1100px; /* Keeping your original width */
   margin: 40px auto;
   padding: 0 20px;
 }
 
+/* --- TRAINING SECTIONS --- */
 .training-section {
   margin-bottom: 80px;
   border-bottom: 1px solid #f0f0f0;
@@ -37,7 +51,7 @@
   margin-bottom: 30px;
 }
 
-/* Gallery Grid: Konga style responsiveness */
+/* --- GALLERY GRID (Konga Style) --- */
 .section-gallery {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -50,10 +64,77 @@
   object-fit: cover;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  background: #000; /* For videos */
+  background: #000;
+  transition: transform 0.3s ease;
 }
 
+.school-media:hover {
+  transform: scale(1.02);
+}
+
+/* --- 🎯 NEW: ENROLLMENT CALL TO ACTION (Neutral & Bold) --- */
+.enrollment-cta {
+  background: #1a1a1a; /* Professional Black background */
+  color: #ffffff;
+  padding: 60px 30px;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 60px;
+}
+
+.cta-badge {
+  background: #333; /* Dark grey badge */
+  color: #fff;
+  padding: 5px 15px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: 1px solid #444;
+}
+
+.cta-content h2 {
+  font-size: 2.2rem;
+  margin: 20px 0 10px;
+  color: #ffffff;
+}
+
+.cta-content p {
+  font-size: 1.1rem;
+  color: #cccccc;
+  max-width: 600px;
+  margin: 0 auto 30px;
+}
+
+/* --- WHATSAPP BUTTON --- */
+.whatsapp-enroll-btn {
+  display: inline-flex;
+  align-items: center;
+  background: #25d366; /* Standard WhatsApp Green */
+  color: white;
+  padding: 15px 35px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.whatsapp-enroll-btn:hover {
+  background: #1eb954;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+}
+
+.whatsapp-icon {
+  margin-right: 12px;
+  font-size: 1.3rem;
+}
+
+/* --- RESPONSIVENESS --- */
 @media (max-width: 768px) {
   .school-hero h1 { font-size: 1.8rem; }
   .school-media { height: 250px; }
-}
+  .cta-content h2 { font-size: 1.7rem; }
+  .whatsapp-enroll-btn { width: 100%; justify-content: center; }
+  }
