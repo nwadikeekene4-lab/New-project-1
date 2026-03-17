@@ -37,9 +37,13 @@ export default function AdminDashboard() {
           <Link to="/admin/products" className="essence-nav-item">Manage Products</Link>
           <Link to="/admin/orders" className="essence-nav-item">View Orders</Link>
           
-          {/* ✅ FIXED LINK: Pointing to the specific Pastry Route */}
           <Link to="/admin/pastries" className="essence-nav-item">
             <span className="nav-icon">🍰</span> Pastry Management
+          </Link>
+
+          {/* ✅ ADDED: Training School Sidebar Link */}
+          <Link to="/admin/training" className="essence-nav-item">
+            <span className="nav-icon">🎓</span> Training School
           </Link>
 
           <Link to="/admin/cms" className="essence-nav-item">
@@ -80,7 +84,6 @@ export default function AdminDashboard() {
             <Link to="/admin/products" className="card-footer-link">Manage Items</Link>
           </div>
 
-          {/* ✅ FIXED CARD: Link now points to /admin/pastries */}
           <div className="essence-card pastry-special">
             <div className="card-top">
               <div className="card-txt">
@@ -90,6 +93,18 @@ export default function AdminDashboard() {
               <div className="card-icon">🥐</div>
             </div>
             <Link to="/admin/pastries" className="card-footer-link">Manage Pastries</Link>
+          </div>
+
+          {/* ✅ ADDED: Training School Dashboard Card */}
+          <div className="essence-card training-card">
+            <div className="card-top">
+              <div className="card-txt">
+                <h3>Training School</h3>
+                <p>Masterclasses & Videos</p>
+              </div>
+              <div className="card-icon">🎓</div>
+            </div>
+            <Link to="/admin/training" className="card-footer-link">Manage School</Link>
           </div>
 
           <div className="essence-card">
@@ -117,4 +132,4 @@ export default function AdminDashboard() {
       </main>
     </div>
   );
-          }
+            }
