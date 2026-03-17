@@ -44,7 +44,7 @@ app.use(helmet({
       ],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "*.cloudinary.com"],
       videoSrc: ["'self'", "https://res.cloudinary.com", "*.cloudinary.com"],
-      mediaSrc: ["'self'", "https://res.cloudinary.com", "*.cloudinary.com"], // ⭐ Added for video streaming compatibility
+      mediaSrc: ["'self'", "https://res.cloudinary.com", "*.cloudinary.com"], 
     },
   },
 })); 
@@ -134,7 +134,8 @@ async function startServer() {
     console.log("⏳ Starting database synchronization...");
 
     // ⭐ ESTABLISH TRAINING RELATIONSHIPS
-    Training.hasMany(TrainingMedia, { as: 'media', foreignKey: 'trainingId', onDelete: 'CASCADE' });
+    // ✅ CHANGED: Alias renamed to 'trainingMedia' to avoid conflict with existing 'media' associations
+    Training.hasMany(TrainingMedia, { as: 'trainingMedia', foreignKey: 'trainingId', onDelete: 'CASCADE' });
     TrainingMedia.belongsTo(Training, { foreignKey: 'trainingId' });
     
     // ⭐ SYNC NEW TRAINING TABLES
