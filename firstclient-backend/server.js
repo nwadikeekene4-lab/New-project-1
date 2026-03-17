@@ -44,6 +44,7 @@ app.use(helmet({
       ],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "*.cloudinary.com"],
       videoSrc: ["'self'", "https://res.cloudinary.com", "*.cloudinary.com"],
+      mediaSrc: ["'self'", "https://res.cloudinary.com", "*.cloudinary.com"], // ⭐ Added for video streaming compatibility
     },
   },
 })); 
