@@ -1,109 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import './AdminTraining.css';
 
 const AdminTraining = () => {
-  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ title: '', description: '', order: 0 });
+  const [formData, setFormData] = useState({ title: '', description: '' });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // ✅ INTEGRATED: Your specific Render Backend URL
+  // ✅ Your Render Backend URL
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
-
-  const fetchSessions = async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/training`);
-      setSessions(res.data);
-    } catch (err) {
-      showMsg('error', 'Failed to load training sessions');
-    }
-  };
-
   const showMsg = (type, text) => {
     setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+    setTimeout(() => setMessage({ type: '', text: '' }), 5000);
   };
 
   const handleFileChange = (e) => {
-    setSelectedFiles(e.target.files);
+    setSelectedFiles(Array.from(e.target.files));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
     if (selectedFiles.length === 0) {
-      return showMsg('error', 'Please select at least one video or image.');
+      return showMsg('error', 'Please select at least one media file.');
     }
 
     setLoading(true);
+    
+    // ⭐ LOGIC: Sort files so Images come before Videos
+    const sortedFiles = [...selectedFiles].sort((a, b) => {
+      const aIsImage = a.type.startsWith('image');
+      const bIsImage = b.type.startsWith('image');
+      if (aIsImage && !bIsImage) return -1;
+      if (!aIsImage && bIsImage) return 1;
+      return 0;
+    });
+
     const data = new FormData();
     data.append('title', formData.title);
     data.append('description', formData.description);
-    data.append('order', formData.order);
     
-    // Append all selected media files
-    for (let i = 0; i < selectedFiles.length; i++) {
-      data.append('files', selectedFiles[i]);
-    }
+    // Append sorted files (Images first)
+    sortedFiles.forEach((file) => {
+      data.append('files', file);
+    });
 
     try {
+      // ⭐ FIX: Removed manual Content-Type to prevent "Infinite Spin/Size" errors
       await axios.post(`${API_BASE}/admin/training`, data, {
         headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+          'Authorization': `Bearer ${token}`
         }
       });
 
-      showMsg('success', 'Masterclass uploaded successfully to Cloudinary!');
+      showMsg('success', 'Masterclass published! Images and videos are now live.');
       
-      // ✅ Reset form states
-      setFormData({ title: '', description: '', order: 0 });
+      // Reset
+      setFormData({ title: '', description: '' });
       setSelectedFiles([]);
-      
-      // ✅ Reset the actual file input in the DOM
       e.target.reset(); 
       
-      // Refresh the table list
-      fetchSessions();
     } catch (err) {
-      const errorResponse = err.response?.data?.error || 'Upload failed. Check file sizes.';
+      console.error("Upload Error:", err);
+      const errorResponse = err.response?.data?.error || 'Upload failed. Try smaller files or check connection.';
       showMsg('error', errorResponse);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this session and all its media?")) return;
-    try {
-      await axios.delete(`${API_BASE}/admin/training/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      showMsg('success', 'Session deleted from database');
-      fetchSessions();
-    } catch (err) {
-      showMsg('error', 'Delete failed. Session might already be gone.');
-    }
-  };
-
   return (
     <div className="admin-training-container">
       <header className="admin-header">
+        <div className="header-badge">Admin Portal</div>
         <h2>🎓 Training School Manager</h2>
-        <p>Manage your professional pastry masterclasses</p>
+        <p>Create and publish new pastry masterclasses for your students.</p>
       </header>
 
       {message.text && (
-        <div className={`alert ${message.type}`}>
-          {message.type === 'success' ? '✅ ' : '❌ '} {message.text}
+        <div className={`alert-toast ${message.type}`}>
+          {message.type === 'success' ? '✅' : '❌'} {message.text}
         </div>
       )}
 
@@ -113,80 +92,50 @@ const AdminTraining = () => {
             <label>Masterclass Title</label>
             <input 
               type="text" 
-              placeholder="e.g., The Ultimate Croissant Guide" 
+              placeholder="e.g., Croissant Lamination Masterclass" 
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
               required 
             />
           </div>
+
           <div className="form-group">
-            <label>Description & Recipe Notes</label>
+            <label>Recipe Details & Instructions</label>
             <textarea 
-              placeholder="Provide details about what students will learn..." 
+              placeholder="Enter the full recipe and lesson details here..." 
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               required 
             />
           </div>
-          <div className="form-row">
-            <div className="input-box">
-               <label>Display Order</label>
-               <input 
-                type="number" 
-                value={formData.order}
-                onChange={(e) => setFormData({...formData, order: e.target.value})}
-              />
-            </div>
-            <div className="input-box">
-               <label>Select Media (Videos/Images)</label>
-               <input 
+
+          <div className="form-group">
+            <label>Upload Media</label>
+            <div className="file-drop-zone">
+              <input 
                 type="file" 
                 multiple 
                 onChange={handleFileChange} 
                 accept="video/*,image/*" 
+                id="file-upload"
               />
+              <label htmlFor="file-upload" className="custom-file-label">
+                {selectedFiles.length > 0 
+                  ? `${selectedFiles.length} files selected (Images will be sorted first)` 
+                  : "Click to browse Videos & Images"}
+              </label>
             </div>
           </div>
-          <button type="submit" disabled={loading} className="submit-btn">
-            {loading ? "🚀 Processing Media & Uploading..." : "Publish Masterclass"}
+
+          <button type="submit" disabled={loading} className={`submit-btn ${loading ? 'loading' : ''}`}>
+            {loading ? (
+              <>
+                <span className="spinner"></span>
+                Publishing to School...
+              </>
+            ) : "Publish Masterclass"}
           </button>
         </form>
-      </section>
-
-      <section className="sessions-list">
-        <h3>Live Masterclasses ({sessions.length})</h3>
-        <div className="table-wrapper">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Sort Order</th>
-                <th>Session Title</th>
-                <th>Media Count</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sessions.length > 0 ? (
-                sessions.map(s => (
-                  <tr key={s.id}>
-                    <td>{s.order}</td>
-                    <td><strong>{s.title}</strong></td>
-                    <td>{s.media?.length || 0} items</td>
-                    <td>
-                      <button onClick={() => handleDelete(s.id)} className="delete-btn">Delete</button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>
-                    No sessions found. Start by uploading one!
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
       </section>
     </div>
   );
