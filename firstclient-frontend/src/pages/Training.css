@@ -4,10 +4,10 @@
   --pastry-blue: #2563eb;
   --text-main: #2d3436;
   --text-light: #636e72;
-  --bg-soft: #f0f2f5; /* Konga-style soft background */
+  --bg-soft: #f0f2f5; 
 }
 
-/* GLOBAL RESET & WRAPPER */
+/* GLOBAL RESET */
 * { box-sizing: border-box; }
 
 .school-page-wrapper {
@@ -15,6 +15,8 @@
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
+  /* Prevent context menu on the whole page to protect media */
+  -webkit-touch-callout: none;
 }
 
 /* 🌀 PROFESSIONAL LOADING SPINNER */
@@ -24,7 +26,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--white, #fff);
+  background: #fff;
 }
 
 .pastry-spinner {
@@ -44,7 +46,7 @@
 
 /* HERO SECTION */
 .school-hero {
-  height: 40vh;
+  height: 35vh; /* Slightly reduced for better space management */
   background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
               url('https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=1000') center/cover;
   display: flex;
@@ -54,90 +56,108 @@
   color: white;
 }
 
-.school-hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px; }
+.school-hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
 
 /* CONTAINER & SOCIAL CARDS */
 .school-container {
-  max-width: 700px; /* Narrower "Konga" structure for better focus */
-  margin: -40px auto 50px;
-  padding: 0 15px;
+  max-width: 650px; /* Tight Konga-style focus */
+  margin: -30px auto 80px;
+  padding: 0 10px;
 }
 
 .social-post-card {
   background: white;
-  border-radius: 15px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   border: 1px solid #e1e4e8;
   overflow: hidden;
 }
 
-/* CARD HEADER (Social Style) */
+/* CARD HEADER */
 .post-header {
   display: flex;
   align-items: center;
-  padding: 15px 20px;
+  padding: 12px 15px;
   gap: 12px;
 }
 
 .post-avatar {
-  width: 42px;
-  height: 42px;
+  width: 40px; height: 40px;
   background: var(--pastry-blue);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 13px;
+  color: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px;
 }
 
-.post-meta { display: flex; flex-direction: column; }
-.post-title { font-size: 1.2rem; font-weight: 700; margin: 0; color: var(--text-main); }
+.post-title { font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-main); }
 .post-category { font-size: 11px; color: var(--pastry-gold); font-weight: 800; text-transform: uppercase; }
 
-/* 🖼️ IMAGE AREA (Fixed "Proper Space" Logic) */
+/* 🖼️ MODERATED IMAGE AREA */
 .post-image-area {
   position: relative;
   width: 100%;
+  height: 350px; /* Moderate height as requested */
   background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .featured-image {
   width: 100%;
-  height: auto;
-  max-height: 550px;
-  object-fit: contain; /* Ensures image fits perfectly without bleeding */
+  height: 100%;
+  object-fit: cover; /* High quality fill */
   display: block;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-.image-counter {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
+/* HEART ANIMATION FOR DOUBLE TAP */
+.heart-overlay {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px; pointer-events: none;
+  animation: heartPop 0.6s ease-out forwards;
+  z-index: 5;
 }
 
-/* CAPTION / WRITE-UP */
+@keyframes heartPop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* CAPTION & LIKE BUTTON */
 .post-caption {
-  padding: 20px;
-  font-size: 1.05rem;
-  line-height: 1.6;
+  padding: 15px;
+  font-size: 15px;
+  line-height: 1.5;
   color: #333;
-  white-space: pre-wrap;
-  border-bottom: 1px solid #f0f2f5;
 }
 
-/* 🎥 INLINE VIDEO GALLERY (Sync with Admin Gallery Mode) */
+.post-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 15px;
+}
+
+.like-btn {
+  background: #f1f3f5;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.like-btn.liked {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+/* 🎥 PROTECTED VIDEO GALLERY */
 .post-video-gallery {
   background: #000;
   position: relative;
@@ -145,97 +165,63 @@
   aspect-ratio: 16/9;
 }
 
-.video-viewer {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
 .live-video {
   width: 100%;
   height: 100%;
-  background: #000;
+  /* Protection for videos */
+  pointer-events: auto;
+}
+
+/* Hiding download buttons across browsers */
+video::-internal-media-controls-download-button { display:none; }
+video::-webkit-media-controls-enclosure { overflow:hidden; }
+video::-webkit-media-controls-panel { width: calc(100% + 30px); }
+
+.video-count-tag {
+  position: absolute; top: 10px; left: 10px;
+  background: rgba(0,0,0,0.5); color: white;
+  padding: 4px 10px; border-radius: 4px;
+  font-size: 10px; font-weight: 700;
 }
 
 .nav-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255,255,255,0.25);
-  color: white;
-  border: none;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 28px;
-  z-index: 10;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.2); color: white;
+  border: none; width: 40px; height: 40px; border-radius: 50%;
+  cursor: pointer; font-size: 24px; z-index: 10;
 }
 
-.nav-arrow:hover { background: rgba(255,255,255,0.45); transform: translateY(-50%) scale(1.1); }
-.nav-arrow.left { left: 15px; }
-.nav-arrow.right { right: 15px; }
+.nav-arrow.left { left: 10px; }
+.nav-arrow.right { right: 10px; }
 
-.video-indicator {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-/* ENROLLMENT CTA */
-.enrollment-cta {
-  margin-top: 40px;
-  padding: 20px 0;
-}
-
-.cta-inner {
-  background: var(--pastry-blue);
-  color: white;
-  padding: 40px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
-}
-
-.cta-badge {
-  background: rgba(255,255,255,0.2);
-  padding: 5px 15px;
-  border-radius: 50px;
-  font-size: 12px;
-  font-weight: 800;
-  display: inline-block;
-  margin-bottom: 15px;
-}
-
-.whatsapp-btn {
-  display: inline-block;
-  margin-top: 25px;
+/* 🟢 FLOATING WHATSAPP BUBBLE (Small & Professional) */
+.floating-whatsapp {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
   background: #25d366;
   color: white;
-  padding: 16px 40px;
+  padding: 12px 22px;
   border-radius: 50px;
   text-decoration: none;
   font-weight: 800;
-  transition: transform 0.2s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.3s;
 }
 
-.whatsapp-btn:hover { transform: translateY(-3px); }
+.floating-whatsapp:hover { transform: scale(1.1) translateY(-5px); }
 
 /* RESPONSIVE FIXES */
 @media (max-width: 768px) {
+  .post-image-area { height: 280px; } /* Even more compact for mobile */
   .school-hero h1 { font-size: 1.8rem; }
-  .school-container { margin-top: 10px; }
-  .social-post-card { border-radius: 0; border-left: none; border-right: none; margin-bottom: 15px; }
-  .post-video-gallery { aspect-ratio: 4/5; } /* Makes videos feel like mobile content */
-  .nav-arrow { width: 38px; height: 38px; font-size: 22px; }
+  .wa-text { display: none; } /* Shrinks to a circle bubble on mobile */
+  .floating-whatsapp { 
+    padding: 12px; border-radius: 50%; 
+    bottom: 20px; right: 20px; 
+  }
 }
