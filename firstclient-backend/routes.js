@@ -90,7 +90,6 @@ const verifyToken = (req, res, next) => {
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
-        // This log will appear in your Render dashboard to tell us WHY it failed
         console.log("❌ JWT Verification Failed:", err.message); 
         
         if (err.name === "TokenExpiredError") {
@@ -99,7 +98,6 @@ const verifyToken = (req, res, next) => {
         return res.status(401).json({ message: "Unauthorized access" });
       }
       
-      // Ensure the ID from the token is attached to the request
       req.adminId = decoded.id;
       next();
     });
@@ -151,7 +149,6 @@ router.post("/admin/login", async (req, res) => {
     if (!admin) return res.status(401).json({ success: false, message: "Invalid credentials" });
     const isMatch = await bcrypt.compare(password, admin.password);
     if (isMatch) {
-      // Create token using the admin ID
       const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: "6h" });
       return res.json({ success: true, token });
     }
@@ -374,7 +371,6 @@ router.post("/orders/verify", async (req, res) => {
   }
 });
 
-// --- REMAINING ROUTES ---
 router.get("/orders/receipt/:reference", async (req, res) => {
   try {
     const order = await Order.findOne({ where: { reference: req.params.reference } });
@@ -483,9 +479,6 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
 
 // --- 🎓 PASTRY SCHOOL ROUTES ---
 
-// 🛡️ ASSOCIATION LINES REMOVED TO PREVENT "Duplicate Alias" CRASH.
-// They are already defined in your server.js.
-
 router.get("/training", async (req, res) => {
   try {
     const sessions = await Training.findAll({
@@ -499,35 +492,29 @@ router.get("/training", async (req, res) => {
 router.post("/admin/training", verifyToken, upload.array('files', 10), async (req, res) => {
   try {
     const { title, subHeader, description, order } = req.body;
-    
     const newTraining = await Training.create({
       title: sanitizeInput(title),
       subHeader: sanitizeInput(subHeader), 
       description: sanitizeInput(description),
       order: order || 0
     });
-
     if (req.files && req.files.length > 0) {
       const mediaEntries = req.files.map(file => ({
         url: file.path || file.secure_url,
         type: file.mimetype.startsWith('video') ? 'video' : 'image',
         trainingId: newTraining.id
       }));
-
       await TrainingMedia.bulkCreate(mediaEntries);
     }
-
     const result = await Training.findByPk(newTraining.id, {
       include: [{ model: TrainingMedia, as: 'trainingMedia' }] 
     });
-
     res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to upload training session" });
-  }
+  } catch (err) { res.status(500).json({ error: "Failed to upload training session" }); }
 });
 
-router.put("/admin/training/:id", verifyToken, async (req, res) => {
+// 🛠️ INTEGRATED FIX: Training Update Route (Supports FormData/Files)
+router.put("/admin/training/:id", verifyToken, upload.array('files', 10), async (req, res) => {
   try {
     const { title, subHeader, description, order } = req.body;
     const session = await Training.findByPk(req.params.id);
@@ -536,11 +523,32 @@ router.put("/admin/training/:id", verifyToken, async (req, res) => {
     session.title = sanitizeInput(title) || session.title;
     session.subHeader = sanitizeInput(subHeader) || session.subHeader;
     session.description = sanitizeInput(description) || session.description;
-    session.order = order !== undefined ? order : session.order;
-
+    if (order !== undefined) session.order = order;
     await session.save();
-    res.json({ success: true, updated: session });
+
+    if (req.files && req.files.length > 0) {
+      const mediaEntries = req.files.map(file => ({
+        url: file.path || file.secure_url,
+        type: file.mimetype.startsWith('video') ? 'video' : 'image',
+        trainingId: session.id
+      }));
+      await TrainingMedia.bulkCreate(mediaEntries);
+    }
+
+    const result = await Training.findByPk(session.id, {
+      include: [{ model: TrainingMedia, as: 'trainingMedia' }]
+    });
+    res.json({ success: true, updated: result });
   } catch (err) { res.status(500).json({ error: "Update failed" }); }
+});
+
+// 🛠️ INTEGRATED FIX: Delete Individual Media Route
+router.delete("/admin/training/:postId/media/:mediaId", verifyToken, async (req, res) => {
+  try {
+    const { mediaId } = req.params;
+    await TrainingMedia.destroy({ where: { id: mediaId } });
+    res.json({ success: true, message: "Media deleted" });
+  } catch (err) { res.status(500).json({ error: "Delete media failed" }); }
 });
 
 router.delete("/admin/training/:id", verifyToken, async (req, res) => {
