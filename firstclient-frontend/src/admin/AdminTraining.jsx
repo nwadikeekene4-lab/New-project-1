@@ -5,10 +5,13 @@ import './AdminTraining.css';
 
 const AdminTraining = () => {
   const [publishedPosts, setPublishedPosts] = useState([]);
-  const [filteredPosts, setFilteredPosts] = useState([]); // For search
-  const [searchQuery, setSearchQuery] = useState(""); // Search state
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  
+  // Form States
   const [formData, setFormData] = useState({ title: '', subHeader: '', description: '' });
   const [selectedFiles, setSelectedFiles] = useState([]);
   
@@ -17,6 +20,7 @@ const AdminTraining = () => {
   const [editData, setEditData] = useState({ title: '', subHeader: '', description: '' });
   const [newFilesToAppend, setNewFilesToAppend] = useState([]);
   const [activeGalleryId, setActiveGalleryId] = useState(null);
+  const [focusedMediaId, setFocusedMediaId] = useState(null); // For Red Border logic
 
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
 
@@ -26,13 +30,19 @@ const AdminTraining = () => {
   };
   const token = getCleanToken();
 
+  // Scroll Listener
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => { fetchPosts(); }, []);
 
-  // Filter posts whenever search query or post list changes
   useEffect(() => {
     const filtered = publishedPosts.filter(post => 
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.subHeader.toLowerCase().includes(searchQuery.toLowerCase())
+      post.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.subHeader?.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredPosts(filtered);
   }, [searchQuery, publishedPosts]);
@@ -44,6 +54,8 @@ const AdminTraining = () => {
       setFilteredPosts(res.data);
     } catch (err) { console.error("Load failed"); }
   };
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,10 +71,7 @@ const AdminTraining = () => {
     try {
       await axios.post(`${API_BASE}/admin/training`, data, {
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percent);
-        }
+        onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded * 100) / p.total))
       });
       setFormData({ title: '', subHeader: '', description: '' });
       setSelectedFiles([]);
@@ -121,19 +130,17 @@ const AdminTraining = () => {
 
   return (
     <div className="admin-training-page">
+      {/* 🚀 BACK TO TOP BUTTON */}
+      <button className={`scroll-top-btn ${showScrollTop ? 'visible' : ''}`} onClick={scrollToTop} title="Go to top">↑</button>
+
       <div className="content-container">
-        
         <header className="page-header">
           <Link to="/admin" className="back-link">← Dashboard</Link>
           <h1>Training School Manager</h1>
-          
           <div className="search-container">
             <input 
-              type="text" 
-              className="search-input" 
-              placeholder="Search by title or category..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              type="text" className="search-input" placeholder="Search sessions..." 
+              value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </header>
@@ -141,41 +148,64 @@ const AdminTraining = () => {
         <section className="form-section">
           <form className="pro-form" onSubmit={handleSubmit}>
             <h3>Create New Content</h3>
+            
             {loading && (
-              <div className="progress-wrapper">
-                <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
-                <span className="progress-label">{uploadProgress}% Uploading...</span>
+              <div className="loading-overlay">
+                <div className="spinner-box">
+                    <div className="loader-circle"></div>
+                    <div className="progress-text">{uploadProgress}%</div>
+                </div>
+                <p>Uploading to Cloudinary...</p>
               </div>
             )}
-            <div className="input-group"><label>Title</label><input type="text" placeholder="Enter title" value={formData.title} onChange={(e)=>setFormData({...formData, title: e.target.value})} required /></div>
-            <div className="input-group"><label>Sub Header</label><input type="text" placeholder="Enter sub header" value={formData.subHeader} onChange={(e)=>setFormData({...formData, subHeader: e.target.value})} required /></div>
-            <div className="input-group"><label>Writeup</label><textarea placeholder="Type your content..." value={formData.description} onChange={(e)=>setFormData({...formData, description: e.target.value})} required /></div>
+
+            <div className="input-group">
+              <label>Title</label>
+              <input type="text" placeholder="Enter title" value={formData.title} onChange={(e)=>setFormData({...formData, title: e.target.value})} required />
+            </div>
+            <div className="input-group">
+              <label>Sub Header</label>
+              <input type="text" placeholder="Category/Category" value={formData.subHeader} onChange={(e)=>setFormData({...formData, subHeader: e.target.value})} required />
+            </div>
+            <div className="input-group">
+              <label>Writeup</label>
+              <textarea placeholder="Description here..." value={formData.description} onChange={(e)=>setFormData({...formData, description: e.target.value})} required />
+            </div>
             <div className="form-footer">
-              <input type="file" multiple onChange={(e) => setSelectedFiles(Array.from(e.target.files))} accept="video/*,image/*" required />
-              <button type="submit" className="publish-btn" disabled={loading}>Publish</button>
+              <div className="file-input-wrapper">
+                <input type="file" id="file-upload" multiple onChange={(e) => setSelectedFiles(Array.from(e.target.files))} accept="video/*,image/*" required />
+                <label htmlFor="file-upload" className="file-label">
+                    {selectedFiles.length > 0 ? `${selectedFiles.length} files ready` : "Choose Media"}
+                </label>
+              </div>
+              <button type="submit" className="publish-btn" disabled={loading}>
+                {loading ? "Processing..." : "Publish Session"}
+              </button>
             </div>
           </form>
         </section>
 
         <main className="feed-section">
           {filteredPosts.map((post) => (
-            <article key={post.id} className="post-card">
-              
+            <article key={post.id} className={`post-card ${editingId === post.id ? 'is-editing' : ''}`}>
               <div className="post-media">
                 {editingId === post.id ? (
                   <div className="edit-media-manager">
-                    <h4>Manage Media</h4>
-                    <p className="edit-hint">Click ✕ on an image/video to remove it</p>
+                    <h4>Manage Files</h4>
                     <div className="media-edit-grid">
-                        {post.trainingMedia.map((m) => (
-                            <div key={m.id} className="media-edit-item">
+                        {post.trainingMedia?.map((m) => (
+                            <div 
+                                key={m.id} 
+                                className={`media-edit-item ${focusedMediaId === m.id ? 'active-red' : ''}`}
+                                onClick={() => setFocusedMediaId(m.id)}
+                            >
                                 {m.url.match(/\.(mp4|mov|webm)$/) ? <video src={m.url} /> : <img src={m.url} alt="" />}
-                                <button className="remove-media-btn" onClick={() => deleteSingleMedia(post.id, m.id)}>✕</button>
+                                <button className="remove-media-btn" onClick={(e) => { e.stopPropagation(); deleteSingleMedia(post.id, m.id); }}>✕</button>
                             </div>
                         ))}
                     </div>
                     <div className="add-more-media">
-                        <label>Add more photos/videos:</label>
+                        <label>Append new files:</label>
                         <input type="file" multiple onChange={(e) => setNewFilesToAppend(Array.from(e.target.files))} />
                     </div>
                   </div>
@@ -183,7 +213,7 @@ const AdminTraining = () => {
                   <div className="media-preview" onClick={() => setActiveGalleryId(activeGalleryId === post.id ? null : post.id)}>
                      {activeGalleryId === post.id ? (
                         <div className="gallery-stack">
-                           {post.trainingMedia.map((m, i) => (
+                           {post.trainingMedia?.map((m, i) => (
                              <div key={i} className="gallery-item">
                                {m.url.match(/\.(mp4|mov|webm)$/) ? <video src={m.url} controls /> : <img src={m.url} alt="" />}
                              </div>
@@ -196,7 +226,7 @@ const AdminTraining = () => {
                             <div className="vid-thumb"><video src={post.trainingMedia[0].url} muted /><div className="play-ui">▶</div></div> : 
                             <img src={post.trainingMedia?.[0]?.url || "https://placehold.co/800x450"} alt="" />
                            }
-                           <div className="media-count-tag">View {post.trainingMedia?.length} Files</div>
+                           <div className="media-count-tag">{post.trainingMedia?.length || 0} Files</div>
                         </div>
                      )}
                   </div>
@@ -206,14 +236,11 @@ const AdminTraining = () => {
               <div className="post-body">
                 {editingId === post.id ? (
                   <div className="full-edit-mode">
-                    <label className="edit-label">Title</label>
-                    <input className="edit-field" value={editData.title} onChange={(e)=>setEditData({...editData, title: e.target.value})} />
-                    <label className="edit-label">Sub Header</label>
-                    <input className="edit-field" value={editData.subHeader} onChange={(e)=>setEditData({...editData, subHeader: e.target.value})} />
-                    <label className="edit-label">Description</label>
+                    <input className="edit-field title" value={editData.title} onChange={(e)=>setEditData({...editData, title: e.target.value})} />
+                    <input className="edit-field sub" value={editData.subHeader} onChange={(e)=>setEditData({...editData, subHeader: e.target.value})} />
                     <textarea className="edit-field area" value={editData.description} onChange={(e)=>setEditData({...editData, description: e.target.value})} />
                     <div className="edit-final-btns">
-                      <button className="save-btn" onClick={() => handleUpdate(post.id)}>{loading ? 'Saving...' : 'Save All Changes'}</button>
+                      <button className="save-btn" onClick={() => handleUpdate(post.id)}>{loading ? 'Saving...' : 'Save All'}</button>
                       <button className="cancel-btn" onClick={() => setEditingId(null)}>Cancel</button>
                     </div>
                   </div>
@@ -229,7 +256,7 @@ const AdminTraining = () => {
                       <button className="edit-link" onClick={() => {
                         setEditingId(post.id);
                         setEditData({ title: post.title, subHeader: post.subHeader, description: post.description });
-                      }}>Edit Post Content</button>
+                      }}>Edit Session</button>
                       <button className="delete-link" onClick={() => handleDeletePost(post.id)}>Delete</button>
                     </div>
                   </>
@@ -237,7 +264,6 @@ const AdminTraining = () => {
               </div>
             </article>
           ))}
-          {filteredPosts.length === 0 && <p className="no-results">No posts found matching "{searchQuery}"</p>}
         </main>
       </div>
     </div>
