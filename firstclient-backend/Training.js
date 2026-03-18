@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("./config"); // ✅ INTEGRATED: Changed from ./database to match your Product.js config
+const sequelize = require("./config"); 
 
 const Training = sequelize.define("Training", {
   id: {
@@ -11,6 +11,11 @@ const Training = sequelize.define("Training", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  // ⭐ ADD THIS LINE BELOW:
+  subHeader: {
+    type: DataTypes.STRING,
+    allowNull: true, // Allow it to be empty if you don't have a sub-topic
+  },
   description: {
     type: DataTypes.TEXT,
     allowNull: false,
@@ -20,7 +25,7 @@ const Training = sequelize.define("Training", {
     defaultValue: 0,
   }
 }, {
-  timestamps: true // ✅ Added to match your project's data structure
+  timestamps: true 
 });
 
 module.exports = Training;
