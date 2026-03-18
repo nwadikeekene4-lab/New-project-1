@@ -1,195 +1,168 @@
-/* --- PAGE WRAPPER & HERO --- */
+:root {
+  --pastry-gold: #d4af37;
+  --pastry-cream: #fffdfa;
+  --pastry-blue: #2563eb;
+  --text-main: #2d3436;
+  --text-light: #636e72;
+}
+
 .school-page-wrapper {
-  background: #ffffff;
+  background-color: #fcfaf8; /* Warm off-white */
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
-  scroll-behavior: smooth; /* Added for smoother UX */
 }
 
+/* HERO SECTION */
 .school-hero {
-  background: #f8f9fa; 
-  padding: 80px 20px 40px;
-  text-align: center;
-  border-bottom: 1px solid #eee;
-}
-
-.school-hero h1 {
-  font-size: 2.8rem;
-  color: #1a1a1a;
-  margin-bottom: 10px;
-  letter-spacing: -1px;
-}
-
-.school-hero p {
-  color: #666;
-  font-size: 1.2rem;
-}
-
-/* --- CONTENT CONTAINER --- */
-.school-container {
-  max-width: 1100px; 
-  margin: 40px auto;
-  padding: 0 20px;
-}
-
-/* --- TRAINING SECTIONS --- */
-.training-section {
-  margin-bottom: 80px;
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 40px;
-}
-
-.section-badge {
-  display: inline-block;
-  background: #f1f1f1;
-  color: #333;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  margin-bottom: 10px;
-  letter-spacing: 0.5px;
-}
-
-.section-text h2 {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 15px;
-}
-
-.section-text p {
-  line-height: 1.8;
-  color: #555;
-  font-size: 1.1rem;
-  margin-bottom: 30px;
-}
-
-/* --- GALLERY GRID (Konga Style) --- */
-.section-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.media-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  background: #000; 
-  display: flex; /* Added: Centers media if aspect ratio differs */
+  height: 40vh;
+  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=1000') center/cover;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 250px;
+  text-align: center;
+  color: white;
 }
 
-.school-media {
+.school-hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 10px; }
+
+/* CONTAINER & CARDS */
+.school-container {
+  max-width: 800px;
+  margin: -50px auto 50px;
+  padding: 0 15px;
+}
+
+.session-blog-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border: 1px solid #f1e9e0;
+}
+
+/* HEADER */
+.category-tag {
+  color: var(--pastry-gold);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.session-title {
+  font-size: 2rem;
+  margin: 10px 0 20px;
+  color: var(--text-main);
+}
+
+/* IMAGES */
+.image-showcase {
+  margin-bottom: 25px;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.main-featured-img {
   width: 100%;
   height: 400px;
   object-fit: cover;
-  display: block;
+}
+
+.mini-image-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.mini-image-strip img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
 }
 
-video.school-media {
-  object-fit: contain; 
-  background: #000;
-}
-
-.school-media:hover {
-  transform: scale(1.02);
-}
-
-.no-media-text {
-  color: #999;
-  font-style: italic;
-  font-size: 0.9rem;
-  padding: 20px 0;
-}
-
-/* --- 🎯 ENROLLMENT CALL TO ACTION --- */
-.enrollment-cta {
-  background: #1a1a1a; 
-  color: #ffffff;
-  padding: 60px 30px;
-  border-radius: 12px;
-  text-align: center;
-  margin-top: 60px;
-}
-
-.cta-badge {
-  background: #333; 
-  color: #fff;
-  padding: 5px 15px;
-  border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  border: 1px solid #444;
-}
-
-.cta-content h2 {
-  font-size: 2.2rem;
-  margin: 20px 0 10px;
-  color: #ffffff;
-}
-
-.cta-content p {
+/* TEXT AREA */
+.description-text {
   font-size: 1.1rem;
-  color: #cccccc;
-  max-width: 600px;
-  margin: 0 auto 30px;
+  line-height: 1.8;
+  color: #444;
+  white-space: pre-wrap;
+  margin-bottom: 30px;
 }
 
-/* --- WHATSAPP BUTTON --- */
-.whatsapp-enroll-btn {
-  display: inline-flex;
+/* VIDEO GRID */
+.video-section h3 { margin-bottom: 15px; font-size: 1.2rem; }
+.video-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.video-play-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
   align-items: center;
-  background: #25d366; 
+  gap: 12px;
+  cursor: pointer;
+  border: 1px solid #eee;
+  transition: 0.3s;
+}
+
+.video-play-card:hover { background: #eef2ff; border-color: var(--pastry-blue); }
+.play-button { 
+    background: var(--pastry-blue); color: white; width: 35px; height: 35px; 
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+
+/* MODAL / GALLERY (ADMIN SYNC) */
+.school-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.95); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.modal-content { width: 90%; max-width: 1000px; position: relative; }
+.modal-video { width: 100%; border-radius: 12px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+
+.modal-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: white; border: none; width: 50px; height: 50px;
+  border-radius: 50%; font-size: 30px; cursor: pointer; z-index: 10001;
+}
+.modal-nav.prev { left: -70px; }
+.modal-nav.next { right: -70px; }
+.modal-close { position: absolute; top: 20px; right: 20px; color: white; background: none; border: none; font-size: 30px; cursor: pointer; }
+
+/* ENROLLMENT CTA */
+.enrollment-cta {
+  background: var(--pastry-blue);
+  color: white;
+  padding: 50px;
+  border-radius: 30px;
+  text-align: center;
+}
+
+.whatsapp-btn {
+  display: inline-block;
+  margin-top: 20px;
+  background: #25d366;
   color: white;
   padding: 15px 35px;
-  border-radius: 8px;
+  border-radius: 50px;
   text-decoration: none;
-  font-weight: bold;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
+  font-weight: 700;
 }
 
-.whatsapp-enroll-btn:hover {
-  background: #1eb954;
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
-}
-
-.whatsapp-icon {
-  margin-right: 12px;
-  font-size: 1.3rem;
-}
-
-/* Loader & Empty States */
-.loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-  color: #666;
-}
-
-.no-content {
-  text-align: center;
-  padding: 100px 20px;
-  color: #888;
-}
-
-/* --- RESPONSIVENESS --- */
+/* RESPONSIVE */
 @media (max-width: 768px) {
-  .school-hero { padding: 60px 20px; }
   .school-hero h1 { font-size: 2rem; }
-  .school-media { height: 250px; }
-  .cta-content h2 { font-size: 1.7rem; }
-  .whatsapp-enroll-btn { width: 100%; justify-content: center; }
-  .training-section { margin-bottom: 50px; }
+  .main-featured-img { height: 250px; }
+  .video-grid { grid-template-columns: 1fr; }
+  .modal-nav { width: 40px; height: 40px; font-size: 20px; }
+  .modal-nav.prev { left: 10px; }
+  .modal-nav.next { right: 10px; }
 }
