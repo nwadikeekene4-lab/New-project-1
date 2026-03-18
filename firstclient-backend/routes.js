@@ -87,6 +87,7 @@ const verifyToken = (req, res, next) => {
         if (err.name === "TokenExpiredError") return res.status(401).json({ message: "Session expired.", expired: true });
         return res.status(401).json({ message: "Unauthorized access" });
       }
+      // ✅ DECIDED.ID now matches the database primary key
       req.adminId = decoded.id;
       next();
     });
@@ -135,7 +136,8 @@ router.post("/admin/login", async (req, res) => {
     if (!admin) return res.status(401).json({ success: false, message: "Invalid credentials" });
     const isMatch = await bcrypt.compare(password, admin.password);
     if (isMatch) {
-      const token = jwt.sign({ id: admin.username }, JWT_SECRET, { expiresIn: "6h" });
+      // ✅ FIX: Signed with admin.id so verifyToken can read it
+      const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: "6h" });
       return res.json({ success: true, token });
     }
     res.status(401).json({ success: false, message: "Invalid credentials" });
@@ -272,8 +274,6 @@ router.post("/paystack/init", async (req, res) => {
 router.post("/orders/verify", async (req, res) => {
   try {
     const { reference } = req.body;
-    console.log(`Step 1: Starting verification for ref: ${reference}`);
-    
     let order = await Order.findOne({ where: { reference } });
     let payData;
     let details;
@@ -287,7 +287,6 @@ router.post("/orders/verify", async (req, res) => {
       details = payData.metadata.customer_details;
 
       if (!order) {
-        console.log("Step 2: Order created via Verify Route.");
         order = await Order.create({
            reference: reference,
            customerName: details.name,
@@ -303,13 +302,10 @@ router.post("/orders/verify", async (req, res) => {
            status: "Paid" 
         });
         await CartItem.destroy({ where: {} });
-      } else {
-        console.log("Step 2: Order already exists in DB.");
       }
 
       if (process.env.RESEND_API_KEY) {
         try {
-          console.log("Step 3: Sending original formatted email...");
           const paymentDate = new Date().toLocaleString('en-GB', { 
             timeZone: 'Africa/Lagos', hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
           });
@@ -329,7 +325,6 @@ router.post("/orders/verify", async (req, res) => {
               <h2 style="color: #1a202c; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">ESSENCE CREATIONS RECEIPT</h2>
               <p>Hello <strong>${details.name}</strong>, your payment was successful on ${paymentDate}.</p>
               <p><strong>Order Ref:</strong> #${reference}</p>
-              <p><strong>Shipping Location:</strong> ${details.location}</p>
               <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                 <thead>
                   <tr style="background: #f8fafc;">
@@ -353,7 +348,6 @@ router.post("/orders/verify", async (req, res) => {
             subject: `Receipt for Order #${reference}`,
             html: emailHtml
           });
-          console.log("✅ Step 4: Receipt email sent.");
         } catch (e) { console.log("❌ Email Error:", e.message); }
       }
     }
@@ -474,14 +468,14 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
 
 // --- 🎓 PASTRY SCHOOL ROUTES ---
 
-// ⭐ ALIAS FIX: Correctly defined relationship
-Training.hasMany(TrainingMedia, { as: 'media', foreignKey: 'trainingId', onDelete: 'CASCADE' });
+// ✅ ALIAS SYNC: Renamed to 'trainingMedia' to match server.js logic
+Training.hasMany(TrainingMedia, { as: 'trainingMedia', foreignKey: 'trainingId', onDelete: 'CASCADE' });
 TrainingMedia.belongsTo(Training, { foreignKey: 'trainingId' });
 
 router.get("/training", async (req, res) => {
   try {
     const sessions = await Training.findAll({
-      include: [{ model: TrainingMedia, as: 'media' }], // ⭐ Using the alias
+      include: [{ model: TrainingMedia, as: 'trainingMedia' }], 
       order: [['order', 'ASC'], ['createdAt', 'DESC']]
     });
     res.json(sessions);
@@ -490,10 +484,12 @@ router.get("/training", async (req, res) => {
 
 router.post("/admin/training", verifyToken, upload.array('files', 10), async (req, res) => {
   try {
-    const { title, description, order } = req.body;
+    // ✅ Added subHeader to destructuring
+    const { title, subHeader, description, order } = req.body;
     
     const newTraining = await Training.create({
       title: sanitizeInput(title),
+      subHeader: sanitizeInput(subHeader), // ✅ Now correctly saved
       description: sanitizeInput(description),
       order: order || 0
     });
@@ -509,7 +505,7 @@ router.post("/admin/training", verifyToken, upload.array('files', 10), async (re
     }
 
     const result = await Training.findByPk(newTraining.id, {
-      include: [{ model: TrainingMedia, as: 'media' }] // ⭐ Alias used here too
+      include: [{ model: TrainingMedia, as: 'trainingMedia' }] 
     });
 
     res.json(result);
@@ -518,14 +514,14 @@ router.post("/admin/training", verifyToken, upload.array('files', 10), async (re
   }
 });
 
-// Update Training Session (Admin Only)
 router.put("/admin/training/:id", verifyToken, async (req, res) => {
   try {
-    const { title, description, order } = req.body;
+    const { title, subHeader, description, order } = req.body;
     const session = await Training.findByPk(req.params.id);
     if (!session) return res.status(404).json({ error: "Session not found" });
 
     session.title = sanitizeInput(title) || session.title;
+    session.subHeader = sanitizeInput(subHeader) || session.subHeader;
     session.description = sanitizeInput(description) || session.description;
     session.order = order !== undefined ? order : session.order;
 
