@@ -6,32 +6,31 @@ import './AdminTraining.css';
 const AdminTraining = () => {
   const [publishedPosts, setPublishedPosts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({ title: '', subHeader: '', description: '' });
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  
+  // States for Editing
+  const [editingId, setEditingId] = useState(null);
+  const [editData, setEditData] = useState({ title: '', subHeader: '', description: '' });
+  const [activeGalleryId, setActiveGalleryId] = useState(null);
 
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
 
-  // 🛡️ Clean Token Retrieval
   const getCleanToken = () => {
     const rawToken = localStorage.getItem('adminToken'); 
-    if (!rawToken) return null;
-    return rawToken.replace(/['"]+/g, '').trim();
+    return rawToken ? rawToken.replace(/['"]+/g, '').trim() : null;
   };
 
   const token = getCleanToken();
 
-  useEffect(() => { 
-    fetchPosts(); 
-  }, []);
+  useEffect(() => { fetchPosts(); }, []);
 
   const fetchPosts = async () => {
     try {
       const res = await axios.get(`${API_BASE}/training`);
       setPublishedPosts(res.data);
-    } catch (err) { 
-      console.error("Load failed"); 
-    }
+    } catch (err) { console.error("Load failed"); }
   };
 
   const handleFileChange = (e) => {
@@ -40,138 +39,160 @@ const AdminTraining = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) return alert("Session missing. Please log in again.");
+    if (!token) return alert("Session expired.");
     
     setLoading(true);
+    setUploadProgress(30);
+
     const data = new FormData();
     data.append('title', formData.title);
     data.append('subHeader', formData.subHeader);
     data.append('description', formData.description);
-    
-    // Sort files: Images first
-    const sortedFiles = [...selectedFiles].sort((a, b) => {
-      const aImg = a.type.startsWith('image');
-      const bImg = b.type.startsWith('image');
-      return aImg === bImg ? 0 : aImg ? -1 : 1;
-    });
-    sortedFiles.forEach(file => data.append('files', file));
+    selectedFiles.forEach(file => data.append('files', file));
 
     try {
+      setUploadProgress(70);
       await axios.post(`${API_BASE}/admin/training`, data, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
-
-      alert("Article Published Successfully! ✅");
-      setFormData({ title: '', subHeader: '', description: '' });
-      setSelectedFiles([]);
-      e.target.reset();
-      fetchPosts();
+      setUploadProgress(100);
+      setTimeout(() => {
+        setFormData({ title: '', subHeader: '', description: '' });
+        setSelectedFiles([]);
+        setLoading(false);
+        setUploadProgress(0);
+        fetchPosts();
+        alert("Published Successfully! ✅");
+      }, 500);
     } catch (err) {
-      alert("Upload failed. File might be too large.");
+      alert("Upload failed.");
+      setLoading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleUpdate = async (id) => {
+    setLoading(true);
+    try {
+      await axios.put(`${API_BASE}/admin/training/${id}`, editData, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setPublishedPosts(publishedPosts.map(p => p.id === id ? { ...p, ...editData } : p));
+      setEditingId(null);
+      alert("Updated Successfully! ✅");
+    } catch (err) {
+      alert("Update failed.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Permanently delete this article?")) return;
+    if (!window.confirm("Delete this entire post?")) return;
     try {
       await axios.delete(`${API_BASE}/admin/training/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setPublishedPosts(publishedPosts.filter(p => p.id !== id));
-    } catch (err) { 
-      alert("Delete failed."); 
-    }
+    } catch (err) { alert("Delete failed."); }
   };
 
   return (
     <div className="admin-training-page">
       <div className="content-container">
         
-        {/* --- HEADER --- */}
         <header className="page-header">
           <Link to="/admin" className="back-link">← Dashboard</Link>
           <h1>Training School Feed</h1>
-          <p>Create and manage educational articles for the school wall.</p>
         </header>
 
-        {/* --- PUBLISHING FORM --- */}
+        {/* --- UPLOAD FORM WITH PROGRESS --- */}
         <section className="form-section">
           <form className="pro-form" onSubmit={handleSubmit}>
-            <h3>Create New Article</h3>
+            <h3>Create Content</h3>
+            
+            {loading && (
+              <div className="progress-wrapper">
+                <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+                <span className="progress-label">{uploadProgress}% Uploading...</span>
+              </div>
+            )}
+
             <div className="input-group">
-              <label>Main Title</label>
-              <input 
-                type="text" 
-                placeholder="e.g. Introduction to Design" 
-                value={formData.title} 
-                onChange={(e)=>setFormData({...formData, title: e.target.value})} 
-                required 
-              />
+              <label>Article Title</label>
+              <input type="text" placeholder="Enter title" value={formData.title} onChange={(e)=>setFormData({...formData, title: e.target.value})} required />
             </div>
             <div className="input-group">
-              <label>Category / Sub-header</label>
-              <input 
-                type="text" 
-                placeholder="e.g. Module 1" 
-                value={formData.subHeader} 
-                onChange={(e)=>setFormData({...formData, subHeader: e.target.value})} 
-                required 
-              />
+              <label>Sub Header</label>
+              <input type="text" placeholder="Enter sub header" value={formData.subHeader} onChange={(e)=>setFormData({...formData, subHeader: e.target.value})} required />
             </div>
             <div className="input-group">
-              <label>Article Content</label>
-              <textarea 
-                placeholder="Write the full write-up here..." 
-                value={formData.description} 
-                onChange={(e)=>setFormData({...formData, description: e.target.value})} 
-                required 
-              />
+              <label>Writeup</label>
+              <textarea placeholder="Type your content here..." value={formData.description} onChange={(e)=>setFormData({...formData, description: e.target.value})} required />
             </div>
             <div className="form-footer">
-              <div className="file-input-wrapper">
-                <input type="file" multiple onChange={handleFileChange} accept="video/*,image/*" required />
-                <p className="helper-text">Images & Videos supported</p>
-              </div>
-              <button type="submit" className="publish-btn" disabled={loading}>
-                {loading ? "Publishing..." : "Publish Post"}
-              </button>
+              <input type="file" multiple onChange={handleFileChange} accept="video/*,image/*" required />
+              <button type="submit" className="publish-btn" disabled={loading}>Publish</button>
             </div>
           </form>
         </section>
 
-        {/* --- FEED SECTION (BLOG STYLE) --- */}
+        {/* --- BLOG FEED WITH EDIT MODE --- */}
         <main className="feed-section">
-          <h2 className="section-title">Published Content</h2>
           {publishedPosts.map((post) => (
             <article key={post.id} className="post-card">
-              <div className="post-media">
-                {post.trainingMedia?.[0]?.url.match(/\.(mp4|mov|webm)$/) ? (
-                  <video src={post.trainingMedia[0].url} className="media-element" muted />
+              
+              {/* MEDIA SECTION */}
+              <div className="post-media" onClick={() => setActiveGalleryId(activeGalleryId === post.id ? null : post.id)}>
+                {activeGalleryId === post.id ? (
+                  <div className="gallery-view">
+                    {post.trainingMedia.map((m, i) => (
+                      <div key={i} className="gallery-item">
+                        {m.url.match(/\.(mp4|mov|webm)$/) ? <video src={m.url} controls /> : <img src={m.url} alt="" />}
+                      </div>
+                    ))}
+                    <div className="gallery-close-hint">Click to Collapse</div>
+                  </div>
                 ) : (
-                  <img src={post.trainingMedia?.[0]?.url || "https://placehold.co/800x450"} alt="" className="media-element" />
-                )}
-                {post.trainingMedia?.length > 1 && (
-                  <div className="media-overlay">+{post.trainingMedia.length - 1} More Media</div>
+                  <div className="media-preview">
+                    {post.trainingMedia?.[0]?.url.match(/\.(mp4|mov|webm)$/) ? (
+                       <div className="vid-container"><video src={post.trainingMedia[0].url} muted /><div className="play-btn-ui">▶</div></div>
+                    ) : (
+                      <img src={post.trainingMedia?.[0]?.url || "https://placehold.co/800x450"} alt="" />
+                    )}
+                    <div className="media-badge">View {post.trainingMedia?.length} Files</div>
+                  </div>
                 )}
               </div>
               
               <div className="post-body">
-                <span className="post-badge">{post.subHeader}</span>
-                <h2 className="post-headline">{post.title}</h2>
-                <p className="post-text">{post.description}</p>
-                
-                <div className="post-actions">
-                  <button className="btn-danger" onClick={() => handleDelete(post.id)}>Remove Article</button>
-                </div>
+                {editingId === post.id ? (
+                  <div className="inline-edit-form">
+                    <input className="edit-input" value={editData.title} onChange={(e)=>setEditData({...editData, title: e.target.value})} />
+                    <input className="edit-input" value={editData.subHeader} onChange={(e)=>setEditData({...editData, subHeader: e.target.value})} />
+                    <textarea className="edit-area" value={editData.description} onChange={(e)=>setEditData({...editData, description: e.target.value})} />
+                    <div className="edit-actions">
+                      <button className="save-btn" onClick={() => handleUpdate(post.id)}>Save Changes</button>
+                      <button className="cancel-btn" onClick={() => setEditingId(null)}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <span className="post-badge">{post.subHeader}</span>
+                    <h2 className="post-headline">{post.title}</h2>
+                    <p className="post-text">{post.description}</p>
+                    <div className="post-footer-btns">
+                      <button className="btn-edit" onClick={() => {
+                        setEditingId(post.id);
+                        setEditData({ title: post.title, subHeader: post.subHeader, description: post.description });
+                      }}>Edit Post</button>
+                      <button className="btn-delete" onClick={() => handleDelete(post.id)}>Delete</button>
+                    </div>
+                  </>
+                )}
               </div>
             </article>
           ))}
-          {publishedPosts.length === 0 && <p className="empty-state">No articles published yet.</p>}
         </main>
       </div>
     </div>
