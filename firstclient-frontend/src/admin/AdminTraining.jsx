@@ -11,17 +11,19 @@ const AdminTraining = () => {
 
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
 
-  // 🛡️ IMPROVED TOKEN RETRIEVAL
-  // This removes any accidental quotes added by JSON.stringify or mobile browsers
+  // 🛡️ MATCHING YOUR LOGIN NAME: 'adminToken'
   const getCleanToken = () => {
-    const rawToken = localStorage.getItem('token');
+    const rawToken = localStorage.getItem('adminToken'); 
     if (!rawToken) return null;
+    // Clean any accidental quotes from phone/browser formatting
     return rawToken.replace(/['"]+/g, '').trim();
   };
 
   const token = getCleanToken();
 
-  useEffect(() => { fetchPosts(); }, []);
+  useEffect(() => { 
+    fetchPosts(); 
+  }, []);
 
   const fetchPosts = async () => {
     try {
@@ -45,7 +47,12 @@ const AdminTraining = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) return showMsg('error', 'Session missing. Please log in again.');
+    
+    // Check token before starting
+    if (!token) {
+        return showMsg('error', 'Session missing.', 'The app could not find "adminToken" in your storage. Please log in again.');
+    }
+
     if (selectedFiles.length === 0) return showMsg('error', 'No files selected.');
 
     setLoading(true);
@@ -74,22 +81,21 @@ const AdminTraining = () => {
       showMsg('success', 'Upload Successful!');
       setFormData({ title: '', subHeader: '', description: '' });
       setSelectedFiles([]);
-      e.target.reset();
+      if (e.target) e.target.reset();
       fetchPosts();
     } catch (err) {
       const status = err.response?.status;
-      const serverMsg = err.response?.data?.error || err.response?.data?.message || "Unknown Server Error";
-      const rawData = JSON.stringify(err.response?.data);
-
+      const serverMsg = err.response?.data?.error || err.response?.data?.message || "Server Communication Error";
+      
       let finalTitle = "Upload Failed";
-      let finalDetail = `Status: ${status} | Message: ${serverMsg} | Raw: ${rawData}`;
+      let finalDetail = `Status: ${status} | Message: ${serverMsg}`;
 
-      if (status === 401) {
-        finalTitle = "AUTH ERROR (401)";
-        finalDetail = "The server rejected your token. Try logging out and back in.";
+      if (status === 401 || status === 403) {
+        finalTitle = "AUTHENTICATION FAILED";
+        finalDetail = "Your login session is invalid or expired. Try logging out and back in.";
       } else if (status === 413) {
-        finalTitle = "FILE TOO LARGE (413)";
-        finalDetail = "Render or the server limits are blocking this file. Try a smaller video.";
+        finalTitle = "FILE TOO LARGE";
+        finalDetail = "The video file is too big for the current server limits.";
       }
 
       showMsg('error', finalTitle, finalDetail);
@@ -119,7 +125,7 @@ const AdminTraining = () => {
       </header>
 
       {message.text && (
-        <div className={`alert ${message.type}`} style={{ textAlign: 'left', wordBreak: 'break-word' }}>
+        <div className={`alert ${message.type}`} style={{ textAlign: 'left', wordBreak: 'break-word', marginBottom: '20px' }}>
           <strong>{message.type === 'success' ? '✅' : '❌'} {message.text}</strong>
           {message.technicalDetails && (
             <div style={{ marginTop: '10px', fontSize: '11px', background: 'rgba(0,0,0,0.05)', padding: '10px', borderRadius: '5px' }}>
@@ -166,22 +172,17 @@ const AdminTraining = () => {
           <div className="form-group">
             <label>Photos & Videos</label>
             <input type="file" multiple onChange={handleFileChange} accept="video/*,image/*" />
-            <p className="helper-text">Pictures will appear before videos.</p>
+            <p className="helper-text">Pictures appear before videos.</p>
           </div>
           <button type="submit" disabled={loading} className="submit-btn">
-            {loading ? (
-              <div className="loader-container">
-                <span className="spinner"></span>
-                <span>Uploading... (Don't close)</span>
-              </div>
-            ) : "Post to School Page"}
+            {loading ? "Uploading... Please wait" : "Post to School Page"}
           </button>
         </form>
       </section>
 
       <section className="posts-list">
         <h3>Current School Posts</h3>
-        <div className="table-wrapper">
+        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
           <table className="admin-table">
             <thead>
               <tr>
@@ -194,7 +195,7 @@ const AdminTraining = () => {
               {publishedPosts.map(post => (
                 <tr key={post.id}>
                   <td><strong>{post.title}</strong><br/><small>{post.subHeader}</small></td>
-                  {/* 🛠️ FIXED: Accessing 'trainingMedia' alias from your backend */}
+                  {/* Accessing the trainingMedia alias from your backend */}
                   <td>{post.trainingMedia?.length || 0} Files</td>
                   <td><button onClick={() => handleDelete(post.id)} className="delete-btn">Remove</button></td>
                 </tr>
