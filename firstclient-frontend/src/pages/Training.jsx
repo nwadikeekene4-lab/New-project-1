@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
-import API from "../api"; // Keeping your existing API instance
+import API from "../api"; 
 import "./Training.css";
 
 export default function Training() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [galleryMedia, setGalleryMedia] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchTrainingData = async () => {
       try {
-        // This hits your backend: https://firstclient-backend.onrender.com/api/training
         const res = await API.get("/training");
         setSessions(res.data);
       } catch (err) {
@@ -21,83 +22,112 @@ export default function Training() {
     fetchTrainingData();
   }, []);
 
-  if (loading) return <div className="loader">Loading School Content...</div>;
+  const openVideoGallery = (videos, index = 0) => {
+    setGalleryMedia(videos);
+    setCurrentIndex(index);
+  };
+
+  const nextVideo = () => setCurrentIndex((prev) => (prev + 1) % galleryMedia.length);
+  const prevVideo = () => setCurrentIndex((prev) => (prev - 1 + galleryMedia.length) % galleryMedia.length);
+
+  if (loading) {
+    return (
+      <div className="school-loading">
+        <div className="pastry-spinner"></div>
+        <p>Preheating the oven...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="school-page-wrapper">
       <header className="school-hero">
-        <h1>Pastry Training School</h1>
-        <p>Master the art of baking with Essence Creations</p>
+        <div className="hero-overlay">
+          <h1>Pastry Training School</h1>
+          <p>Master the art of baking with Essence Creations</p>
+        </div>
       </header>
 
       <div className="school-container">
         {sessions.length > 0 ? (
-          sessions.map((session) => (
-            <article key={session.id} className="training-section">
-              <div className="section-text">
-                <span className="section-badge">Masterclass Session</span>
-                <h2>{session.title}</h2>
-                <p>{session.description}</p>
-              </div>
+          sessions.map((session) => {
+            // Separate Images and Videos for the specific "Blog" order
+            const images = session.trainingMedia?.filter(m => !m.url.match(/\.(mp4|mov|webm)$/i)) || [];
+            const videos = session.trainingMedia?.filter(m => m.url.match(/\.(mp4|mov|webm)$/i)) || [];
 
-              {/* The gallery now loops through the media array associated with this session */}
-              <div className="section-gallery">
-                {session.media && session.media.length > 0 ? (
-                  session.media.map((item) => (
-                    <div key={item.id} className="media-card">
-                      {item.type === 'video' ? (
-                        <video 
-                          src={item.url} 
-                          controls 
-                          controlsList="nodownload"
-                          playsInline
-                          webkit-playsinline="true"
-                          className="school-media" 
-                          preload="metadata"
-                        />
-                      ) : (
-                        <img 
-                          src={item.url} 
-                          alt={session.title} 
-                          className="school-media" 
-                        />
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="no-media-text">No media available for this session.</p>
+            return (
+              <article key={session.id} className="session-blog-card">
+                {/* 1. Header & Category */}
+                <div className="card-header">
+                  <span className="category-tag">{session.subHeader || "Masterclass"}</span>
+                  <h2 className="session-title">{session.title}</h2>
+                </div>
+
+                {/* 2. Image Showcase (Grid) */}
+                {images.length > 0 && (
+                  <div className="image-showcase">
+                    <img src={images[0].url} alt={session.title} className="main-featured-img" />
+                    {images.length > 1 && (
+                      <div className="mini-image-strip">
+                        {images.slice(1, 4).map((img, idx) => (
+                          <img key={idx} src={img.url} alt="Baking detail" />
+                        ))}
+                        {images.length > 4 && <div className="more-count">+{images.length - 4}</div>}
+                      </div>
+                    )}
+                  </div>
                 )}
-              </div>
-            </article>
-          ))
+
+                {/* 3. The Write-up */}
+                <div className="session-content">
+                  <p className="description-text">{session.description}</p>
+                </div>
+
+                {/* 4. Video Gallery Trigger */}
+                {videos.length > 0 && (
+                  <div className="video-section">
+                    <h3>Course Videos ({videos.length})</h3>
+                    <div className="video-grid">
+                      {videos.map((vid, idx) => (
+                        <div key={idx} className="video-play-card" onClick={() => openVideoGallery(videos, idx)}>
+                          <div className="play-button">▶</div>
+                          <span className="play-label">Watch Lesson {idx + 1}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })
         ) : (
           <div className="no-content">
-            <p>Our upcoming masterclasses are being prepared. Stay tuned!</p>
+            <h3>New Classes Coming Soon!</h3>
+            <p>Our instructors are currently filming new techniques.</p>
           </div>
         )}
 
-        {/* --- 🎯 INTEGRATED: ENROLLMENT CALL TO ACTION --- */}
         <section className="enrollment-cta">
-          <div className="cta-content">
             <span className="cta-badge">Enrollment Open</span>
-            <h2>Ready to start your baking journey?</h2>
-            <p>
-              Join our next masterclass and learn the secrets of Essence Creations. 
-              Click below to chat with our instructors about pricing and schedules.
-            </p>
-            
-            <a 
-              href="https://wa.me/2348028136371?text=Hello!%20I'm%20interested%20in%20enrolling%20in%20the%20Pastry%20Training%20School%20at%20Essence%20Creations." 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="whatsapp-enroll-btn"
-            >
-              <span className="whatsapp-icon">💬</span>
-              Enroll via WhatsApp
-            </a>
-          </div>
+            <h2>Start Your Professional Journey</h2>
+            <p>Learn the secrets of perfect pastries today.</p>
+            <a href="https://wa.me/2348028136371" className="whatsapp-btn">Enroll via WhatsApp</a>
         </section>
       </div>
+
+      {/* 🎥 Video Gallery Modal (Sync with Admin Style) */}
+      {galleryMedia && (
+        <div className="school-modal" onClick={() => setGalleryMedia(null)}>
+          <button className="modal-close">✕</button>
+          <button className="modal-nav prev" onClick={(e) => { e.stopPropagation(); prevVideo(); }}>‹</button>
+          <button className="modal-nav next" onClick={(e) => { e.stopPropagation(); nextVideo(); }}>›</button>
+          
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <video src={galleryMedia[currentIndex].url} controls autoPlay className="modal-video" />
+            <div className="modal-counter">Lesson {currentIndex + 1} of {galleryMedia.length}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
