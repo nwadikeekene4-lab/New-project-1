@@ -18,7 +18,7 @@ const AdminTraining = () => {
 
   // Edit States (Tabbed Focus Mode)
   const [editingId, setEditingId] = useState(null);
-  const [activeTab, setActiveTab] = useState('preview'); // 'preview' or 'edit'
+  const [activeTab, setActiveTab] = useState('preview'); 
   const [editData, setEditData] = useState({ title: '', subHeader: '', description: '' });
   const [editImages, setEditImages] = useState([]);
   const [editVideos, setEditVideos] = useState([]);
@@ -48,6 +48,16 @@ const AdminTraining = () => {
       setPublishedPosts(res.data);
       setFilteredPosts(res.data);
     } catch (err) { console.error("Load failed"); }
+  };
+
+  const handleExitFocus = () => {
+    const lastId = editingId;
+    setEditingId(null);
+    // Timeout allows React to render the feed before scrolling
+    setTimeout(() => {
+      const element = document.getElementById(`post-${lastId}`);
+      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   };
 
   const handleFileChange = (e, type, mode = 'create') => {
@@ -81,7 +91,6 @@ const AdminTraining = () => {
         headers: { 'Authorization': `Bearer ${token}` },
         onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded * 100) / p.total))
       });
-      // ✅ Clear Boxes After Success
       setFormData({ title: '', subHeader: '', description: '' });
       setSelectedImages([]); setSelectedVideos([]);
       fetchPosts();
@@ -102,12 +111,10 @@ const AdminTraining = () => {
       await axios.put(`${API_BASE}/admin/training/${id}`, data, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      // ✅ Clear and Exit Focus Mode
-      setEditingId(null);
       setEditImages([]); setEditVideos([]);
-      setEditData({ title: '', subHeader: '', description: '' });
       fetchPosts();
       alert("Session Updated! ✅");
+      handleExitFocus();
     } catch (err) { alert("Update failed."); }
     finally { setLoading(false); }
   };
@@ -122,7 +129,6 @@ const AdminTraining = () => {
     } catch (err) { alert("Delete failed."); }
   };
 
-  // Logic to sort media: Images first, then Videos
   const getSortedMedia = (media) => {
     if (!media) return [];
     const images = media.filter(m => m.type !== 'video' && !m.url.match(/\.(mp4|mov|webm)$/i));
@@ -130,7 +136,6 @@ const AdminTraining = () => {
     return [...images, ...videos];
   };
 
-  // 1. FOCUS MODE UI (PREVIEW & EDIT TABS)
   if (editingId) {
     const activePost = publishedPosts.find(p => p.id === editingId);
     const sortedMedia = getSortedMedia(activePost?.trainingMedia);
@@ -142,7 +147,7 @@ const AdminTraining = () => {
           <div className="tab-container">
             <button className={`tab-btn ${activeTab === 'preview' ? 'active' : ''}`} onClick={() => setActiveTab('preview')}>Preview Display</button>
             <button className={`tab-btn ${activeTab === 'edit' ? 'active' : ''}`} onClick={() => setActiveTab('edit')}>Edit Content</button>
-            <button className="exit-btn" onClick={() => setEditingId(null)}>✕ Close</button>
+            <button className="exit-btn" onClick={handleExitFocus}>✕ Exit</button>
           </div>
 
           {activeTab === 'preview' ? (
@@ -153,7 +158,6 @@ const AdminTraining = () => {
                 ) : (
                   <img src={mainDisplay?.url || "https://placehold.co/800x450"} alt="" className="full-view-media" />
                 )}
-                
                 {sortedMedia.length > 1 && (
                   <div className="media-tag-overlay" onClick={() => alert("Open full gallery viewing...")}>
                     +{sortedMedia.length - 1} More Files
@@ -192,7 +196,6 @@ const AdminTraining = () => {
                       </div>
                     ))}
                   </div>
-
                   <h4>Add New Files</h4>
                   <div className="split-upload-grid">
                     <div className="upload-box image-zone">
@@ -228,7 +231,6 @@ const AdminTraining = () => {
     );
   }
 
-  // 2. MAIN FEED UI
   return (
     <div className="admin-training-page">
       <button className={`scroll-top-btn ${showScrollTop ? 'visible' : ''}`} onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>↑</button>
@@ -267,7 +269,6 @@ const AdminTraining = () => {
                   </div>
                </div>
             </div>
-
             <button type="submit" className="publish-btn" disabled={loading}>
               {loading ? (
                 <div className="btn-loading-content">
@@ -283,7 +284,7 @@ const AdminTraining = () => {
           {filteredPosts.map((post) => {
             const displayMedia = getSortedMedia(post.trainingMedia)[0];
             return (
-              <article key={post.id} className="post-card">
+              <article key={post.id} id={`post-${post.id}`} className="post-card">
                 <div className="post-media" onClick={() => {
                    setEditingId(post.id);
                    setEditData({ title: post.title, subHeader: post.subHeader, description: post.description });
