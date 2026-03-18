@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import './AdminTraining.css';
 
 const AdminTraining = () => {
@@ -7,15 +8,14 @@ const AdminTraining = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ title: '', subHeader: '', description: '' });
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [message, setMessage] = useState({ type: '', text: '', technicalDetails: '' });
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
 
-  // 🛡️ MATCHING YOUR LOGIN NAME: 'adminToken'
+  // 🛡️ Clean Token Retrieval
   const getCleanToken = () => {
     const rawToken = localStorage.getItem('adminToken'); 
     if (!rawToken) return null;
-    // Clean any accidental quotes from phone/browser formatting
     return rawToken.replace(/['"]+/g, '').trim();
   };
 
@@ -34,40 +34,26 @@ const AdminTraining = () => {
     }
   };
 
-  const showMsg = (type, text, details = '') => {
-    setMessage({ type, text, technicalDetails: details });
-    if (type === 'success') {
-      setTimeout(() => setMessage({ type: '', text: '', technicalDetails: '' }), 5000);
-    }
-  };
-
   const handleFileChange = (e) => {
     setSelectedFiles(Array.from(e.target.files));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!token) return alert("Session missing. Please log in again.");
     
-    // Check token before starting
-    if (!token) {
-        return showMsg('error', 'Session missing.', 'The app could not find "adminToken" in your storage. Please log in again.');
-    }
-
-    if (selectedFiles.length === 0) return showMsg('error', 'No files selected.');
-
     setLoading(true);
-
-    // Sorting Logic: Pictures first, then Videos
+    const data = new FormData();
+    data.append('title', formData.title);
+    data.append('subHeader', formData.subHeader);
+    data.append('description', formData.description);
+    
+    // Sort files: Images first
     const sortedFiles = [...selectedFiles].sort((a, b) => {
       const aImg = a.type.startsWith('image');
       const bImg = b.type.startsWith('image');
       return aImg === bImg ? 0 : aImg ? -1 : 1;
     });
-
-    const data = new FormData();
-    data.append('title', formData.title);
-    data.append('subHeader', formData.subHeader);
-    data.append('description', formData.description);
     sortedFiles.forEach(file => data.append('files', file));
 
     try {
@@ -78,132 +64,116 @@ const AdminTraining = () => {
         }
       });
 
-      showMsg('success', 'Upload Successful!');
+      alert("Article Published Successfully! ✅");
       setFormData({ title: '', subHeader: '', description: '' });
       setSelectedFiles([]);
-      if (e.target) e.target.reset();
+      e.target.reset();
       fetchPosts();
     } catch (err) {
-      const status = err.response?.status;
-      const serverMsg = err.response?.data?.error || err.response?.data?.message || "Server Communication Error";
-      
-      let finalTitle = "Upload Failed";
-      let finalDetail = `Status: ${status} | Message: ${serverMsg}`;
-
-      if (status === 401 || status === 403) {
-        finalTitle = "AUTHENTICATION FAILED";
-        finalDetail = "Your login session is invalid or expired. Try logging out and back in.";
-      } else if (status === 413) {
-        finalTitle = "FILE TOO LARGE";
-        finalDetail = "The video file is too big for the current server limits.";
-      }
-
-      showMsg('error', finalTitle, finalDetail);
+      alert("Upload failed. File might be too large.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Remove this post?")) return;
+    if (!window.confirm("Permanently delete this article?")) return;
     try {
       await axios.delete(`${API_BASE}/admin/training/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      showMsg('success', 'Removed.');
-      fetchPosts();
+      setPublishedPosts(publishedPosts.filter(p => p.id !== id));
     } catch (err) { 
-      showMsg('error', 'Delete failed.'); 
+      alert("Delete failed."); 
     }
   };
 
   return (
-    <div className="admin-training-container">
-      <header className="admin-header">
-        <h2>🎓 Training School Manager</h2>
-        <p>Post photos and videos to the school wall.</p>
-      </header>
+    <div className="admin-training-page">
+      <div className="content-container">
+        
+        {/* --- HEADER --- */}
+        <header className="page-header">
+          <Link to="/admin" className="back-link">← Dashboard</Link>
+          <h1>Training School Feed</h1>
+          <p>Create and manage educational articles for the school wall.</p>
+        </header>
 
-      {message.text && (
-        <div className={`alert ${message.type}`} style={{ textAlign: 'left', wordBreak: 'break-word', marginBottom: '20px' }}>
-          <strong>{message.type === 'success' ? '✅' : '❌'} {message.text}</strong>
-          {message.technicalDetails && (
-            <div style={{ marginTop: '10px', fontSize: '11px', background: 'rgba(0,0,0,0.05)', padding: '10px', borderRadius: '5px' }}>
-              <code>{message.technicalDetails}</code>
+        {/* --- PUBLISHING FORM --- */}
+        <section className="form-section">
+          <form className="pro-form" onSubmit={handleSubmit}>
+            <h3>Create New Article</h3>
+            <div className="input-group">
+              <label>Main Title</label>
+              <input 
+                type="text" 
+                placeholder="e.g. Introduction to Design" 
+                value={formData.title} 
+                onChange={(e)=>setFormData({...formData, title: e.target.value})} 
+                required 
+              />
             </div>
-          )}
-          {message.type === 'error' && (
-            <button onClick={() => setMessage({type:'', text:''})} style={{marginTop: '10px', display: 'block', padding: '5px', fontSize: '10px'}}>Dismiss</button>
-          )}
-        </div>
-      )}
+            <div className="input-group">
+              <label>Category / Sub-header</label>
+              <input 
+                type="text" 
+                placeholder="e.g. Module 1" 
+                value={formData.subHeader} 
+                onChange={(e)=>setFormData({...formData, subHeader: e.target.value})} 
+                required 
+              />
+            </div>
+            <div className="input-group">
+              <label>Article Content</label>
+              <textarea 
+                placeholder="Write the full write-up here..." 
+                value={formData.description} 
+                onChange={(e)=>setFormData({...formData, description: e.target.value})} 
+                required 
+              />
+            </div>
+            <div className="form-footer">
+              <div className="file-input-wrapper">
+                <input type="file" multiple onChange={handleFileChange} accept="video/*,image/*" required />
+                <p className="helper-text">Images & Videos supported</p>
+              </div>
+              <button type="submit" className="publish-btn" disabled={loading}>
+                {loading ? "Publishing..." : "Publish Post"}
+              </button>
+            </div>
+          </form>
+        </section>
 
-      <section className="upload-section">
-        <form onSubmit={handleSubmit} className="training-form">
-          <div className="form-group">
-            <label>Title</label>
-            <input 
-              type="text" 
-              placeholder="Content Title" 
-              value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
-              required 
-            />
-          </div>
-          <div className="form-group">
-            <label>Sub Heading</label>
-            <input 
-              type="text" 
-              placeholder="Sub Topic" 
-              value={formData.subHeader}
-              onChange={(e) => setFormData({...formData, subHeader: e.target.value})}
-              required 
-            />
-          </div>
-          <div className="form-group">
-            <label>Writeup</label>
-            <textarea 
-              placeholder="Body Content" 
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              required 
-            />
-          </div>
-          <div className="form-group">
-            <label>Photos & Videos</label>
-            <input type="file" multiple onChange={handleFileChange} accept="video/*,image/*" />
-            <p className="helper-text">Pictures appear before videos.</p>
-          </div>
-          <button type="submit" disabled={loading} className="submit-btn">
-            {loading ? "Uploading... Please wait" : "Post to School Page"}
-          </button>
-        </form>
-      </section>
-
-      <section className="posts-list">
-        <h3>Current School Posts</h3>
-        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Media Info</th>
-                <th>Remove</th>
-              </tr>
-            </thead>
-            <tbody>
-              {publishedPosts.map(post => (
-                <tr key={post.id}>
-                  <td><strong>{post.title}</strong><br/><small>{post.subHeader}</small></td>
-                  {/* Accessing the trainingMedia alias from your backend */}
-                  <td>{post.trainingMedia?.length || 0} Files</td>
-                  <td><button onClick={() => handleDelete(post.id)} className="delete-btn">Remove</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+        {/* --- FEED SECTION (BLOG STYLE) --- */}
+        <main className="feed-section">
+          <h2 className="section-title">Published Content</h2>
+          {publishedPosts.map((post) => (
+            <article key={post.id} className="post-card">
+              <div className="post-media">
+                {post.trainingMedia?.[0]?.url.match(/\.(mp4|mov|webm)$/) ? (
+                  <video src={post.trainingMedia[0].url} className="media-element" muted />
+                ) : (
+                  <img src={post.trainingMedia?.[0]?.url || "https://placehold.co/800x450"} alt="" className="media-element" />
+                )}
+                {post.trainingMedia?.length > 1 && (
+                  <div className="media-overlay">+{post.trainingMedia.length - 1} More Media</div>
+                )}
+              </div>
+              
+              <div className="post-body">
+                <span className="post-badge">{post.subHeader}</span>
+                <h2 className="post-headline">{post.title}</h2>
+                <p className="post-text">{post.description}</p>
+                
+                <div className="post-actions">
+                  <button className="btn-danger" onClick={() => handleDelete(post.id)}>Remove Article</button>
+                </div>
+              </div>
+            </article>
+          ))}
+          {publishedPosts.length === 0 && <p className="empty-state">No articles published yet.</p>}
+        </main>
+      </div>
     </div>
   );
 };
