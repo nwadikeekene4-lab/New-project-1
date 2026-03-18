@@ -87,7 +87,6 @@ const verifyToken = (req, res, next) => {
         if (err.name === "TokenExpiredError") return res.status(401).json({ message: "Session expired.", expired: true });
         return res.status(401).json({ message: "Unauthorized access" });
       }
-      // ✅ DECIDED.ID now matches the database primary key
       req.adminId = decoded.id;
       next();
     });
@@ -136,7 +135,6 @@ router.post("/admin/login", async (req, res) => {
     if (!admin) return res.status(401).json({ success: false, message: "Invalid credentials" });
     const isMatch = await bcrypt.compare(password, admin.password);
     if (isMatch) {
-      // ✅ FIX: Signed with admin.id so verifyToken can read it
       const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: "6h" });
       return res.json({ success: true, token });
     }
@@ -468,9 +466,8 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
 
 // --- 🎓 PASTRY SCHOOL ROUTES ---
 
-// ✅ ALIAS SYNC: Renamed to 'trainingMedia' to match server.js logic
-Training.hasMany(TrainingMedia, { as: 'trainingMedia', foreignKey: 'trainingId', onDelete: 'CASCADE' });
-TrainingMedia.belongsTo(Training, { foreignKey: 'trainingId' });
+// 🛡️ ASSOCIATION LINES REMOVED TO PREVENT "Duplicate Alias" CRASH.
+// They are already defined in your server.js.
 
 router.get("/training", async (req, res) => {
   try {
@@ -484,12 +481,11 @@ router.get("/training", async (req, res) => {
 
 router.post("/admin/training", verifyToken, upload.array('files', 10), async (req, res) => {
   try {
-    // ✅ Added subHeader to destructuring
     const { title, subHeader, description, order } = req.body;
     
     const newTraining = await Training.create({
       title: sanitizeInput(title),
-      subHeader: sanitizeInput(subHeader), // ✅ Now correctly saved
+      subHeader: sanitizeInput(subHeader), 
       description: sanitizeInput(description),
       order: order || 0
     });
