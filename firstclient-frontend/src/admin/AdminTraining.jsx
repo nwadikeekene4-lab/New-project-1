@@ -23,6 +23,10 @@ const AdminTraining = () => {
   const [editImages, setEditImages] = useState([]);
   const [editVideos, setEditVideos] = useState([]);
 
+  // 🖼️ NEW: Gallery Modal States
+  const [galleryPost, setGalleryPost] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
   const token = localStorage.getItem('adminToken')?.replace(/['"]+/g, '').trim();
 
@@ -42,6 +46,18 @@ const AdminTraining = () => {
     setFilteredPosts(filtered);
   }, [searchQuery, publishedPosts]);
 
+  // 🎹 NEW: Keyboard support for Gallery
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!galleryPost) return;
+      if (e.key === 'ArrowRight') nextMedia();
+      if (e.key === 'ArrowLeft') prevMedia();
+      if (e.key === 'Escape') setGalleryPost(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [galleryPost, currentIndex]);
+
   const fetchPosts = async () => {
     try {
       const res = await axios.get(`${API_BASE}/training`);
@@ -53,7 +69,6 @@ const AdminTraining = () => {
   const handleExitFocus = () => {
     const lastId = editingId;
     setEditingId(null);
-    // Timeout allows React to render the feed before scrolling
     setTimeout(() => {
       const element = document.getElementById(`post-${lastId}`);
       if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -136,6 +151,20 @@ const AdminTraining = () => {
     return [...images, ...videos];
   };
 
+  // 🖼️ NEW: Gallery Navigation functions
+  const openGallery = (post, index = 0) => {
+    setGalleryPost(post);
+    setCurrentIndex(index);
+  };
+  const nextMedia = () => {
+    const media = getSortedMedia(galleryPost.trainingMedia);
+    setCurrentIndex((prev) => (prev + 1) % media.length);
+  };
+  const prevMedia = () => {
+    const media = getSortedMedia(galleryPost.trainingMedia);
+    setCurrentIndex((prev) => (prev - 1 + media.length) % media.length);
+  };
+
   if (editingId) {
     const activePost = publishedPosts.find(p => p.id === editingId);
     const sortedMedia = getSortedMedia(activePost?.trainingMedia);
@@ -159,7 +188,7 @@ const AdminTraining = () => {
                   <img src={mainDisplay?.url || "https://placehold.co/800x450"} alt="" className="full-view-media" />
                 )}
                 {sortedMedia.length > 1 && (
-                  <div className="media-tag-overlay" onClick={() => alert("Open full gallery viewing...")}>
+                  <div className="media-tag-overlay" onClick={() => openGallery(activePost)}>
                     +{sortedMedia.length - 1} More Files
                   </div>
                 )}
@@ -191,7 +220,7 @@ const AdminTraining = () => {
                   <div className="existing-media-grid">
                     {activePost?.trainingMedia?.map(m => (
                       <div key={m.id} className="existing-item">
-                        {m.type === 'video' ? <div className="vid-box">VIDEO</div> : <img src={m.url} alt="" />}
+                        {m.type === 'video' || m.url.match(/\.(mp4|mov|webm)$/i) ? <div className="vid-box">VIDEO</div> : <img src={m.url} alt="" />}
                         <button onClick={() => deleteMedia(editingId, m.id)}>Remove</button>
                       </div>
                     ))}
@@ -282,21 +311,18 @@ const AdminTraining = () => {
 
         <main className="feed-section">
           {filteredPosts.map((post) => {
-            const displayMedia = getSortedMedia(post.trainingMedia)[0];
+            const mediaList = getSortedMedia(post.trainingMedia);
+            const displayMedia = mediaList[0];
             return (
               <article key={post.id} id={`post-${post.id}`} className="post-card">
-                <div className="post-media" onClick={() => {
-                   setEditingId(post.id);
-                   setEditData({ title: post.title, subHeader: post.subHeader, description: post.description });
-                   window.scrollTo(0,0);
-                }}>
+                <div className="post-media" onClick={() => openGallery(post)}>
                   <div className="main-thumb">
                      {displayMedia?.type === 'video' || displayMedia?.url.match(/\.(mp4|mov|webm)$/i) ? 
                         <video src={displayMedia.url} muted /> : 
                         <img src={displayMedia?.url || "https://placehold.co/800x450"} alt="" />
                      }
-                     {post.trainingMedia?.length > 1 && (
-                        <div className="media-tag-overlay">+{post.trainingMedia.length - 1} Files</div>
+                     {mediaList.length > 1 && (
+                        <div className="media-tag-overlay">+{mediaList.length - 1} Files</div>
                      )}
                   </div>
                 </div>
@@ -317,6 +343,27 @@ const AdminTraining = () => {
           })}
         </main>
       </div>
+
+      {/* 🖼️ NEW: GALLERY OVERLAY RENDER */}
+      {galleryPost && (
+        <div className="gallery-modal">
+          <button className="gallery-close" onClick={() => setGalleryPost(null)}>✕</button>
+          <button className="gallery-nav prev" onClick={prevMedia}>‹</button>
+          <button className="gallery-nav next" onClick={nextMedia}>›</button>
+          
+          <div className="gallery-content">
+            {getSortedMedia(galleryPost.trainingMedia)[currentIndex]?.url.match(/\.(mp4|mov|webm)$/i) ? (
+              <video src={getSortedMedia(galleryPost.trainingMedia)[currentIndex].url} controls autoPlay />
+            ) : (
+              <img src={getSortedMedia(galleryPost.trainingMedia)[currentIndex].url} alt="" />
+            )}
+          </div>
+          
+          <div className="gallery-counter">
+            {currentIndex + 1} / {getSortedMedia(galleryPost.trainingMedia).length}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
