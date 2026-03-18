@@ -11,17 +11,16 @@ const AdminTraining = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
   
-  // NEW: Additive Media States
+  // Creation States (Additive)
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedVideos, setSelectedVideos] = useState([]);
   const [formData, setFormData] = useState({ title: '', subHeader: '', description: '' });
 
-  // Edit States
+  // Edit States (Focus Mode)
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({ title: '', subHeader: '', description: '' });
   const [editImages, setEditImages] = useState([]);
   const [editVideos, setEditVideos] = useState([]);
-  const [activeGalleryId, setActiveGalleryId] = useState(null);
 
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
   const token = localStorage.getItem('adminToken')?.replace(/['"]+/g, '').trim();
@@ -50,48 +49,40 @@ const AdminTraining = () => {
     } catch (err) { console.error("Load failed"); }
   };
 
-  // ➕ Additive File Logic
+  // Additive File Logic: Merges new files with existing ones
   const handleFileChange = (e, type, mode = 'create') => {
     const files = Array.from(e.target.files);
     if (mode === 'create') {
-      if (type === 'image') setSelectedImages(prev => [...prev, ...files]);
-      else setSelectedVideos(prev => [...prev, ...files]);
+      type === 'image' ? setSelectedImages(p => [...p, ...files]) : setSelectedVideos(p => [...p, ...files]);
     } else {
-      if (type === 'image') setEditImages(prev => [...prev, ...files]);
-      else setEditVideos(prev => [...prev, ...files]);
+      type === 'image' ? setEditImages(p => [...p, ...files]) : setEditVideos(p => [...p, ...files]);
     }
   };
 
-  const removeSelectedFile = (index, type, mode = 'create') => {
+  const removeFile = (index, type, mode = 'create') => {
     if (mode === 'create') {
-      if (type === 'image') setSelectedImages(prev => prev.filter((_, i) => i !== index));
-      else setSelectedVideos(prev => prev.filter((_, i) => i !== index));
+      type === 'image' ? setSelectedImages(p => p.filter((_, i) => i !== index)) : setSelectedVideos(p => p.filter((_, i) => i !== index));
     } else {
-      if (type === 'image') setEditImages(prev => prev.filter((_, i) => i !== index));
-      else setEditVideos(prev => prev.filter((_, i) => i !== index));
+      type === 'image' ? setEditImages(p => p.filter((_, i) => i !== index)) : setEditVideos(p => p.filter((_, i) => i !== index));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) return alert("Session expired.");
     setLoading(true);
-
     const data = new FormData();
     data.append('title', formData.title);
     data.append('subHeader', formData.subHeader);
     data.append('description', formData.description);
-    
-    [...selectedImages, ...selectedVideos].forEach(file => data.append('files', file));
+    [...selectedImages, ...selectedVideos].forEach(f => data.append('files', f));
 
     try {
       await axios.post(`${API_BASE}/admin/training`, data, {
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+        headers: { 'Authorization': `Bearer ${token}` },
         onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded * 100) / p.total))
       });
       setFormData({ title: '', subHeader: '', description: '' });
-      setSelectedImages([]);
-      setSelectedVideos([]);
+      setSelectedImages([]); setSelectedVideos([]);
       fetchPosts();
       alert("Published Successfully! ✅");
     } catch (err) { alert("Upload failed."); }
@@ -104,31 +95,106 @@ const AdminTraining = () => {
     data.append('title', editData.title);
     data.append('subHeader', editData.subHeader);
     data.append('description', editData.description);
-    [...editImages, ...editVideos].forEach(file => data.append('files', file));
+    [...editImages, ...editVideos].forEach(f => data.append('files', f));
 
     try {
       await axios.put(`${API_BASE}/admin/training/${id}`, data, {
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       setEditingId(null);
-      setEditImages([]);
-      setEditVideos([]);
+      setEditImages([]); setEditVideos([]);
       fetchPosts();
-      alert("Post Updated! ✅");
+      alert("Session Updated! ✅");
     } catch (err) { alert("Update failed."); }
     finally { setLoading(false); }
   };
 
-  const deleteExistingMedia = async (postId, mediaId) => {
-    if(!window.confirm("Delete this file permanently from the server?")) return;
+  const deleteMedia = async (postId, mediaId) => {
+    if(!window.confirm("Remove this file from server?")) return;
     try {
-        await axios.delete(`${API_BASE}/admin/training/${postId}/media/${mediaId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        fetchPosts();
+      await axios.delete(`${API_BASE}/admin/training/${postId}/media/${mediaId}`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
+      fetchPosts();
     } catch (err) { alert("Delete failed."); }
   };
 
+  // 1. FOCUS MODE UI (Only shows when editing)
+  if (editingId) {
+    const activePost = publishedPosts.find(p => p.id === editingId);
+    return (
+      <div className="admin-training-page focus-mode">
+        <div className="content-container">
+          <div className="professional-edit-ui">
+            <div className="edit-header">
+              <h2>Focus Mode: Editing Session</h2>
+              <button className="close-focus" onClick={() => setEditingId(null)}>✕ Exit Editor</button>
+            </div>
+            
+            <div className="edit-body">
+              <div className="input-group">
+                <label>Update Title</label>
+                <input className="edit-input-large" value={editData.title} onChange={(e)=>setEditData({...editData, title: e.target.value})} />
+              </div>
+
+              <div className="input-group">
+                <label>Update Category</label>
+                <input className="edit-input-large" value={editData.subHeader} onChange={(e)=>setEditData({...editData, subHeader: e.target.value})} />
+              </div>
+
+              <div className="input-group">
+                <label>Content Description</label>
+                <textarea className="edit-area-large" value={editData.description} onChange={(e)=>setEditData({...editData, description: e.target.value})} />
+              </div>
+
+              <div className="media-management-zone">
+                <h4>Existing Server Files</h4>
+                <div className="existing-media-grid">
+                  {activePost?.trainingMedia?.map(m => (
+                    <div key={m.id} className="existing-item">
+                      {m.type === 'video' ? <div className="vid-box">VIDEO FILE</div> : <img src={m.url} alt="" />}
+                      <button onClick={() => deleteMedia(editingId, m.id)}>Delete from Server</button>
+                    </div>
+                  ))}
+                </div>
+
+                <h4>Append New Files</h4>
+                <div className="split-upload-grid">
+                  <div className="upload-box image-zone">
+                    <label>🖼️ Add New Images</label>
+                    <input type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e, 'image', 'edit')} />
+                    <div className="mini-preview-grid">
+                      {editImages.map((f, i) => (
+                        <div key={i} className="mini-item"><img src={URL.createObjectURL(f)} alt="" /><button onClick={() => removeFile(i, 'image', 'edit')}>✕</button></div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="upload-box video-zone">
+                    <label>🎥 Add New Videos</label>
+                    <input type="file" multiple accept="video/*" onChange={(e) => handleFileChange(e, 'video', 'edit')} />
+                    <div className="mini-preview-grid">
+                      {editVideos.map((f, i) => (
+                        <div key={i} className="mini-item"><div className="vid-placeholder">NEW VID</div><button onClick={() => removeFile(i, 'video', 'edit')}>✕</button></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="edit-footer">
+               <button className="save-btn" onClick={() => handleUpdate(editingId)} disabled={loading}>
+                 {loading ? <div className="btn-spinner"></div> : "Apply All Changes"}
+               </button>
+               <button className="cancel-btn" onClick={() => setEditingId(null)}>Discard Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. STANDARD MODE UI
   return (
     <div className="admin-training-page">
       <button className={`scroll-top-btn ${showScrollTop ? 'visible' : ''}`} onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>↑</button>
@@ -137,137 +203,67 @@ const AdminTraining = () => {
         <header className="page-header">
           <Link to="/admin" className="back-link">← Dashboard</Link>
           <h1>Training School</h1>
-          <input 
-            type="text" className="search-input" placeholder="Search by title or text..." 
-            value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <input type="text" className="search-input" placeholder="Search by title or text..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </header>
 
-        {/* --- CREATION FORM --- */}
         <section className="form-section">
           <form className="pro-form" onSubmit={handleSubmit}>
             <h3>New Session</h3>
-            {loading && (
-              <div className="loading-overlay">
-                <div className="spinner-box"><div className="loader-circle"></div><div className="progress-text">{uploadProgress}%</div></div>
-                <p>Uploading Media...</p>
-              </div>
-            )}
+            <div className="input-group"><label>Title</label><input type="text" value={formData.title} onChange={(e)=>setFormData({...formData, title: e.target.value})} required /></div>
+            <div className="input-group"><label>Category / Sub Header</label><input type="text" value={formData.subHeader} onChange={(e)=>setFormData({...formData, subHeader: e.target.value})} required /></div>
+            <div className="input-group"><label>Writeup</label><textarea className="expansive-textarea" value={formData.description} onChange={(e)=>setFormData({...formData, description: e.target.value})} required /></div>
 
-            <div className="input-group">
-              <label>Title</label>
-              <input type="text" value={formData.title} onChange={(e)=>setFormData({...formData, title: e.target.value})} required />
-            </div>
-            <div className="input-group">
-              <label>Category / Sub Header</label>
-              <input type="text" value={formData.subHeader} onChange={(e)=>setFormData({...formData, subHeader: e.target.value})} required />
-            </div>
-            <div className="input-group">
-              <label>Writeup</label>
-              <textarea className="expansive-textarea" value={formData.description} onChange={(e)=>setFormData({...formData, description: e.target.value})} required />
-            </div>
-
-            {/* Split Upload Sections */}
             <div className="split-upload-grid">
-               <div className="upload-box">
-                  <label>Add Images</label>
+               <div className="upload-box image-zone">
+                  <label>🖼️ Image Gallery</label>
                   <input type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e, 'image')} />
                   <div className="mini-preview-grid">
                     {selectedImages.map((f, i) => (
-                      <div key={i} className="mini-item">
-                        <img src={URL.createObjectURL(f)} alt="" />
-                        <button type="button" onClick={() => removeSelectedFile(i, 'image')}>✕</button>
-                      </div>
+                      <div key={i} className="mini-item"><img src={URL.createObjectURL(f)} alt="" /><button type="button" onClick={() => removeFile(i, 'image')}>✕</button></div>
                     ))}
                   </div>
                </div>
-               <div className="upload-box">
-                  <label>Add Videos</label>
+               <div className="upload-box video-zone">
+                  <label>🎥 Video Content</label>
                   <input type="file" multiple accept="video/*" onChange={(e) => handleFileChange(e, 'video')} />
                   <div className="mini-preview-grid">
                     {selectedVideos.map((f, i) => (
-                      <div key={i} className="mini-item">
-                        <div className="vid-placeholder">VID</div>
-                        <button type="button" onClick={() => removeSelectedFile(i, 'video')}>✕</button>
-                      </div>
+                      <div key={i} className="mini-item"><div className="vid-placeholder">VID</div><button type="button" onClick={() => removeFile(i, 'video')}>✕</button></div>
                     ))}
                   </div>
                </div>
             </div>
 
             <button type="submit" className="publish-btn" disabled={loading}>
-              {loading ? "Please wait..." : "Publish Session"}
+              {loading ? (
+                <div className="btn-loading-content">
+                  <div className="btn-spinner"></div>
+                  <span>Uploading {uploadProgress}%</span>
+                </div>
+              ) : "Publish Session"}
             </button>
           </form>
         </section>
 
-        {/* --- POST FEED --- */}
         <main className="feed-section">
           {filteredPosts.map((post) => (
             <article key={post.id} className="post-card">
-              {editingId === post.id ? (
-                <div className="professional-edit-ui">
-                   <div className="edit-header">Editing: {post.title}</div>
-                   
-                   <div className="edit-body">
-                      <label>Session Title</label>
-                      <input className="edit-input-large" value={editData.title} onChange={(e)=>setEditData({...editData, title: e.target.value})} />
-                      
-                      <label>Sub Header</label>
-                      <input className="edit-input-large" value={editData.subHeader} onChange={(e)=>setEditData({...editData, subHeader: e.target.value})} />
-                      
-                      <label>Main Content</label>
-                      <textarea className="edit-area-large" value={editData.description} onChange={(e)=>setEditData({...editData, description: e.target.value})} />
-
-                      <div className="media-management-zone">
-                         <h4>Existing Files</h4>
-                         <div className="existing-media-grid">
-                            {post.trainingMedia?.map(m => (
-                               <div key={m.id} className="existing-item">
-                                  {m.type === 'video' ? <div className="vid-tag">Video</div> : <img src={m.url} alt="" />}
-                                  <button onClick={() => deleteExistingMedia(post.id, m.id)}>Delete</button>
-                               </div>
-                            ))}
-                         </div>
-
-                         <h4>Append New Media</h4>
-                         <div className="split-upload-grid">
-                            <input type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e, 'image', 'edit')} />
-                            <input type="file" multiple accept="video/*" onChange={(e) => handleFileChange(e, 'video', 'edit')} />
-                         </div>
-                      </div>
-                   </div>
-
-                   <div className="edit-footer">
-                      <button className="save-btn" onClick={() => handleUpdate(post.id)}>Save All Changes</button>
-                      <button className="cancel-btn" onClick={() => setEditingId(null)}>Discard</button>
-                   </div>
+              <div className="main-thumb">
+                 {post.trainingMedia?.[0]?.type === 'video' ? <video src={post.trainingMedia[0].url} muted /> : <img src={post.trainingMedia?.[0]?.url || "https://placehold.co/800x450"} alt="" />}
+                 <div className="media-count-tag">{post.trainingMedia?.length || 0} Files</div>
+              </div>
+              <div className="post-body">
+                <h2 className="post-headline">{post.title}</h2>
+                <p className="post-text">{post.description}</p>
+                <div className="post-controls">
+                  <button className="edit-link" onClick={() => { 
+                    setEditingId(post.id); 
+                    setEditData({ title: post.title, subHeader: post.subHeader, description: post.description }); 
+                    window.scrollTo(0,0);
+                  }}>Edit Session</button>
+                  <button className="delete-link" onClick={() => { if(window.confirm("Delete post?")) axios.delete(`${API_BASE}/admin/training/${post.id}`, {headers:{'Authorization':`Bearer ${token}`}}).then(fetchPosts) }}>Delete</button>
                 </div>
-              ) : (
-                /* Standard View Mode (Kept Consistent) */
-                <>
-                  <div className="post-media" onClick={() => setActiveGalleryId(activeGalleryId === post.id ? null : post.id)}>
-                    <div className="main-thumb">
-                       {post.trainingMedia?.[0]?.type === 'video' ? 
-                        <video src={post.trainingMedia[0].url} muted /> : 
-                        <img src={post.trainingMedia?.[0]?.url || "https://placehold.co/800x450"} alt="" />
-                       }
-                       <div className="media-count-tag">{post.trainingMedia?.length || 0} Files</div>
-                    </div>
-                  </div>
-                  <div className="post-body">
-                    <h2 className="post-headline">{post.title}</h2>
-                    <p className="post-text">{post.description}</p>
-                    <div className="post-controls">
-                      <button className="edit-link" onClick={() => {
-                        setEditingId(post.id);
-                        setEditData({ title: post.title, subHeader: post.subHeader, description: post.description });
-                      }}>Edit Session</button>
-                      <button className="delete-link" onClick={() => {if(window.confirm("Delete post?")) axios.delete(`${API_BASE}/admin/training/${post.id}`, {headers:{'Authorization':`Bearer ${token}`}}).then(fetchPosts)}}>Delete</button>
-                    </div>
-                  </div>
-                </>
-              )}
+              </div>
             </article>
           ))}
         </main>
