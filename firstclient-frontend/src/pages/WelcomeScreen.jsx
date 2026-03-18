@@ -45,7 +45,7 @@ const WelcomeScreen = () => {
           </div>
 
           <button className="option-btn catering-btn" onClick={() => navigate('/pastries')}>
-            View our pastry services 🎂
+            Purchase pasteries 🎂
           </button>
 
           {/* ⭐ INTEGRATED: Training School Button */}
