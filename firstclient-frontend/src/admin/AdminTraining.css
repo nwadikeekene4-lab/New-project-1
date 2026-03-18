@@ -20,12 +20,25 @@
   margin: 0 auto; 
 }
 
-/* HEADER */
+/* HEADER & SEARCH */
 .page-header { margin-bottom: 30px; }
 .back-link { text-decoration: none; color: var(--text-muted); font-size: 14px; margin-bottom: 8px; display: block; }
 .page-header h1 { font-size: 2rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
 
-/* PROGRESS BAR (DURING UPLOAD) */
+.search-container { margin: 20px 0; }
+.search-input {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  outline: none;
+  transition: border-color 0.3s;
+}
+.search-input:focus { border-color: var(--accent); }
+
+/* PROGRESS BAR */
 .progress-wrapper { 
   height: 8px; 
   background: #e0e0e0; 
@@ -41,7 +54,7 @@
 }
 .progress-label { 
   position: absolute; 
-  right: 0; 
+  right: 10px; 
   top: -18px; 
   font-size: 10px; 
   font-weight: 800; 
@@ -73,10 +86,8 @@
   border: 1px solid #ddd; 
   border-radius: 10px; 
   font-size: 15px; 
-  transition: border-color 0.2s;
 }
 .pro-form textarea { height: 120px; resize: none; }
-.pro-form input:focus { border-color: var(--primary); outline: none; }
 .publish-btn { 
   background: var(--primary); 
   color: #fff; 
@@ -87,11 +98,9 @@
   cursor: pointer; 
   width: 100%; 
   margin-top: 15px; 
-  transition: opacity 0.2s;
 }
-.publish-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* POST CARDS (BLOG FEED) */
+/* POST CARDS */
 .post-card { 
   background: var(--white); 
   border-radius: 20px; 
@@ -100,136 +109,102 @@
   margin-bottom: 40px; 
   box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
-.post-card.is-editing { 
-  border: 2px solid var(--accent); 
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.1); 
-}
 
 /* MEDIA PREVIEW & GALLERY */
 .post-media { cursor: pointer; background: #000; position: relative; }
 .main-thumb img, .main-thumb video { width: 100%; height: 400px; object-fit: cover; display: block; }
 .media-count-tag { 
-  position: absolute; 
-  bottom: 20px; 
-  right: 20px; 
-  background: rgba(0,0,0,0.8); 
-  color: #fff; 
-  padding: 6px 14px; 
-  border-radius: 30px; 
-  font-size: 12px; 
-  font-weight: 600; 
+  position: absolute; bottom: 20px; right: 20px; 
+  background: rgba(0,0,0,0.8); color: #fff; 
+  padding: 6px 14px; border-radius: 30px; 
+  font-size: 12px; font-weight: 600; 
 }
 .gallery-stack { display: flex; flex-direction: column; gap: 4px; background: #000; }
 .gallery-item img, .gallery-item video { width: 100%; max-height: 600px; object-fit: contain; }
+.close-hint { text-align: center; color: #777; font-size: 11px; padding: 10px; background: #111; }
 
-/* MEDIA MANAGER (DURING EDIT) */
+/* MEDIA MANAGER (EDIT MODE FIX) */
 .edit-media-manager { padding: 25px; background: #fdfdfd; border-bottom: 1px solid var(--border); }
-.media-edit-grid { 
-  display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
-  gap: 12px; 
-  margin: 15px 0; 
-}
+.media-edit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; margin: 15px 0; }
+
 .media-edit-item { 
   position: relative; 
   height: 90px; 
   border-radius: 8px; 
   overflow: hidden; 
-  border: 1px solid #ddd; 
+  border: 2px solid transparent; 
+  transition: transform 0.2s;
 }
+/* Individual item hover instead of whole block blue */
+.media-edit-item:hover { 
+  border-color: var(--danger); 
+  transform: scale(0.96);
+}
+
 .media-edit-item img, .media-edit-item video { width: 100%; height: 100%; object-fit: cover; }
 .remove-media-btn { 
-  position: absolute; 
-  top: 4px; 
-  right: 4px; 
-  background: var(--danger); 
-  color: white; 
-  border: none; 
-  border-radius: 50%; 
-  width: 22px; 
-  height: 22px; 
-  font-size: 12px; 
-  cursor: pointer; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center;
-}
-.add-more-media { 
-  margin-top: 20px; 
-  padding: 15px; 
-  border: 2px dashed #ccc; 
-  border-radius: 12px; 
-  text-align: center;
+  position: absolute; top: 4px; right: 4px; 
+  background: var(--danger); color: white; border: none; 
+  border-radius: 50%; width: 22px; height: 22px; font-size: 12px; 
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 
-/* POST BODY & TEXT EDITING */
+.add-more-media { 
+  margin-top: 20px; padding: 15px; 
+  border: 2px dashed #ccc; border-radius: 12px; text-align: center; 
+}
+
+/* POST BODY & DATE STAMPS */
 .post-body { padding: 30px; }
-.post-badge { color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-.post-headline { font-size: 1.8rem; margin: 12px 0; font-weight: 800; color: var(--primary); }
+.post-meta-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.post-badge { color: var(--accent); font-weight: 800; font-size: 12px; text-transform: uppercase; }
+.post-date { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+.post-headline { font-size: 1.8rem; margin-bottom: 12px; font-weight: 800; color: var(--primary); }
 .post-text { color: #444; line-height: 1.7; font-size: 1.05rem; white-space: pre-wrap; margin-bottom: 25px; }
 
+/* EDIT FIELDS */
 .full-edit-mode { display: flex; flex-direction: column; gap: 10px; }
 .edit-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #888; }
-.edit-field { 
-  width: 100%; 
-  padding: 12px; 
-  border: 1px solid #ccc; 
-  border-radius: 8px; 
-  font-size: 1rem; 
-  font-family: inherit;
-}
+.edit-field { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
 .edit-field.area { height: 150px; line-height: 1.5; }
 
 /* ACTION BUTTONS */
 .post-controls, .edit-final-btns { 
-  margin-top: 25px; 
-  display: flex; 
-  gap: 15px; 
-  padding-top: 20px; 
-  border-top: 1px solid var(--border); 
+  margin-top: 25px; display: flex; gap: 15px; 
+  padding-top: 20px; border-top: 1px solid var(--border); 
 }
 .edit-link, .save-btn { color: var(--accent); font-weight: 700; cursor: pointer; background: none; border: none; }
 .delete-link, .cancel-btn { color: var(--danger); font-weight: 700; cursor: pointer; background: none; border: none; }
 
-.save-btn { 
-  background: var(--primary); 
-  color: white; 
-  padding: 12px 25px; 
-  border-radius: 8px; 
-  flex: 2; 
+.save-btn { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; flex: 2; }
+.cancel-btn { background: #f0f0f0; color: #333; padding: 12px; border-radius: 8px; flex: 1; }
+
+/* SCROLL TO TOP */
+.scroll-top-btn {
+  position: fixed; bottom: 30px; right: 30px;
+  width: 50px; height: 50px; background: var(--primary);
+  color: white; border: none; border-radius: 50%;
+  font-size: 20px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  opacity: 0; visibility: hidden; transition: all 0.3s;
 }
-.cancel-btn { 
-  background: #f0f0f0; 
-  color: #333; 
-  padding: 12px; 
-  border-radius: 8px; 
-  flex: 1; 
-}
+.scroll-top-btn.visible { opacity: 1; visibility: visible; }
 
 /* VIDEO UI */
 .vid-thumb { position: relative; }
 .play-ui { 
-  position: absolute; 
-  top: 50%; 
-  left: 50%; 
-  transform: translate(-50%, -50%); 
-  font-size: 40px; 
-  color: white; 
-  background: rgba(0,0,0,0.3); 
-  width: 65px; 
-  height: 65px; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  border-radius: 50%; 
-  border: 2px solid white;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+  font-size: 40px; color: white; background: rgba(0,0,0,0.3); 
+  width: 65px; height: 65px; display: flex; align-items: center; 
+  justify-content: center; border-radius: 50%; border: 2px solid white;
 }
 
 /* MOBILE RESPONSIVENESS */
 @media (max-width: 600px) {
-  .admin-training-page { padding: 15px; }
   .main-thumb img, .main-thumb video { height: 260px; }
   .post-headline { font-size: 1.4rem; }
   .post-body { padding: 20px; }
   .edit-final-btns { flex-direction: column; }
+  .scroll-top-btn { bottom: 20px; right: 20px; width: 40px; height: 40px; }
 }
