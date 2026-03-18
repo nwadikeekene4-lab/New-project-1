@@ -5,8 +5,9 @@ import "./Training.css";
 export default function Training() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [galleryMedia, setGalleryMedia] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  // Track which video is being viewed for each post specifically
+  const [videoIndices, setVideoIndices] = useState({});
 
   useEffect(() => {
     const fetchTrainingData = async () => {
@@ -22,19 +23,25 @@ export default function Training() {
     fetchTrainingData();
   }, []);
 
-  const openVideoGallery = (videos, index = 0) => {
-    setGalleryMedia(videos);
-    setCurrentIndex(index);
+  const handleNextVideo = (sessionId, totalVideos) => {
+    setVideoIndices(prev => ({
+      ...prev,
+      [sessionId]: ((prev[sessionId] || 0) + 1) % totalVideos
+    }));
   };
 
-  const nextVideo = () => setCurrentIndex((prev) => (prev + 1) % galleryMedia.length);
-  const prevVideo = () => setCurrentIndex((prev) => (prev - 1 + galleryMedia.length) % galleryMedia.length);
+  const handlePrevVideo = (sessionId, totalVideos) => {
+    setVideoIndices(prev => ({
+      ...prev,
+      [sessionId]: ((prev[sessionId] || 0) - 1 + totalVideos) % totalVideos
+    }));
+  };
 
   if (loading) {
     return (
-      <div className="school-loading">
+      <div className="school-loader-container">
         <div className="pastry-spinner"></div>
-        <p>Preheating the oven...</p>
+        <p>Loading Masterclasses...</p>
       </div>
     );
   }
@@ -42,7 +49,7 @@ export default function Training() {
   return (
     <div className="school-page-wrapper">
       <header className="school-hero">
-        <div className="hero-overlay">
+        <div className="hero-content">
           <h1>Pastry Training School</h1>
           <p>Master the art of baking with Essence Creations</p>
         </div>
@@ -51,49 +58,57 @@ export default function Training() {
       <div className="school-container">
         {sessions.length > 0 ? (
           sessions.map((session) => {
-            // Separate Images and Videos for the specific "Blog" order
             const images = session.trainingMedia?.filter(m => !m.url.match(/\.(mp4|mov|webm)$/i)) || [];
             const videos = session.trainingMedia?.filter(m => m.url.match(/\.(mp4|mov|webm)$/i)) || [];
+            const currentVidIdx = videoIndices[session.id] || 0;
 
             return (
-              <article key={session.id} className="session-blog-card">
-                {/* 1. Header & Category */}
-                <div className="card-header">
-                  <span className="category-tag">{session.subHeader || "Masterclass"}</span>
-                  <h2 className="session-title">{session.title}</h2>
+              <article key={session.id} className="social-post-card">
+                {/* 1. Header Section */}
+                <div className="post-header">
+                  <div className="post-avatar">EC</div>
+                  <div className="post-meta">
+                    <h2 className="post-title">{session.title}</h2>
+                    <span className="post-category">{session.subHeader || "Technique"}</span>
+                  </div>
                 </div>
 
-                {/* 2. Image Showcase (Grid) */}
+                {/* 2. Image Gallery (Blog Style) */}
                 {images.length > 0 && (
-                  <div className="image-showcase">
-                    <img src={images[0].url} alt={session.title} className="main-featured-img" />
+                  <div className="post-image-area">
+                    <img src={images[0].url} alt="" className="featured-image" />
                     {images.length > 1 && (
-                      <div className="mini-image-strip">
-                        {images.slice(1, 4).map((img, idx) => (
-                          <img key={idx} src={img.url} alt="Baking detail" />
-                        ))}
-                        {images.length > 4 && <div className="more-count">+{images.length - 4}</div>}
-                      </div>
+                      <div className="image-counter">+{images.length - 1} Photos</div>
                     )}
                   </div>
                 )}
 
-                {/* 3. The Write-up */}
-                <div className="session-content">
-                  <p className="description-text">{session.description}</p>
+                {/* 3. Description Write-up */}
+                <div className="post-caption">
+                  <p>{session.description}</p>
                 </div>
 
-                {/* 4. Video Gallery Trigger */}
+                {/* 4. Integrated Video Gallery (Live on Page) */}
                 {videos.length > 0 && (
-                  <div className="video-section">
-                    <h3>Course Videos ({videos.length})</h3>
-                    <div className="video-grid">
-                      {videos.map((vid, idx) => (
-                        <div key={idx} className="video-play-card" onClick={() => openVideoGallery(videos, idx)}>
-                          <div className="play-button">▶</div>
-                          <span className="play-label">Watch Lesson {idx + 1}</span>
-                        </div>
-                      ))}
+                  <div className="post-video-gallery">
+                    <div className="video-viewer">
+                      <video 
+                        key={videos[currentVidIdx].url}
+                        src={videos[currentVidIdx].url} 
+                        controls 
+                        controlsList="nodownload"
+                        className="live-video"
+                      />
+                      
+                      {videos.length > 1 && (
+                        <>
+                          <button className="nav-arrow left" onClick={() => handlePrevVideo(session.id, videos.length)}>‹</button>
+                          <button className="nav-arrow right" onClick={() => handleNextVideo(session.id, videos.length)}>›</button>
+                          <div className="video-indicator">
+                            {currentVidIdx + 1} / {videos.length} Videos
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
@@ -101,33 +116,20 @@ export default function Training() {
             );
           })
         ) : (
-          <div className="no-content">
-            <h3>New Classes Coming Soon!</h3>
-            <p>Our instructors are currently filming new techniques.</p>
-          </div>
+          <div className="empty-feed">No posts yet. Check back soon!</div>
         )}
 
         <section className="enrollment-cta">
+          <div className="cta-inner">
             <span className="cta-badge">Enrollment Open</span>
-            <h2>Start Your Professional Journey</h2>
-            <p>Learn the secrets of perfect pastries today.</p>
-            <a href="https://wa.me/2348028136371" className="whatsapp-btn">Enroll via WhatsApp</a>
+            <h2>Start Your Baking Journey</h2>
+            <p>Ready to bake like a pro? Chat with our experts today.</p>
+            <a href="https://wa.me/2348028136371" className="whatsapp-btn">
+              Chat on WhatsApp
+            </a>
+          </div>
         </section>
       </div>
-
-      {/* 🎥 Video Gallery Modal (Sync with Admin Style) */}
-      {galleryMedia && (
-        <div className="school-modal" onClick={() => setGalleryMedia(null)}>
-          <button className="modal-close">✕</button>
-          <button className="modal-nav prev" onClick={(e) => { e.stopPropagation(); prevVideo(); }}>‹</button>
-          <button className="modal-nav next" onClick={(e) => { e.stopPropagation(); nextVideo(); }}>›</button>
-          
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <video src={galleryMedia[currentIndex].url} controls autoPlay className="modal-video" />
-            <div className="modal-counter">Lesson {currentIndex + 1} of {galleryMedia.length}</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
