@@ -77,20 +77,36 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
+// 🛡️ UPDATED VERIFY TOKEN WITH DEBUG LOGS
 const verifyToken = (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-    if (!token) return res.status(403).json({ message: "No token provided" });
+    
+    if (!token) {
+      console.log("❌ Auth Error: No token provided in header");
+      return res.status(403).json({ message: "No token provided" });
+    }
+
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
-        if (err.name === "TokenExpiredError") return res.status(401).json({ message: "Session expired.", expired: true });
+        // This log will appear in your Render dashboard to tell us WHY it failed
+        console.log("❌ JWT Verification Failed:", err.message); 
+        
+        if (err.name === "TokenExpiredError") {
+          return res.status(401).json({ message: "Session expired.", expired: true });
+        }
         return res.status(401).json({ message: "Unauthorized access" });
       }
+      
+      // Ensure the ID from the token is attached to the request
       req.adminId = decoded.id;
       next();
     });
-  } catch (err) { res.status(500).json({ message: "Internal Auth Error" }); }
+  } catch (err) { 
+    console.log("❌ Auth Catch Error:", err.message);
+    res.status(500).json({ message: "Internal Auth Error" }); 
+  }
 };
 
 // --- AUTH & WEBHOOKS ---
@@ -135,6 +151,7 @@ router.post("/admin/login", async (req, res) => {
     if (!admin) return res.status(401).json({ success: false, message: "Invalid credentials" });
     const isMatch = await bcrypt.compare(password, admin.password);
     if (isMatch) {
+      // Create token using the admin ID
       const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: "6h" });
       return res.json({ success: true, token });
     }
