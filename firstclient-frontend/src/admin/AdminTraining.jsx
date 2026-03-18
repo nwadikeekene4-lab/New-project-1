@@ -10,7 +10,16 @@ const AdminTraining = () => {
   const [message, setMessage] = useState({ type: '', text: '', technicalDetails: '' });
 
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
-  const token = localStorage.getItem('token');
+
+  // 🛡️ IMPROVED TOKEN RETRIEVAL
+  // This removes any accidental quotes added by JSON.stringify or mobile browsers
+  const getCleanToken = () => {
+    const rawToken = localStorage.getItem('token');
+    if (!rawToken) return null;
+    return rawToken.replace(/['"]+/g, '').trim();
+  };
+
+  const token = getCleanToken();
 
   useEffect(() => { fetchPosts(); }, []);
 
@@ -18,13 +27,13 @@ const AdminTraining = () => {
     try {
       const res = await axios.get(`${API_BASE}/training`);
       setPublishedPosts(res.data);
-    } catch (err) { console.error("Load failed"); }
+    } catch (err) { 
+      console.error("Load failed"); 
+    }
   };
 
   const showMsg = (type, text, details = '') => {
     setMessage({ type, text, technicalDetails: details });
-    // We won't hide the message automatically if it's an error, 
-    // so you have time to read/screenshot it on your phone.
     if (type === 'success') {
       setTimeout(() => setMessage({ type: '', text: '', technicalDetails: '' }), 5000);
     }
@@ -36,6 +45,7 @@ const AdminTraining = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!token) return showMsg('error', 'Session missing. Please log in again.');
     if (selectedFiles.length === 0) return showMsg('error', 'No files selected.');
 
     setLoading(true);
@@ -55,7 +65,10 @@ const AdminTraining = () => {
 
     try {
       await axios.post(`${API_BASE}/admin/training`, data, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
       showMsg('success', 'Upload Successful!');
@@ -64,23 +77,19 @@ const AdminTraining = () => {
       e.target.reset();
       fetchPosts();
     } catch (err) {
-      // 🛠️ DETECT THE SPECIFIC FAULT
-      const status = err.response?.status; // e.g. 413, 500, 404
+      const status = err.response?.status;
       const serverMsg = err.response?.data?.error || err.response?.data?.message || "Unknown Server Error";
       const rawData = JSON.stringify(err.response?.data);
 
       let finalTitle = "Upload Failed";
       let finalDetail = `Status: ${status} | Message: ${serverMsg} | Raw: ${rawData}`;
 
-      if (status === 413) {
-        finalTitle = "FILE TOO LARGE (Error 413)";
-        finalDetail = "The server settings are blocking this file. You MUST increase the 'limit' in your Backend server.js file.";
-      } else if (status === 500) {
-        finalTitle = "SERVER CRASHED (Error 500)";
-        finalDetail = `The backend code broke while trying to process the file. Message: ${serverMsg}`;
-      } else if (!err.response) {
-        finalTitle = "NETWORK TIMEOUT";
-        finalDetail = "The connection took too long. This happens if the video is high-quality and your internet or Render is slow.";
+      if (status === 401) {
+        finalTitle = "AUTH ERROR (401)";
+        finalDetail = "The server rejected your token. Try logging out and back in.";
+      } else if (status === 413) {
+        finalTitle = "FILE TOO LARGE (413)";
+        finalDetail = "Render or the server limits are blocking this file. Try a smaller video.";
       }
 
       showMsg('error', finalTitle, finalDetail);
@@ -97,7 +106,9 @@ const AdminTraining = () => {
       });
       showMsg('success', 'Removed.');
       fetchPosts();
-    } catch (err) { showMsg('error', 'Delete failed.'); }
+    } catch (err) { 
+      showMsg('error', 'Delete failed.'); 
+    }
   };
 
   return (
@@ -121,7 +132,6 @@ const AdminTraining = () => {
         </div>
       )}
 
-      {/* --- FORM SECTION --- */}
       <section className="upload-section">
         <form onSubmit={handleSubmit} className="training-form">
           <div className="form-group">
@@ -169,7 +179,6 @@ const AdminTraining = () => {
         </form>
       </section>
 
-      {/* --- LIST SECTION --- */}
       <section className="posts-list">
         <h3>Current School Posts</h3>
         <div className="table-wrapper">
@@ -185,7 +194,8 @@ const AdminTraining = () => {
               {publishedPosts.map(post => (
                 <tr key={post.id}>
                   <td><strong>{post.title}</strong><br/><small>{post.subHeader}</small></td>
-                  <td>{post.media?.length || 0} Files</td>
+                  {/* 🛠️ FIXED: Accessing 'trainingMedia' alias from your backend */}
+                  <td>{post.trainingMedia?.length || 0} Files</td>
                   <td><button onClick={() => handleDelete(post.id)} className="delete-btn">Remove</button></td>
                 </tr>
               ))}
