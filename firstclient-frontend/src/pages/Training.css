@@ -1,227 +1,193 @@
 :root {
-  --pastry-gold: #d4af37;
-  --pastry-cream: #fffdfa;
   --pastry-blue: #2563eb;
-  --text-main: #2d3436;
-  --text-light: #636e72;
-  --bg-soft: #f0f2f5; 
+  --pastry-gold: #c5a059;
+  --cream-bg: #fdfdfd;
+  --card-white: #ffffff;
+  --text-dark: #1a1a1b;
+  --text-muted: #57606a;
 }
 
-/* GLOBAL RESET */
-* { box-sizing: border-box; }
-
+/* GLOBAL SETUP */
 .school-page-wrapper {
-  background-color: var(--bg-soft);
+  background-color: #f0f2f5; /* Light grey background to make white cards pop */
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
-  overflow-x: hidden;
-  /* Prevent context menu on the whole page to protect media */
-  -webkit-touch-callout: none;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-dark);
 }
 
-/* 🌀 PROFESSIONAL LOADING SPINNER */
+/* 🌀 BRIGHT LOADING STATE */
 .school-loader-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: white;
 }
 
 .pastry-spinner {
   width: 50px;
   height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid var(--pastry-blue);
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--pastry-blue);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 15px;
 }
 
-@keyframes spin { 
-  0% { transform: rotate(0deg); } 
-  100% { transform: rotate(360deg); } 
-}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* HERO SECTION */
+/* HERO SECTION (Brightened) */
 .school-hero {
-  height: 35vh; /* Slightly reduced for better space management */
-  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
-              url('https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=1000') center/cover;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: white;
+  padding: 60px 20px;
   text-align: center;
-  color: white;
+  border-bottom: 1px solid #e1e4e8;
 }
 
-.school-hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
+.school-hero h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
 
-/* CONTAINER & SOCIAL CARDS */
+.school-hero p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+/* CONTAINER (Konga Structure) */
 .school-container {
-  max-width: 650px; /* Tight Konga-style focus */
-  margin: -30px auto 80px;
+  max-width: 600px; /* Narrow and focused like a social feed */
+  margin: 20px auto 100px;
   padding: 0 10px;
 }
 
 .social-post-card {
-  background: white;
+  background: var(--card-white);
   border-radius: 12px;
-  margin-bottom: 25px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border: 1px solid #e1e4e8;
-  overflow: hidden;
+  margin-bottom: 24px;
+  border: 1px solid #d0d7de;
+  overflow: hidden; /* Stops media from bleeding out */
+  display: flex;
+  flex-direction: column;
 }
 
-/* CARD HEADER */
+/* HEADER */
 .post-header {
   display: flex;
   align-items: center;
-  padding: 12px 15px;
+  padding: 12px 16px;
   gap: 12px;
 }
 
 .post-avatar {
   width: 40px; height: 40px;
-  background: var(--pastry-blue);
-  color: white; border-radius: 50%;
+  background: #eef2ff;
+  color: var(--pastry-blue);
+  border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 13px;
+  font-weight: 800; border: 1px solid #d0d7de;
 }
 
-.post-title { font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-main); }
-.post-category { font-size: 11px; color: var(--pastry-gold); font-weight: 800; text-transform: uppercase; }
+.post-title { font-size: 1rem; font-weight: 700; margin: 0; }
+.post-category { font-size: 11px; color: var(--pastry-gold); font-weight: 600; text-transform: uppercase; }
 
-/* 🖼️ MODERATED IMAGE AREA */
+/* 🖼️ IMAGE AREA (Fixed Sitting) */
 .post-image-area {
   position: relative;
   width: 100%;
-  height: 350px; /* Moderate height as requested */
-  background: #000;
+  max-height: 450px;
+  background: #f6f8fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  cursor: pointer;
 }
 
 .featured-image {
   width: 100%;
-  height: 100%;
-  object-fit: cover; /* High quality fill */
+  height: auto;
+  object-fit: contain; /* Ensures the whole image is seen without overlap */
   display: block;
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
-/* HEART ANIMATION FOR DOUBLE TAP */
-.heart-overlay {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 60px; pointer-events: none;
-  animation: heartPop 0.6s ease-out forwards;
-  z-index: 5;
-}
-
-@keyframes heartPop {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
-}
-
-/* CAPTION & LIKE BUTTON */
+/* CAPTION */
 .post-caption {
-  padding: 15px;
+  padding: 16px;
   font-size: 15px;
   line-height: 1.5;
-  color: #333;
+  border-bottom: 1px solid #f6f8fa;
 }
 
-.post-actions {
-  margin-top: 10px;
-  display: flex;
-  gap: 15px;
-}
-
+.post-actions { margin-top: 12px; }
 .like-btn {
-  background: #f1f3f5;
+  background: #f3f4f6;
   border: none;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
-  font-size: 14px;
+  color: var(--text-dark);
 }
+.like-btn.liked { color: #d73a49; background: #ffeef0; }
 
-.like-btn.liked {
-  color: #ef4444;
-  background: #fee2e2;
-}
-
-/* 🎥 PROTECTED VIDEO GALLERY */
+/* 🎥 VIDEO GALLERY (Fixed Overlap) */
 .post-video-gallery {
-  background: #000;
   position: relative;
   width: 100%;
-  aspect-ratio: 16/9;
+  background: #000;
+  line-height: 0; /* Removes bottom spacing ghosting */
 }
 
 .live-video {
   width: 100%;
-  height: 100%;
-  /* Protection for videos */
-  pointer-events: auto;
-}
-
-/* Hiding download buttons across browsers */
-video::-internal-media-controls-download-button { display:none; }
-video::-webkit-media-controls-enclosure { overflow:hidden; }
-video::-webkit-media-controls-panel { width: calc(100% + 30px); }
-
-.video-count-tag {
-  position: absolute; top: 10px; left: 10px;
-  background: rgba(0,0,0,0.5); color: white;
-  padding: 4px 10px; border-radius: 4px;
-  font-size: 10px; font-weight: 700;
+  height: auto;
+  max-height: 500px;
 }
 
 .nav-arrow {
   position: absolute; top: 50%; transform: translateY(-50%);
-  background: rgba(255,255,255,0.2); color: white;
-  border: none; width: 40px; height: 40px; border-radius: 50%;
-  cursor: pointer; font-size: 24px; z-index: 10;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid #ddd;
+  width: 36px; height: 36px; border-radius: 50%;
+  cursor: pointer; font-size: 20px; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
 }
-
 .nav-arrow.left { left: 10px; }
 .nav-arrow.right { right: 10px; }
 
-/* 🟢 FLOATING WHATSAPP BUBBLE (Small & Professional) */
+.video-count-tag {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(0,0,0,0.6); color: white;
+  padding: 4px 8px; border-radius: 4px; font-size: 10px;
+}
+
+/* 🟢 FLOATING WHATSAPP (Professional Size) */
 .floating-whatsapp {
   position: fixed;
-  bottom: 25px;
-  right: 25px;
-  background: #25d366;
+  bottom: 30px;
+  right: 30px;
+  background: #21c55d;
   color: white;
-  padding: 12px 22px;
+  padding: 12px 20px;
   border-radius: 50px;
   text-decoration: none;
-  font-weight: 800;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  z-index: 9999;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: transform 0.3s;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 999;
 }
 
-.floating-whatsapp:hover { transform: scale(1.1) translateY(-5px); }
+.wa-icon { font-size: 20px; }
 
-/* RESPONSIVE FIXES */
-@media (max-width: 768px) {
-  .post-image-area { height: 280px; } /* Even more compact for mobile */
-  .school-hero h1 { font-size: 1.8rem; }
-  .wa-text { display: none; } /* Shrinks to a circle bubble on mobile */
-  .floating-whatsapp { 
-    padding: 12px; border-radius: 50%; 
-    bottom: 20px; right: 20px; 
-  }
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .school-hero h1 { font-size: 1.7rem; }
+  .school-container { margin-top: 0; padding: 0; }
+  .social-post-card { border-radius: 0; border-left: none; border-right: none; margin-bottom: 10px; }
+  .wa-text { display: none; }
+  .floating-whatsapp { padding: 12px; border-radius: 50%; bottom: 20px; right: 20px; }
 }
