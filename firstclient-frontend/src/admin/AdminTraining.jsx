@@ -5,6 +5,8 @@ import './AdminTraining.css';
 
 const AdminTraining = () => {
   const [publishedPosts, setPublishedPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]); // For search
+  const [searchQuery, setSearchQuery] = useState(""); // Search state
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({ title: '', subHeader: '', description: '' });
@@ -26,10 +28,20 @@ const AdminTraining = () => {
 
   useEffect(() => { fetchPosts(); }, []);
 
+  // Filter posts whenever search query or post list changes
+  useEffect(() => {
+    const filtered = publishedPosts.filter(post => 
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.subHeader.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredPosts(filtered);
+  }, [searchQuery, publishedPosts]);
+
   const fetchPosts = async () => {
     try {
       const res = await axios.get(`${API_BASE}/training`);
       setPublishedPosts(res.data);
+      setFilteredPosts(res.data);
     } catch (err) { console.error("Load failed"); }
   };
 
@@ -37,7 +49,6 @@ const AdminTraining = () => {
     e.preventDefault();
     if (!token) return alert("Session expired.");
     setLoading(true);
-    setUploadProgress(30);
 
     const data = new FormData();
     data.append('title', formData.title);
@@ -46,23 +57,21 @@ const AdminTraining = () => {
     selectedFiles.forEach(file => data.append('files', file));
 
     try {
-      setUploadProgress(70);
       await axios.post(`${API_BASE}/admin/training`, data, {
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percent);
+        }
       });
-      setUploadProgress(100);
-      setTimeout(() => {
-        setFormData({ title: '', subHeader: '', description: '' });
-        setSelectedFiles([]);
-        setLoading(false);
-        setUploadProgress(0);
-        fetchPosts();
-        alert("Published! ✅");
-      }, 500);
-    } catch (err) { alert("Upload failed."); setLoading(false); setUploadProgress(0); }
+      setFormData({ title: '', subHeader: '', description: '' });
+      setSelectedFiles([]);
+      fetchPosts();
+      alert("Published! ✅");
+    } catch (err) { alert("Upload failed."); }
+    finally { setLoading(false); setUploadProgress(0); }
   };
 
-  // --- NEW: FULL EDIT LOGIC (TEXT + MEDIA) ---
   const handleUpdate = async (id) => {
     setLoading(true);
     const data = new FormData();
@@ -103,6 +112,13 @@ const AdminTraining = () => {
     } catch (err) { alert("Delete failed."); }
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+    });
+  };
+
   return (
     <div className="admin-training-page">
       <div className="content-container">
@@ -110,6 +126,16 @@ const AdminTraining = () => {
         <header className="page-header">
           <Link to="/admin" className="back-link">← Dashboard</Link>
           <h1>Training School Manager</h1>
+          
+          <div className="search-container">
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="Search by title or category..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </header>
 
         <section className="form-section">
@@ -118,7 +144,7 @@ const AdminTraining = () => {
             {loading && (
               <div className="progress-wrapper">
                 <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
-                <span className="progress-label">{uploadProgress}%</span>
+                <span className="progress-label">{uploadProgress}% Uploading...</span>
               </div>
             )}
             <div className="input-group"><label>Title</label><input type="text" placeholder="Enter title" value={formData.title} onChange={(e)=>setFormData({...formData, title: e.target.value})} required /></div>
@@ -132,13 +158,14 @@ const AdminTraining = () => {
         </section>
 
         <main className="feed-section">
-          {publishedPosts.map((post) => (
-            <article key={post.id} className={`post-card ${editingId === post.id ? 'is-editing' : ''}`}>
+          {filteredPosts.map((post) => (
+            <article key={post.id} className="post-card">
               
               <div className="post-media">
                 {editingId === post.id ? (
                   <div className="edit-media-manager">
                     <h4>Manage Media</h4>
+                    <p className="edit-hint">Click ✕ on an image/video to remove it</p>
                     <div className="media-edit-grid">
                         {post.trainingMedia.map((m) => (
                             <div key={m.id} className="media-edit-item">
@@ -161,6 +188,7 @@ const AdminTraining = () => {
                                {m.url.match(/\.(mp4|mov|webm)$/) ? <video src={m.url} controls /> : <img src={m.url} alt="" />}
                              </div>
                            ))}
+                           <div className="close-hint">Click to Collapse</div>
                         </div>
                      ) : (
                         <div className="main-thumb">
@@ -168,7 +196,7 @@ const AdminTraining = () => {
                             <div className="vid-thumb"><video src={post.trainingMedia[0].url} muted /><div className="play-ui">▶</div></div> : 
                             <img src={post.trainingMedia?.[0]?.url || "https://placehold.co/800x450"} alt="" />
                            }
-                           <div className="media-count-tag">{post.trainingMedia?.length} Files</div>
+                           <div className="media-count-tag">View {post.trainingMedia?.length} Files</div>
                         </div>
                      )}
                   </div>
@@ -191,14 +219,17 @@ const AdminTraining = () => {
                   </div>
                 ) : (
                   <>
-                    <span className="post-badge">{post.subHeader}</span>
+                    <div className="post-meta-header">
+                        <span className="post-badge">{post.subHeader}</span>
+                        <span className="post-date">{formatDate(post.createdAt)}</span>
+                    </div>
                     <h2 className="post-headline">{post.title}</h2>
                     <p className="post-text">{post.description}</p>
                     <div className="post-controls">
                       <button className="edit-link" onClick={() => {
                         setEditingId(post.id);
                         setEditData({ title: post.title, subHeader: post.subHeader, description: post.description });
-                      }}>Edit Post</button>
+                      }}>Edit Post Content</button>
                       <button className="delete-link" onClick={() => handleDeletePost(post.id)}>Delete</button>
                     </div>
                   </>
@@ -206,6 +237,7 @@ const AdminTraining = () => {
               </div>
             </article>
           ))}
+          {filteredPosts.length === 0 && <p className="no-results">No posts found matching "{searchQuery}"</p>}
         </main>
       </div>
     </div>
