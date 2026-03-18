@@ -7,6 +7,7 @@ const AdminTraining = () => {
   const [publishedPosts, setPublishedPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -16,20 +17,21 @@ const AdminTraining = () => {
   const [selectedVideos, setSelectedVideos] = useState([]);
   const [formData, setFormData] = useState({ title: '', subHeader: '', description: '' });
 
-  // Edit States (Tabbed Focus Mode)
+  // Edit States
   const [editingId, setEditingId] = useState(null);
   const [activeTab, setActiveTab] = useState('preview'); 
   const [editData, setEditData] = useState({ title: '', subHeader: '', description: '' });
   const [editImages, setEditImages] = useState([]);
   const [editVideos, setEditVideos] = useState([]);
 
-  // 🖼️ NEW: Gallery Modal States
+  // Gallery Modal States
   const [galleryPost, setGalleryPost] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const API_BASE = "https://firstclient-backend.onrender.com/api"; 
   const token = localStorage.getItem('adminToken')?.replace(/['"]+/g, '').trim();
 
+  // Scroll visibility
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll);
@@ -38,15 +40,15 @@ const AdminTraining = () => {
 
   useEffect(() => { fetchPosts(); }, []);
 
+  // 🔍 LIVE SEARCH: Filter by Title Only
   useEffect(() => {
     const filtered = publishedPosts.filter(post => 
-      post.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      post.title?.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredPosts(filtered);
   }, [searchQuery, publishedPosts]);
 
-  // 🎹 NEW: Keyboard support for Gallery
+  // 🎹 Keyboard support for Gallery
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!galleryPost) return;
@@ -59,11 +61,13 @@ const AdminTraining = () => {
   }, [galleryPost, currentIndex]);
 
   const fetchPosts = async () => {
+    setIsInitialLoading(true);
     try {
       const res = await axios.get(`${API_BASE}/training`);
       setPublishedPosts(res.data);
       setFilteredPosts(res.data);
     } catch (err) { console.error("Load failed"); }
+    finally { setIsInitialLoading(false); }
   };
 
   const handleExitFocus = () => {
@@ -90,6 +94,14 @@ const AdminTraining = () => {
     } else {
       type === 'image' ? setEditImages(p => p.filter((_, i) => i !== index)) : setEditVideos(p => p.filter((_, i) => i !== index));
     }
+  };
+
+  const highlightText = (text, query) => {
+    if (!query) return text;
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, i) => 
+      part.toLowerCase() === query.toLowerCase() ? <mark key={i} className="search-highlight">{part}</mark> : part
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -151,11 +163,8 @@ const AdminTraining = () => {
     return [...images, ...videos];
   };
 
-  // 🖼️ NEW: Gallery Navigation functions
-  const openGallery = (post, index = 0) => {
-    setGalleryPost(post);
-    setCurrentIndex(index);
-  };
+  // Gallery Navigation
+  const openGallery = (post, index = 0) => { setGalleryPost(post); setCurrentIndex(index); };
   const nextMedia = () => {
     const media = getSortedMedia(galleryPost.trainingMedia);
     setCurrentIndex((prev) => (prev + 1) % media.length);
@@ -187,11 +196,6 @@ const AdminTraining = () => {
                 ) : (
                   <img src={mainDisplay?.url || "https://placehold.co/800x450"} alt="" className="full-view-media" />
                 )}
-                {sortedMedia.length > 1 && (
-                  <div className="media-tag-overlay" onClick={() => openGallery(activePost)}>
-                    +{sortedMedia.length - 1} More Files
-                  </div>
-                )}
               </div>
               <div className="preview-text-zone">
                 <span className="preview-category">{editData.subHeader}</span>
@@ -202,19 +206,9 @@ const AdminTraining = () => {
           ) : (
             <div className="edit-pane professional-edit-ui">
               <div className="edit-body">
-                <div className="input-group">
-                  <label>Session Title</label>
-                  <input className="edit-input-large" value={editData.title} onChange={(e)=>setEditData({...editData, title: e.target.value})} />
-                </div>
-                <div className="input-group">
-                  <label>Category</label>
-                  <input className="edit-input-large" value={editData.subHeader} onChange={(e)=>setEditData({...editData, subHeader: e.target.value})} />
-                </div>
-                <div className="input-group">
-                  <label>Main Writeup</label>
-                  <textarea className="edit-area-large" value={editData.description} onChange={(e)=>setEditData({...editData, description: e.target.value})} />
-                </div>
-
+                <div className="input-group"><label>Session Title</label><input className="edit-input-large" value={editData.title} onChange={(e)=>setEditData({...editData, title: e.target.value})} /></div>
+                <div className="input-group"><label>Category</label><input className="edit-input-large" value={editData.subHeader} onChange={(e)=>setEditData({...editData, subHeader: e.target.value})} /></div>
+                <div className="input-group"><label>Main Writeup</label><textarea className="edit-area-large" value={editData.description} onChange={(e)=>setEditData({...editData, description: e.target.value})} /></div>
                 <div className="media-management-zone">
                   <h4>Manage Files on Server</h4>
                   <div className="existing-media-grid">
@@ -249,9 +243,7 @@ const AdminTraining = () => {
                 </div>
               </div>
               <div className="edit-footer">
-                 <button className="save-btn" onClick={() => handleUpdate(editingId)} disabled={loading}>
-                   {loading ? <div className="btn-spinner"></div> : "Save Changes"}
-                 </button>
+                 <button className="save-btn" onClick={() => handleUpdate(editingId)} disabled={loading}>{loading ? <div className="btn-spinner"></div> : "Save Changes"}</button>
               </div>
             </div>
           )}
@@ -268,7 +260,7 @@ const AdminTraining = () => {
         <header className="page-header">
           <Link to="/admin" className="back-link">← Dashboard</Link>
           <h1>Training School</h1>
-          <input type="text" className="search-input" placeholder="Search sessions..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <input type="text" className="search-input" placeholder="Search sessions by title..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </header>
 
         <section className="form-section">
@@ -277,7 +269,6 @@ const AdminTraining = () => {
             <div className="input-group"><label>Title</label><input type="text" value={formData.title} onChange={(e)=>setFormData({...formData, title: e.target.value})} required /></div>
             <div className="input-group"><label>Category</label><input type="text" value={formData.subHeader} onChange={(e)=>setFormData({...formData, subHeader: e.target.value})} required /></div>
             <div className="input-group"><label>Full Writeup</label><textarea className="expansive-textarea" value={formData.description} onChange={(e)=>setFormData({...formData, description: e.target.value})} required /></div>
-
             <div className="split-upload-grid">
                <div className="upload-box image-zone">
                   <label>🖼️ Add Images</label>
@@ -299,69 +290,70 @@ const AdminTraining = () => {
                </div>
             </div>
             <button type="submit" className="publish-btn" disabled={loading}>
-              {loading ? (
-                <div className="btn-loading-content">
-                  <div className="btn-spinner"></div>
-                  <span>Uploading {uploadProgress}%</span>
-                </div>
-              ) : "Publish Session"}
+              {loading ? <div className="btn-loading-content"><div className="btn-spinner"></div><span>Uploading {uploadProgress}%</span></div> : "Publish Session"}
             </button>
           </form>
         </section>
 
         <main className="feed-section">
-          {filteredPosts.map((post) => {
-            const mediaList = getSortedMedia(post.trainingMedia);
-            const displayMedia = mediaList[0];
-            return (
-              <article key={post.id} id={`post-${post.id}`} className="post-card">
-                <div className="post-media" onClick={() => openGallery(post)}>
-                  <div className="main-thumb">
-                     {displayMedia?.type === 'video' || displayMedia?.url.match(/\.(mp4|mov|webm)$/i) ? 
-                        <video src={displayMedia.url} muted /> : 
-                        <img src={displayMedia?.url || "https://placehold.co/800x450"} alt="" />
-                     }
-                     {mediaList.length > 1 && (
-                        <div className="media-tag-overlay">+{mediaList.length - 1} Files</div>
-                     )}
-                  </div>
-                </div>
+          {isInitialLoading ? (
+            [1, 2, 3].map(i => (
+              <div key={i} className="post-card skeleton-card">
+                <div className="skeleton-thumb pulse"></div>
                 <div className="post-body">
-                  <h2 className="post-headline">{post.title}</h2>
-                  <p className="post-text">{post.description}</p>
-                  <div className="post-controls">
-                    <button className="edit-link" onClick={() => { 
-                      setEditingId(post.id); 
-                      setEditData({ title: post.title, subHeader: post.subHeader, description: post.description }); 
-                      window.scrollTo(0,0);
-                    }}>Edit Session</button>
-                    <button className="delete-link" onClick={() => { if(window.confirm("Delete post?")) axios.delete(`${API_BASE}/admin/training/${post.id}`, {headers:{'Authorization':`Bearer ${token}`}}).then(fetchPosts) }}>Delete</button>
-                  </div>
+                   <div className="skeleton-line pulse headline"></div>
+                   <div className="skeleton-line pulse"></div>
+                   <div className="skeleton-line pulse short"></div>
                 </div>
-              </article>
-            );
-          })}
+              </div>
+            ))
+          ) : filteredPosts.length > 0 ? (
+            filteredPosts.map((post) => {
+              const mediaList = getSortedMedia(post.trainingMedia);
+              const displayMedia = mediaList[0];
+              return (
+                <article key={post.id} id={`post-${post.id}`} className="post-card">
+                  <div className="post-media" onClick={() => openGallery(post)}>
+                    <div className="main-thumb">
+                       {displayMedia?.url.match(/\.(mp4|mov|webm)$/i) ? <video src={displayMedia.url} muted /> : <img src={displayMedia?.url || "https://placehold.co/800x450"} alt="" />}
+                       {mediaList.length > 1 && <div className="media-tag-overlay">+{mediaList.length - 1} Files</div>}
+                    </div>
+                  </div>
+                  <div className="post-body">
+                    <h2 className="post-headline">{highlightText(post.title, searchQuery)}</h2>
+                    <p className="post-text">{post.description}</p>
+                    <div className="post-controls">
+                      <button className="edit-link" onClick={() => { setEditingId(post.id); setEditData({ title: post.title, subHeader: post.subHeader, description: post.description }); window.scrollTo(0,0); }}>Edit Session</button>
+                      <button className="delete-link" onClick={() => { if(window.confirm("Delete?")) axios.delete(`${API_BASE}/admin/training/${post.id}`, {headers:{'Authorization':`Bearer ${token}`}}).then(fetchPosts) }}>Delete</button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          ) : (
+            <div className="empty-state-container">
+              <div className="empty-icon">🔍</div>
+              <h3>No matching sessions</h3>
+              <p>We couldn't find anything for "<strong>{searchQuery}</strong>".</p>
+              <button className="clear-search-btn" onClick={() => setSearchQuery("")}>Clear Search</button>
+            </div>
+          )}
         </main>
       </div>
 
-      {/* 🖼️ NEW: GALLERY OVERLAY RENDER */}
       {galleryPost && (
-        <div className="gallery-modal">
+        <div className="gallery-modal" onClick={() => setGalleryPost(null)}>
           <button className="gallery-close" onClick={() => setGalleryPost(null)}>✕</button>
-          <button className="gallery-nav prev" onClick={prevMedia}>‹</button>
-          <button className="gallery-nav next" onClick={nextMedia}>›</button>
-          
-          <div className="gallery-content">
+          <button className="gallery-nav prev" onClick={(e) => { e.stopPropagation(); prevMedia(); }}>‹</button>
+          <button className="gallery-nav next" onClick={(e) => { e.stopPropagation(); nextMedia(); }}>›</button>
+          <div className="gallery-content" onClick={(e) => e.stopPropagation()}>
             {getSortedMedia(galleryPost.trainingMedia)[currentIndex]?.url.match(/\.(mp4|mov|webm)$/i) ? (
               <video src={getSortedMedia(galleryPost.trainingMedia)[currentIndex].url} controls autoPlay />
             ) : (
               <img src={getSortedMedia(galleryPost.trainingMedia)[currentIndex].url} alt="" />
             )}
           </div>
-          
-          <div className="gallery-counter">
-            {currentIndex + 1} / {getSortedMedia(galleryPost.trainingMedia).length}
-          </div>
+          <div className="gallery-counter">{currentIndex + 1} / {getSortedMedia(galleryPost.trainingMedia).length}</div>
         </div>
       )}
     </div>
