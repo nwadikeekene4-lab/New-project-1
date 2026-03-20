@@ -46,7 +46,7 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
         </div>
         <nav className="sidebar-links">
           <Link to="/" onClick={() => setIsSidebarOpen(false)}>Welcome</Link>
-          <Link to="/hub" onClick={() => setIsSidebarOpen(false)}>Navigation Hub</Link>
+          <Link to="/hub" onClick={() => setIsSidebarOpen(false)}>Essence creation</Link>
           
           {/* ⭐ INTEGRATED: Renamed from 'Pastry Services' to 'Pastries' */}
           <Link to="/pastries" onClick={() => setIsSidebarOpen(false)}>Pastries</Link>
