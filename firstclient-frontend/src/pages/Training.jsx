@@ -6,15 +6,10 @@ export default function Training() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [videoIndices, setVideoIndices] = useState({});
-  const [imageIndices, setImageIndices] = useState({}); // New: Logic for image gallery
+  const [imageIndices, setImageIndices] = useState({});
   const [visibleCount, setVisibleCount] = useState(6); 
   const [expandedDesc, setExpandedDesc] = useState({});
   const [showScrollTop, setShowScrollTop] = useState(false);
-
-  const [likedPosts, setLikedPosts] = useState(() => {
-    const saved = localStorage.getItem("ec_liked_posts");
-    return saved ? JSON.parse(saved) : [];
-  });
 
   useEffect(() => {
     const fetchTrainingData = async () => {
@@ -24,6 +19,7 @@ export default function Training() {
       } catch (err) {
         console.error("Error loading training school:", err);
       } finally {
+        // Smooth transition from loader
         setTimeout(() => setLoading(false), 800);
       }
     };
@@ -34,20 +30,38 @@ export default function Training() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLike = (id) => {
-    setLikedPosts(prev => {
-      const isLiked = prev.includes(id);
-      const updated = isLiked ? prev.filter(postId => postId !== id) : [...prev, id];
-      localStorage.setItem("ec_liked_posts", JSON.stringify(updated));
-      return updated;
-    });
+  // ⭐ UPDATED: Global Like Logic talking to your Backend
+  const handleLike = async (id) => {
+    try {
+      // Send like/unlike request to server
+      const res = await API.post(`/training/${id}/like`);
+      
+      // Update the session in state with the new data from database
+      setSessions(prev => prev.map(session => {
+        if (session.id === id) {
+          return { 
+            ...session, 
+            likes: res.data.isLiked 
+              ? [...(session.likes || []), "temp_user"] // Just to trigger the 'liked' UI state
+              : (session.likes || []).slice(0, -1)     // Just to trigger the 'unliked' UI state
+          };
+        }
+        return session;
+      }));
+      
+      // Optional: Re-fetch latest data to ensure total sync across devices
+      const updatedRes = await API.get("/training");
+      setSessions(updatedRes.data);
+      
+    } catch (err) {
+      console.error("Error updating like on server:", err);
+    }
   };
 
   const toggleDesc = (id) => {
     setExpandedDesc(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Generic Navigation Logic for both Images and Videos
   const handleNext = (sessionId, total, type) => {
     const setter = type === 'video' ? setVideoIndices : setImageIndices;
     setter(prev => ({ ...prev, [sessionId]: ((prev[sessionId] || 0) + 1) % total }));
@@ -81,13 +95,14 @@ export default function Training() {
           const currentVidIdx = videoIndices[session.id] || 0;
           const currentImgIdx = imageIndices[session.id] || 0;
           
-          const isLiked = likedPosts.includes(session.id);
+          // ⭐ NEW: Calculate like count and liked status based on backend data
+          const likeCount = session.likes?.length || 0;
           const isExpanded = expandedDesc[session.id];
 
           return (
             <article key={session.id} className="vimeo-post-card">
               
-              {/* Media: Image Gallery with working arrows */}
+              {/* Media: Image Gallery */}
               {images.length > 0 && (
                 <div className="vimeo-media-box image-box">
                   <img src={images[currentImgIdx].url} alt="" className="vimeo-media" draggable="false" />
@@ -101,7 +116,7 @@ export default function Training() {
                 </div>
               )}
 
-              {/* Media: Video Gallery with working arrows */}
+              {/* Media: Video Gallery */}
               {videos.length > 0 && (
                 <div className="vimeo-media-box video-box">
                   <video 
@@ -141,12 +156,13 @@ export default function Training() {
                   </button>
                 )}
 
+                {/* ⭐ UPDATED ACTIONS: Displaying Global Count */}
                 <div className="vimeo-actions">
                   <button 
-                    className={`vimeo-like-btn ${isLiked ? 'liked' : ''}`} 
+                    className={`vimeo-like-btn ${likeCount > 0 ? 'liked' : ''}`} 
                     onClick={() => handleLike(session.id)}
                   >
-                    {isLiked ? '❤️ Liked' : '🤍 Like'}
+                    {likeCount} {likeCount === 1 ? '❤️ Like' : '❤️ Likes'}
                   </button>
                 </div>
               </div>
