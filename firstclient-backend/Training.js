@@ -19,16 +19,24 @@ const Training = sequelize.define("Training", {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-  // ⭐ UPDATED: Stores likes as a JSON array of IP addresses
+  // 🛡️ UPDATED: Added safety check for JSON parsing
   likes: {
     type: DataTypes.TEXT,
     defaultValue: "[]",
     get() {
       const rawValue = this.getDataValue('likes');
-      return rawValue ? JSON.parse(rawValue) : [];
+      try {
+        // If rawValue exists, parse it; otherwise return empty array
+        return rawValue ? JSON.parse(rawValue) : [];
+      } catch (e) {
+        // If JSON is malformed, return empty array instead of crashing
+        console.error("Malformed likes JSON in DB:", e);
+        return [];
+      }
     },
     set(value) {
-      this.setDataValue('likes', JSON.stringify(value));
+      // Ensure we always stringify, defaulting to empty array if value is null
+      this.setDataValue('likes', JSON.stringify(value || []));
     }
   },
   order: {
