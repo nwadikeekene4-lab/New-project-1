@@ -11,14 +11,25 @@ const Training = sequelize.define("Training", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  // ⭐ ADD THIS LINE BELOW:
   subHeader: {
     type: DataTypes.STRING,
-    allowNull: true, // Allow it to be empty if you don't have a sub-topic
+    allowNull: true, 
   },
   description: {
     type: DataTypes.TEXT,
     allowNull: false,
+  },
+  // ⭐ UPDATED: Stores likes as a JSON array of IP addresses
+  likes: {
+    type: DataTypes.TEXT,
+    defaultValue: "[]",
+    get() {
+      const rawValue = this.getDataValue('likes');
+      return rawValue ? JSON.parse(rawValue) : [];
+    },
+    set(value) {
+      this.setDataValue('likes', JSON.stringify(value));
+    }
   },
   order: {
     type: DataTypes.INTEGER,
