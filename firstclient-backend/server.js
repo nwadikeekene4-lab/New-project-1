@@ -151,15 +151,8 @@ async function startServer() {
     
     console.log("✅ All Database tables synced successfully");
 
-    // 🛡️ ONE-TIME DATA MIGRATION: Reset Likes to empty array
-    // You can delete this block after the server runs successfully once
-    try {
-      await Training.update({ likes: "[]" }, { where: {} });
-      console.log("🧹 One-time Fix: Training likes reset to JSON arrays.");
-    } catch (e) {
-      console.log("⚠️ Migration skipped or failed (Likely already fixed).");
-    }
-
+    // 🚀 CLEANUP COMPLETE: Migration block removed.
+    
     app.use("/api", routes);
     
     startCleanupTask();
