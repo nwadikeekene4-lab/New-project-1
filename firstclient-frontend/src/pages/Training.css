@@ -31,12 +31,35 @@
 .loading-text { margin-top: 15px; font-weight: 700; color: var(--text-main); text-transform: uppercase; font-size: 13px; letter-spacing: 1px;}
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* HEADER */
+/* 🥐 NEW COLORFUL HERO HEADER */
 .school-hero {
-  background: white; padding: 60px 20px 30px; text-align: left;
-  border-bottom: 1px solid #eee; margin-bottom: 40px;
+  position: relative;
+  min-height: 350px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  margin-bottom: 50px;
+  
+  /* Background Image with Dark Overlay for readability */
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+              url('https://images.unsplash.com/photo-1555507036-ab1f4038808a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* Parallax effect for desktop */
+  border-bottom: 5px solid var(--pastry-gold);
 }
-.school-hero h1 { font-size: 2.5rem; font-weight: 800; color: #1a1a1a; margin: 0; }
+
+.school-hero h1 {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #ffffff; 
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.6);
+  margin: 0;
+}
 
 /* CONTAINER - GRID FIX FOR DESKTOP */
 .school-container {
@@ -115,14 +138,14 @@
 @media (min-width: 992px) {
   .school-container { grid-template-columns: repeat(2, 1fr); }
   .vimeo-post-card:hover { transform: translateY(-8px); }
-  .school-hero { padding: 80px 40px 40px; }
 }
 
-/* --- RESPONSIVE MOBILE (STAYS PERFECT) --- */
+/* --- RESPONSIVE MOBILE --- */
 @media (max-width: 768px) {
-  .school-hero h1 { font-size: 2rem; }
+  .school-hero { min-height: 220px; background-attachment: scroll; } /* Disable parallax for mobile performance */
+  .school-hero h1 { font-size: 2.2rem; }
   .school-container { padding: 0 10px; gap: 20px; }
   .wa-btn-text { display: none; }
   .vimeo-whatsapp { padding: 15px; border-radius: 50%; }
-  .vimeo-media-box { border-radius: 0; } /* Social feed look on mobile */
+  .vimeo-media-box { border-radius: 0; } 
 }
