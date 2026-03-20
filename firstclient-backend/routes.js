@@ -479,13 +479,27 @@ router.delete("/admin/messages/:id/permanent", verifyToken, async (req, res) => 
 
 // --- 🎓 PASTRY SCHOOL ROUTES ---
 
+// ⭐ IMPROVED: Initial Fetch with IP Check
 router.get("/training", async (req, res) => {
   try {
+    const userIP = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || "unknown_user";
+    
     const sessions = await Training.findAll({
       include: [{ model: TrainingMedia, as: 'trainingMedia' }], 
       order: [['order', 'ASC'], ['createdAt', 'DESC']]
     });
-    res.json(sessions);
+
+    // Add userHasLiked status based on current visitor's IP
+    const formattedSessions = sessions.map(session => {
+      const likesArray = Array.isArray(session.likes) ? session.likes : [];
+      return {
+        ...session.toJSON(),
+        likeCount: likesArray.length,
+        userHasLiked: likesArray.includes(userIP)
+      };
+    });
+
+    res.json(formattedSessions);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -564,32 +578,28 @@ router.post("/training/:id/like", async (req, res) => {
     const session = await Training.findByPk(req.params.id);
     if (!session) return res.status(404).json({ error: "Session not found" });
 
-    // Get the most accurate IP possible
     const userIP = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || "unknown_user";
     
-    // 🛡️ STRICT LOGIC: Get current likes and ensure it's a clean array
     let currentLikes = Array.isArray(session.likes) ? session.likes : [];
-    
     const hasLiked = currentLikes.includes(userIP);
     let updatedLikes;
 
     if (hasLiked) {
-      // UNLIKE: Remove the IP
+      // UNLIKE: Remove the IP strictly
       updatedLikes = currentLikes.filter(ip => ip !== userIP);
     } else {
       // LIKE: Add the IP
       updatedLikes = [...currentLikes, userIP];
     }
 
-    // ⭐ DOUBLE PROTECTION: Force unique values only
+    // ⭐ DOUBLE PROTECTION: Unique values only
     session.likes = [...new Set(updatedLikes)]; 
-    
     await session.save();
 
     res.json({ 
       success: true, 
       likeCount: session.likes.length,
-      isLiked: !hasLiked // Tell the frontend the new state
+      isLiked: !hasLiked 
     });
   } catch (err) {
     console.error("Like error:", err);
