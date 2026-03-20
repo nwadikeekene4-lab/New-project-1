@@ -19,7 +19,6 @@ export default function Training() {
       } catch (err) {
         console.error("Error loading training school:", err);
       } finally {
-        // Smooth transition from loader
         setTimeout(() => setLoading(false), 800);
       }
     };
@@ -30,31 +29,28 @@ export default function Training() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ⭐ UPDATED: Global Like Logic talking to your Backend
+  // ⭐ FIXED: Real-time Sync Logic
   const handleLike = async (id) => {
     try {
-      // Send like/unlike request to server
       const res = await API.post(`/training/${id}/like`);
       
-      // Update the session in state with the new data from database
-      setSessions(prev => prev.map(session => {
-        if (session.id === id) {
-          return { 
-            ...session, 
-            likes: res.data.isLiked 
-              ? [...(session.likes || []), "temp_user"] // Just to trigger the 'liked' UI state
-              : (session.likes || []).slice(0, -1)     // Just to trigger the 'unliked' UI state
-          };
-        }
-        return session;
-      }));
-      
-      // Optional: Re-fetch latest data to ensure total sync across devices
-      const updatedRes = await API.get("/training");
-      setSessions(updatedRes.data);
-      
+      if (res.data.success) {
+        setSessions(prev => prev.map(session => {
+          if (session.id === id) {
+            return { 
+              ...session, 
+              // We use the exact count and status returned by the server
+              serverCount: res.data.likeCount,
+              userHasLiked: res.data.isLiked,
+              // Update the internal likes array dummy length to keep other logic working
+              likes: new Array(res.data.likeCount).fill(0) 
+            };
+          }
+          return session;
+        }));
+      }
     } catch (err) {
-      console.error("Error updating like on server:", err);
+      console.error("Error updating like:", err);
     }
   };
 
@@ -95,14 +91,12 @@ export default function Training() {
           const currentVidIdx = videoIndices[session.id] || 0;
           const currentImgIdx = imageIndices[session.id] || 0;
           
-          // ⭐ NEW: Calculate like count and liked status based on backend data
-          const likeCount = session.likes?.length || 0;
+          // Use the server count if we just clicked, otherwise use the initial length
+          const displayCount = session.serverCount !== undefined ? session.serverCount : (session.likes?.length || 0);
           const isExpanded = expandedDesc[session.id];
 
           return (
             <article key={session.id} className="vimeo-post-card">
-              
-              {/* Media: Image Gallery */}
               {images.length > 0 && (
                 <div className="vimeo-media-box image-box">
                   <img src={images[currentImgIdx].url} alt="" className="vimeo-media" draggable="false" />
@@ -116,17 +110,9 @@ export default function Training() {
                 </div>
               )}
 
-              {/* Media: Video Gallery */}
               {videos.length > 0 && (
                 <div className="vimeo-media-box video-box">
-                  <video 
-                    key={videos[currentVidIdx].url}
-                    src={videos[currentVidIdx].url} 
-                    controls 
-                    controlsList="nodownload"
-                    playsInline
-                    className="vimeo-media"
-                  />
+                  <video key={videos[currentVidIdx].url} src={videos[currentVidIdx].url} controls controlsList="nodownload" playsInline className="vimeo-media" />
                   {videos.length > 1 && (
                     <div className="vimeo-nav-arrows">
                       <button className="nav-pill left" onClick={() => handlePrev(session.id, videos.length, 'video')}>‹</button>
@@ -156,13 +142,12 @@ export default function Training() {
                   </button>
                 )}
 
-                {/* ⭐ UPDATED ACTIONS: Displaying Global Count */}
                 <div className="vimeo-actions">
                   <button 
-                    className={`vimeo-like-btn ${likeCount > 0 ? 'liked' : ''}`} 
+                    className={`vimeo-like-btn ${session.userHasLiked || (session.likes && session.likes.length > 0) ? 'liked' : ''}`} 
                     onClick={() => handleLike(session.id)}
                   >
-                    {likeCount} {likeCount === 1 ? '❤️ Like' : '❤️ Likes'}
+                    {displayCount} {displayCount === 1 ? '❤️ Like' : '❤️ Likes'}
                   </button>
                 </div>
               </div>
@@ -173,16 +158,12 @@ export default function Training() {
 
       {visibleCount < sessions.length && (
         <div className="load-more-container">
-          <button className="load-more-btn" onClick={() => setVisibleCount(prev => prev + 6)}>
-            View More Sessions
-          </button>
+          <button className="load-more-btn" onClick={() => setVisibleCount(prev => prev + 6)}>View More Sessions</button>
         </div>
       )}
 
       {showScrollTop && (
-        <button className="scroll-up" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          ↑
-        </button>
+        <button className="scroll-up" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>↑</button>
       )}
 
       <a href="https://wa.me/2348028136371" target="_blank" rel="noopener noreferrer" className="vimeo-whatsapp">
