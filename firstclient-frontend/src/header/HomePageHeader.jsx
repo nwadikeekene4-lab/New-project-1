@@ -46,8 +46,14 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
         </div>
         <nav className="sidebar-links">
           <Link to="/" onClick={() => setIsSidebarOpen(false)}>Welcome</Link>
-          <Link to="/pastries" onClick={() => setIsSidebarOpen(false)}>Pastry Services</Link>
-          <Link to="/hub" onClick={() => setIsSidebarOpen(false)}>Essence Creations</Link>
+          <Link to="/hub" onClick={() => setIsSidebarOpen(false)}>Navigation Hub</Link>
+          
+          {/* ⭐ INTEGRATED: Renamed from 'Pastry Services' to 'Pastries' */}
+          <Link to="/pastries" onClick={() => setIsSidebarOpen(false)}>Pastries</Link>
+          
+          {/* ⭐ INTEGRATED: Added Pastry School immediately after Pastries */}
+          <Link to="/school" onClick={() => setIsSidebarOpen(false)}>Pastry School 🎓</Link>
+          
           <Link to="/socials" onClick={() => setIsSidebarOpen(false)}>Contact Us</Link>
         </nav>
       </div>
@@ -61,7 +67,7 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
             <button className="hamburger-menu" onClick={() => setIsSidebarOpen(true)}>☰</button>
             <Link to="/" className="header-brand-group">
               <span className="company-name">Essence Creations</span>
-              {/* ⭐ INTEGRATED: Replaced EC placeholder with your JPEG logo */}
+              {/* ⭐ INTEGRATED: Your JPEG logo */}
               <img 
                 src="images/Essence-Logo2.jpeg" 
                 alt="Essence Logo" 
@@ -110,4 +116,4 @@ export function HomePageHeader({ cart = [], onSearch, searchTerm = '' }) {
       </header>
     </>
   );
-  }
+}
