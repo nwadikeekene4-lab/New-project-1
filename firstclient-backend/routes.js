@@ -558,4 +558,35 @@ router.delete("/admin/training/:id", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- ❤️ GLOBAL LIKE LOGIC (ANTI-CHEAT) ---
+router.post("/training/:id/like", async (req, res) => {
+  try {
+    const session = await Training.findByPk(req.params.id);
+    if (!session) return res.status(404).json({ error: "Session not found" });
+
+    // Use IP address to identify unique users without requiring login
+    const userIdentifier = req.ip || req.headers['x-forwarded-for'] || "unknown_user";
+    
+    let currentLikes = session.likes; // This uses the getter we defined in the model
+    const index = currentLikes.indexOf(userIdentifier);
+
+    if (index === -1) {
+      currentLikes.push(userIdentifier); // Add like
+    } else {
+      currentLikes.splice(index, 1); // Remove like (Unlike)
+    }
+
+    session.likes = currentLikes; // This uses the setter we defined in the model
+    await session.save();
+
+    res.json({ 
+      success: true, 
+      likeCount: currentLikes.length,
+      isLiked: index === -1 
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Like action failed" });
+  }
+});
+
 module.exports = router;
