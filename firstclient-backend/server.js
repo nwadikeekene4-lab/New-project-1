@@ -134,14 +134,12 @@ async function startServer() {
     console.log("⏳ Starting database synchronization...");
 
     // ⭐ ESTABLISH TRAINING RELATIONSHIPS
-    // ✅ CHANGED: Alias renamed to 'trainingMedia' to avoid conflict with existing 'media' associations
     Training.hasMany(TrainingMedia, { as: 'trainingMedia', foreignKey: 'trainingId', onDelete: 'CASCADE' });
     TrainingMedia.belongsTo(Training, { foreignKey: 'trainingId' });
     
-    // ⭐ SYNC NEW TRAINING TABLES
+    // ⭐ SYNC TABLES
     await Training.sync({ alter: true });
     await TrainingMedia.sync({ alter: true });
-
     await Product.sync({ alter: true }); 
     await Admin.sync({ alter: true }); 
     await Message.sync({ alter: true }); 
@@ -152,6 +150,15 @@ async function startServer() {
     if (DeliveryOption && DeliveryOption.sync) await DeliveryOption.sync();
     
     console.log("✅ All Database tables synced successfully");
+
+    // 🛡️ ONE-TIME DATA MIGRATION: Reset Likes to empty array
+    // You can delete this block after the server runs successfully once
+    try {
+      await Training.update({ likes: "[]" }, { where: {} });
+      console.log("🧹 One-time Fix: Training likes reset to JSON arrays.");
+    } catch (e) {
+      console.log("⚠️ Migration skipped or failed (Likely already fixed).");
+    }
 
     app.use("/api", routes);
     
