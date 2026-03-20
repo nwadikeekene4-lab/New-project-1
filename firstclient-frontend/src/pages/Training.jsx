@@ -29,7 +29,7 @@ export default function Training() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ⭐ FIXED: Real-time Sync Logic
+  // ⭐ INTEGRATED: Strict Sync Logic for unique likes
   const handleLike = async (id) => {
     try {
       const res = await API.post(`/training/${id}/like`);
@@ -39,10 +39,10 @@ export default function Training() {
           if (session.id === id) {
             return { 
               ...session, 
-              // We use the exact count and status returned by the server
-              serverCount: res.data.likeCount,
+              // Directly use the truth from the server
               userHasLiked: res.data.isLiked,
-              // Update the internal likes array dummy length to keep other logic working
+              // Update count based on server's unique array length
+              serverCount: res.data.likeCount,
               likes: new Array(res.data.likeCount).fill(0) 
             };
           }
@@ -91,8 +91,10 @@ export default function Training() {
           const currentVidIdx = videoIndices[session.id] || 0;
           const currentImgIdx = imageIndices[session.id] || 0;
           
-          // Use the server count if we just clicked, otherwise use the initial length
-          const displayCount = session.serverCount !== undefined ? session.serverCount : (session.likes?.length || 0);
+          // ⭐ INTEGRATED: Use serverCount first, then fallback to likes.length
+          const displayCount = session.serverCount !== undefined ? session.serverCount : (session.likeCount !== undefined ? session.likeCount : (session.likes?.length || 0));
+          // ⭐ INTEGRATED: userHasLiked is the primary source of truth for the red heart
+          const isLiked = session.userHasLiked === true;
           const isExpanded = expandedDesc[session.id];
 
           return (
@@ -144,10 +146,10 @@ export default function Training() {
 
                 <div className="vimeo-actions">
                   <button 
-                    className={`vimeo-like-btn ${session.userHasLiked || (session.likes && session.likes.length > 0) ? 'liked' : ''}`} 
+                    className={`vimeo-like-btn ${isLiked ? 'liked' : ''}`} 
                     onClick={() => handleLike(session.id)}
                   >
-                    {displayCount} {displayCount === 1 ? '❤️ Like' : '❤️ Likes'}
+                    {isLiked ? '❤️' : '🤍'} {displayCount} {displayCount === 1 ? 'Like' : 'Likes'}
                   </button>
                 </div>
               </div>
