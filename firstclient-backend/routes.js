@@ -558,37 +558,41 @@ router.delete("/admin/training/:id", verifyToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- ❤️ GLOBAL LIKE LOGIC (ANTI-CHEAT) ---
+// --- ❤️ GLOBAL LIKE LOGIC (STRICT ANTI-CHEAT) ---
 router.post("/training/:id/like", async (req, res) => {
   try {
     const session = await Training.findByPk(req.params.id);
     if (!session) return res.status(404).json({ error: "Session not found" });
 
-    // Use IP address to identify unique users (supports Render proxy IPs)
-    const userIdentifier = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "unknown_user";
+    // Get the most accurate IP possible
+    const userIP = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || "unknown_user";
     
-    // ⭐ KEY FIX: Spread the array so Sequelize detects the reference change
-    let currentLikes = [...session.likes]; 
-    const index = currentLikes.indexOf(userIdentifier);
+    // 🛡️ STRICT LOGIC: Get current likes and ensure it's a clean array
+    let currentLikes = Array.isArray(session.likes) ? session.likes : [];
+    
+    const hasLiked = currentLikes.includes(userIP);
+    let updatedLikes;
 
-    let isLiked = false;
-    if (index === -1) {
-      currentLikes.push(userIdentifier);
-      isLiked = true;
+    if (hasLiked) {
+      // UNLIKE: Remove the IP
+      updatedLikes = currentLikes.filter(ip => ip !== userIP);
     } else {
-      currentLikes.splice(index, 1);
-      isLiked = false;
+      // LIKE: Add the IP
+      updatedLikes = [...currentLikes, userIP];
     }
 
-    session.likes = currentLikes; 
+    // ⭐ DOUBLE PROTECTION: Force unique values only
+    session.likes = [...new Set(updatedLikes)]; 
+    
     await session.save();
 
     res.json({ 
       success: true, 
-      likeCount: currentLikes.length,
-      isLiked: isLiked 
+      likeCount: session.likes.length,
+      isLiked: !hasLiked // Tell the frontend the new state
     });
   } catch (err) {
+    console.error("Like error:", err);
     res.status(500).json({ error: "Like action failed" });
   }
 });
