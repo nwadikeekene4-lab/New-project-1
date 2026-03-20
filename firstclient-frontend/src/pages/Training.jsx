@@ -6,6 +6,7 @@ export default function Training() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [videoIndices, setVideoIndices] = useState({});
+  const [imageIndices, setImageIndices] = useState({}); // New: Logic for image gallery
   const [visibleCount, setVisibleCount] = useState(6); 
   const [expandedDesc, setExpandedDesc] = useState({});
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -23,7 +24,6 @@ export default function Training() {
       } catch (err) {
         console.error("Error loading training school:", err);
       } finally {
-        // Artificial delay for smooth transition (optional)
         setTimeout(() => setLoading(false), 800);
       }
     };
@@ -47,12 +47,15 @@ export default function Training() {
     setExpandedDesc(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleNextVideo = (sessionId, totalVideos) => {
-    setVideoIndices(prev => ({ ...prev, [sessionId]: ((prev[sessionId] || 0) + 1) % totalVideos }));
+  // Generic Navigation Logic for both Images and Videos
+  const handleNext = (sessionId, total, type) => {
+    const setter = type === 'video' ? setVideoIndices : setImageIndices;
+    setter(prev => ({ ...prev, [sessionId]: ((prev[sessionId] || 0) + 1) % total }));
   };
 
-  const handlePrevVideo = (sessionId, totalVideos) => {
-    setVideoIndices(prev => ({ ...prev, [sessionId]: ((prev[sessionId] || 0) - 1 + totalVideos) % totalVideos }));
+  const handlePrev = (sessionId, total, type) => {
+    const setter = type === 'video' ? setVideoIndices : setImageIndices;
+    setter(prev => ({ ...prev, [sessionId]: ((prev[sessionId] || 0) - 1 + total) % total }));
   };
 
   if (loading) return (
@@ -74,22 +77,31 @@ export default function Training() {
         {sessions.slice(0, visibleCount).map((session) => {
           const images = session.trainingMedia?.filter(m => !m.url.match(/\.(mp4|mov|webm)$/i)) || [];
           const videos = session.trainingMedia?.filter(m => m.url.match(/\.(mp4|mov|webm)$/i)) || [];
+          
           const currentVidIdx = videoIndices[session.id] || 0;
+          const currentImgIdx = imageIndices[session.id] || 0;
+          
           const isLiked = likedPosts.includes(session.id);
           const isExpanded = expandedDesc[session.id];
 
           return (
             <article key={session.id} className="vimeo-post-card">
               
-              {/* Media: Image Box */}
+              {/* Media: Image Gallery with working arrows */}
               {images.length > 0 && (
                 <div className="vimeo-media-box image-box">
-                  <img src={images[0].url} alt="" className="vimeo-media" draggable="false" />
-                  {images.length > 1 && <span className="image-stack-tag">+{images.length - 1} More</span>}
+                  <img src={images[currentImgIdx].url} alt="" className="vimeo-media" draggable="false" />
+                  {images.length > 1 && (
+                    <div className="vimeo-nav-arrows">
+                      <button className="nav-pill left" onClick={() => handlePrev(session.id, images.length, 'image')}>‹</button>
+                      <span className="vimeo-count-tag">{currentImgIdx + 1}/{images.length}</span>
+                      <button className="nav-pill right" onClick={() => handleNext(session.id, images.length, 'image')}>›</button>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Media: Video Box */}
+              {/* Media: Video Gallery with working arrows */}
               {videos.length > 0 && (
                 <div className="vimeo-media-box video-box">
                   <video 
@@ -102,9 +114,9 @@ export default function Training() {
                   />
                   {videos.length > 1 && (
                     <div className="vimeo-nav-arrows">
-                      <button className="nav-pill left" onClick={() => handlePrevVideo(session.id, videos.length)}>‹</button>
+                      <button className="nav-pill left" onClick={() => handlePrev(session.id, videos.length, 'video')}>‹</button>
                       <span className="vimeo-count-tag">{currentVidIdx + 1}/{videos.length}</span>
-                      <button className="nav-pill right" onClick={() => handleNextVideo(session.id, videos.length)}>›</button>
+                      <button className="nav-pill right" onClick={() => handleNext(session.id, videos.length, 'video')}>›</button>
                     </div>
                   )}
                 </div>
