@@ -564,25 +564,29 @@ router.post("/training/:id/like", async (req, res) => {
     const session = await Training.findByPk(req.params.id);
     if (!session) return res.status(404).json({ error: "Session not found" });
 
-    // Use IP address to identify unique users without requiring login
-    const userIdentifier = req.ip || req.headers['x-forwarded-for'] || "unknown_user";
+    // Use IP address to identify unique users (supports Render proxy IPs)
+    const userIdentifier = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "unknown_user";
     
-    let currentLikes = session.likes; // This uses the getter we defined in the model
+    // ⭐ KEY FIX: Spread the array so Sequelize detects the reference change
+    let currentLikes = [...session.likes]; 
     const index = currentLikes.indexOf(userIdentifier);
 
+    let isLiked = false;
     if (index === -1) {
-      currentLikes.push(userIdentifier); // Add like
+      currentLikes.push(userIdentifier);
+      isLiked = true;
     } else {
-      currentLikes.splice(index, 1); // Remove like (Unlike)
+      currentLikes.splice(index, 1);
+      isLiked = false;
     }
 
-    session.likes = currentLikes; // This uses the setter we defined in the model
+    session.likes = currentLikes; 
     await session.save();
 
     res.json({ 
       success: true, 
       likeCount: currentLikes.length,
-      isLiked: index === -1 
+      isLiked: isLiked 
     });
   } catch (err) {
     res.status(500).json({ error: "Like action failed" });
