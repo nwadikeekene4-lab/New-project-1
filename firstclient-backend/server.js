@@ -60,6 +60,7 @@ app.use(limiter);
 
 const allowedOrigins = [
   "https://firstclient-frontend.onrender.com",
+  "https://ecommerce-website-ten-inky.vercel.app",
   "http://localhost:3000",
   "http://localhost:5173", 
   "http://localhost:5000"
