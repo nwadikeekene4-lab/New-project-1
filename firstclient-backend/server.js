@@ -152,8 +152,12 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // --- API ROUTES ---
-// Mount routes immediately so Vercel can use the Express app.
-app.use("/api", routes);
+// Render uses /api as the API prefix.
+// Vercel's /api/index.js is already inside the /api function path,
+// so routes are mounted at / when running on Vercel.
+const apiBasePath = process.env.VERCEL ? "/" : "/api";
+
+app.use(apiBasePath, routes);
 
 // --- DATABASE INITIALIZATION ---
 let databaseInitialized = false;
@@ -242,4 +246,4 @@ if (!process.env.VERCEL) {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
-      }
+    }
