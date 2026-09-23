@@ -607,4 +607,191 @@ router.post("/training/:id/like", async (req, res) => {
   }
 });
 
+// ============================================================
+// ADMIN PASSWORD RESET
+// ============================================================
+
+// Request a password reset
+router.post("/admin/forgot-password", async (req, res) => {
+  try {
+    const { usernameOrEmail } = req.body;
+
+    if (!usernameOrEmail || typeof usernameOrEmail !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Username or email is required."
+      });
+    }
+
+    const identifier = usernameOrEmail.trim();
+
+    const admin = await Admin.findOne({
+      where: {
+        [Op.or]: [
+          { username: identifier },
+          { email: identifier }
+        ]
+      }
+    });
+
+    // Always return the same response so we don't reveal
+    // whether an admin account exists.
+    if (!admin) {
+      return res.json({
+        success: true,
+        message: "If the account exists, a password reset link has been sent."
+      });
+    }
+
+    // Generate a secure random token.
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    // Token expires in 15 minutes.
+    const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    await admin.update({
+      resetToken,
+      resetTokenExpiry
+    });
+
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      "https://ecommerce-website-ten-inky.vercel.app";
+
+    const resetLink =
+      `${frontendUrl}/emergency-reset?token=${resetToken}`;
+
+    const adminEmail =
+      process.env.ADMIN_EMAIL || admin.email;
+
+    if (!adminEmail) {
+      console.error("ADMIN_EMAIL is not configured.");
+      return res.status(500).json({
+        success: false,
+        message: "Password recovery email is not configured."
+      });
+    }
+
+    await resend.emails.send({
+      from: "Essence Creations <onboarding@resend.dev>",
+      to: adminEmail,
+      subject: "Essence Creations Admin Password Reset",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+          <h2>Admin Password Reset</h2>
+
+          <p>You requested to reset the password for your Essence Creations admin account.</p>
+
+          <p>This link will expire in <strong>15 minutes</strong> and can only be used once.</p>
+
+          <p style="margin: 30px 0;">
+            <a
+              href="${resetLink}"
+              style="
+                display: inline-block;
+                padding: 12px 20px;
+                background: #000;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 6px;
+              "
+            >
+              Reset Admin Password
+            </a>
+          </p>
+
+          <p>If you did not request this password reset, you can safely ignore this email.</p>
+
+          <p style="font-size: 12px; color: #777;">
+            For security reasons, this link expires after 15 minutes.
+          </p>
+        </div>
+      `
+    });
+
+    return res.json({
+      success: true,
+      message: "If the account exists, a password reset link has been sent."
+    });
+
+  } catch (err) {
+    console.error("Forgot password error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to process password reset request."
+    });
+  }
+});
+
+
+// Reset the admin password using the temporary token
+router.post("/admin/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset token and new password are required."
+      });
+    }
+
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long."
+      });
+    }
+
+    const admin = await Admin.findOne({
+      where: {
+        resetToken: token
+      }
+    });
+
+    if (!admin) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset link."
+      });
+    }
+
+    if (
+      !admin.resetTokenExpiry ||
+      new Date() > new Date(admin.resetTokenExpiry)
+    ) {
+      await admin.update({
+        resetToken: null,
+        resetTokenExpiry: null
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset link."
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await admin.update({
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpiry: null
+    });
+
+    return res.json({
+      success: true,
+      message: "Password updated successfully."
+    });
+
+  } catch (err) {
+    console.error("Reset password error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to reset password."
+    });
+  }
+});
 module.exports = router;
