@@ -7,18 +7,35 @@ const Admin = sequelize.define("Admin", {
     autoIncrement: true,
     primaryKey: true
   },
+
   username: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true 
+    unique: true
   },
+
   password: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+
+  email: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true
+  },
+
+  resetToken: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+
+  resetTokenExpiry: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
-  // This helps Sequelize manage the table name "Admins" properly
-  tableName: 'Admins',
+  tableName: "Admins",
   timestamps: true
 });
 
