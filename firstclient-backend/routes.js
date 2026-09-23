@@ -634,8 +634,7 @@ router.post("/admin/forgot-password", async (req, res) => {
       }
     });
 
-    // Always return the same response so we don't reveal
-    // whether an admin account exists.
+    // Do not reveal whether an admin account exists.
     if (!admin) {
       return res.json({
         success: true,
@@ -643,10 +642,10 @@ router.post("/admin/forgot-password", async (req, res) => {
       });
     }
 
-    // Generate a secure random token.
+    // Generate secure temporary reset token.
     const resetToken = crypto.randomBytes(32).toString("hex");
 
-    // Token expires in 15 minutes.
+    // Token expires after 15 minutes.
     const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
     await admin.update({
@@ -661,61 +660,113 @@ router.post("/admin/forgot-password", async (req, res) => {
     const resetLink =
       `${frontendUrl}/emergency-reset?token=${resetToken}`;
 
-    const adminEmail =
-      process.env.ADMIN_EMAIL || admin.email;
+    // Use the same email address already used successfully
+    // by your existing receipt email system.
+    const resetEmail = "nwadikeekene4@gmail.com";
 
-    if (!adminEmail) {
-      console.error("ADMIN_EMAIL is not configured.");
+    // Make sure Resend is configured.
+    if (!process.env.RESEND_API_KEY) {
+      console.error("❌ RESEND_API_KEY is missing on Render.");
+
+      await admin.update({
+        resetToken: null,
+        resetTokenExpiry: null
+      });
+
       return res.status(500).json({
         success: false,
-        message: "Password recovery email is not configured."
+        message: "Email service is not configured."
       });
     }
 
-    await resend.emails.send({
-      from: "Essence Creations <onboarding@resend.dev>",
-      to: adminEmail,
-      subject: "Essence Creations Admin Password Reset",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
-          <h2>Admin Password Reset</h2>
+    console.log("📧 Preparing admin password reset email...");
+    console.log("📧 Recipient:", resetEmail);
+    console.log("📧 Reset link:", resetLink);
 
-          <p>You requested to reset the password for your Essence Creations admin account.</p>
+    try {
+      const emailResult = await resend.emails.send({
+        from: "Essence Creations <onboarding@resend.dev>",
+        to: resetEmail,
+        subject: "Essence Creations Admin Password Reset",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
 
-          <p>This link will expire in <strong>15 minutes</strong> and can only be used once.</p>
+            <h2 style="color: #111;">
+              Admin Password Reset
+            </h2>
 
-          <p style="margin: 30px 0;">
-            <a
-              href="${resetLink}"
-              style="
-                display: inline-block;
-                padding: 12px 20px;
-                background: #000;
-                color: #fff;
-                text-decoration: none;
-                border-radius: 6px;
-              "
-            >
-              Reset Admin Password
-            </a>
-          </p>
+            <p>
+              You requested to reset the password for your
+              Essence Creations admin account.
+            </p>
 
-          <p>If you did not request this password reset, you can safely ignore this email.</p>
+            <p>
+              Click the button below to create a new password.
+            </p>
 
-          <p style="font-size: 12px; color: #777;">
-            For security reasons, this link expires after 15 minutes.
-          </p>
-        </div>
-      `
-    });
+            <p>
+              This link will expire in
+              <strong>15 minutes</strong>.
+            </p>
+
+            <div style="margin: 30px 0;">
+              <a
+                href="${resetLink}"
+                style="
+                  display: inline-block;
+                  padding: 12px 20px;
+                  background: #000;
+                  color: #fff;
+                  text-decoration: none;
+                  border-radius: 6px;
+                "
+              >
+                Reset Admin Password
+              </a>
+            </div>
+
+            <p>
+              If you did not request this password reset,
+              you can safely ignore this email.
+            </p>
+
+            <p style="font-size: 12px; color: #777;">
+              This password-reset link can only be used once
+              and expires after 15 minutes.
+            </p>
+
+          </div>
+        `
+      });
+
+      console.log("✅ Password reset email sent.");
+      console.log("📧 Resend response:", emailResult);
+
+    } catch (emailError) {
+      console.error(
+        "❌ Password reset email failed:",
+        emailError?.message || emailError
+      );
+
+      // Remove the token because the email was not sent.
+      await admin.update({
+        resetToken: null,
+        resetTokenExpiry: null
+      });
+
+      return res.status(500).json({
+        success: false,
+        message: "Unable to send password reset email."
+      });
+    }
 
     return res.json({
       success: true,
-      message: "If the account exists, a password reset link has been sent."
+      message: "Password reset link has been sent to the admin email."
     });
 
   } catch (err) {
-    console.error("Forgot password error:", err);
+    console.error("❌ Forgot password error:", err);
 
     return res.status(500).json({
       success: false,
