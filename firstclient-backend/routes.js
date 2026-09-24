@@ -866,4 +866,36 @@ router.post("/admin/reset-password", async (req, res) => {
     });
   }
 });
+
+// TEMPORARY ADMIN ACCOUNT DIAGNOSTIC
+router.get("/admin/check-account", async (req, res) => {
+  try {
+    const admins = await Admin.findAll({
+      attributes: ["id", "username", "email"]
+    });
+
+    console.log("🔍 ADMIN ACCOUNT CHECK");
+    console.log("🔍 Number of admin accounts:", admins.length);
+
+    admins.forEach((admin) => {
+      console.log("🔍 Admin ID:", admin.id);
+      console.log("🔍 Admin username:", admin.username);
+      console.log("🔍 Admin email:", admin.email);
+    });
+
+    return res.json({
+      success: true,
+      message: "Admin account check completed. Check Render logs."
+    });
+
+  } catch (err) {
+    console.error("❌ Admin account check failed:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to check admin accounts."
+    });
+  }
+});
+
 module.exports = router;
