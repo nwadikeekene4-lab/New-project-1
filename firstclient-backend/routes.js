@@ -611,6 +611,7 @@ router.post("/training/:id/like", async (req, res) => {
 // ADMIN PASSWORD RESET
 // ============================================================
 
+
 // Request a password reset
 router.post("/admin/forgot-password", async (req, res) => {
   try {
@@ -625,6 +626,8 @@ router.post("/admin/forgot-password", async (req, res) => {
 
     const identifier = usernameOrEmail.trim();
 
+    console.log("🔎 Forgot password identifier:", identifier);
+
     const admin = await Admin.findOne({
       where: {
         [Op.or]: [
@@ -634,8 +637,17 @@ router.post("/admin/forgot-password", async (req, res) => {
       }
     });
 
+    console.log("🔎 Admin found:", !!admin);
+
+    if (admin) {
+      console.log("🔎 Admin username:", admin.username);
+      console.log("🔎 Admin email:", admin.email);
+    }
+
     // Do not reveal whether an admin account exists.
     if (!admin) {
+      console.log("⚠️ No admin account matched the supplied username/email.");
+
       return res.json({
         success: true,
         message: "If the account exists, a password reset link has been sent."
@@ -646,12 +658,16 @@ router.post("/admin/forgot-password", async (req, res) => {
     const resetToken = crypto.randomBytes(32).toString("hex");
 
     // Token expires after 15 minutes.
-    const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
+    const resetTokenExpiry = new Date(
+      Date.now() + 15 * 60 * 1000
+    );
 
     await admin.update({
       resetToken,
       resetTokenExpiry
     });
+
+    console.log("✅ Reset token saved for admin:", admin.username);
 
     const frontendUrl =
       process.env.FRONTEND_URL ||
@@ -660,8 +676,8 @@ router.post("/admin/forgot-password", async (req, res) => {
     const resetLink =
       `${frontendUrl}/emergency-reset?token=${resetToken}`;
 
-    // Use the same email address already used successfully
-    // by your existing receipt email system.
+    // Same email address already used by the existing
+    // working receipt email system.
     const resetEmail = "nwadikeekene4@gmail.com";
 
     // Make sure Resend is configured.
@@ -689,7 +705,12 @@ router.post("/admin/forgot-password", async (req, res) => {
         to: resetEmail,
         subject: "Essence Creations Admin Password Reset",
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+          <div style="
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+          ">
 
             <h2 style="color: #111;">
               Admin Password Reset
