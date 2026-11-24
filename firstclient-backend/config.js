@@ -1,23 +1,26 @@
+
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
+
+// Explicitly load PostgreSQL so Vercel includes the driver
+// in its serverless deployment bundle.
+require("pg");
 
 let sequelize;
 
 if (process.env.DATABASE_URL) {
-  // --- PRODUCTION (RENDER) ---
-  // If Render's DATABASE_URL exists, use it with SSL required
+  // Production database
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false, // Required for cloud databases like Render
+        rejectUnauthorized: false,
       },
     },
   });
 } else {
-  // --- LOCAL (YOUR COMPUTER) ---
-  // Otherwise, use your separate local .env variables
+  // Local database
   sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
@@ -30,3 +33,4 @@ if (process.env.DATABASE_URL) {
 }
 
 module.exports = sequelize;
+    
