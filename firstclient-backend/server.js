@@ -3,7 +3,6 @@ const cors = require("cors");
 const path = require("path");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const { Op } = require("sequelize");
 require("dotenv").config();
 
 // --- MODELS ---
@@ -13,6 +12,7 @@ const Admin = require("./Admin");
 const CMS = require("./cms");
 const Message = require("./Message");
 const { CartItem } = require("./cart");
+
 const {
   DeliveryOption = { sync: () => Promise.resolve() },
 } = require("./deliveryoptions");
@@ -137,6 +137,7 @@ app.use((req, res, next) => {
         "Content-Type, Authorization, X-Requested-With, Accept"
       );
       res.header("Access-Control-Allow-Credentials", "true");
+
       return res.sendStatus(200);
     }
 
@@ -155,6 +156,26 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 let databaseInitialized = false;
 let databaseInitializationPromise = null;
 
+async function syncTable(model, tableName) {
+  try {
+    console.log(`⏳ Checking database table: ${tableName}`);
+
+    // Creates missing tables without automatically altering
+    // the structure of existing tables.
+    await model.sync();
+
+    console.log(`✅ Table ready: ${tableName}`);
+  } catch (error) {
+    console.error(`❌ Failed to initialize table: ${tableName}`);
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Database error code:", error.original?.code);
+    console.error("Database error detail:", error.original?.detail);
+
+    throw error;
+  }
+}
+
 async function initializeDatabase() {
   if (databaseInitialized) {
     return;
@@ -165,10 +186,14 @@ async function initializeDatabase() {
   }
 
   databaseInitializationPromise = (async () => {
-    console.log("⏳ Starting database synchronization...");
+    console.log("⏳ Starting database initialization...");
 
-    // --- ESTABLISH TRAINING RELATIONSHIPS ---
-    // Prevent duplicate Sequelize association registration.
+    // Verify the database connection.
+    await Product.sequelize.authenticate();
+
+    console.log("✅ Neon database connection successful");
+
+    // Register model relationships once per application instance.
     if (!Training.associations.trainingMedia) {
       Training.hasMany(TrainingMedia, {
         as: "trainingMedia",
@@ -183,23 +208,23 @@ async function initializeDatabase() {
       });
     }
 
-    // --- SYNC TABLES ---
-    await Training.sync({ alter: true });
-    await TrainingMedia.sync({ alter: true });
-    await Product.sync({ alter: true });
-    await Admin.sync({ alter: true });
-    await Message.sync({ alter: true });
-    await CartItem.sync({ alter: true });
-    await Order.sync({ alter: true });
-    await CMS.sync({ alter: true });
+    // Initialize tables without automatic schema alteration.
+    await syncTable(Training, "Training");
+    await syncTable(TrainingMedia, "TrainingMedia");
+    await syncTable(Product, "Products");
+    await syncTable(Admin, "Admins");
+    await syncTable(Message, "Messages");
+    await syncTable(CartItem, "CartItems");
+    await syncTable(Order, "Orders");
+    await syncTable(CMS, "CMS");
 
     if (DeliveryOption && DeliveryOption.sync) {
-      await DeliveryOption.sync();
+      await syncTable(DeliveryOption, "DeliveryOptions");
     }
 
     databaseInitialized = true;
 
-    console.log("✅ All Database tables synced successfully");
+    console.log("✅ Database initialization completed successfully");
   })();
 
   try {
@@ -216,7 +241,8 @@ app.use(async (req, res, next) => {
     await initializeDatabase();
     next();
   } catch (error) {
-    console.error("❌ Database initialization error:", error);
+    console.error("❌ DATABASE INITIALIZATION FAILED:", error);
+
     res.status(500).json({
       success: false,
       message: "Database initialization failed",
@@ -225,8 +251,6 @@ app.use(async (req, res, next) => {
 });
 
 // --- API ROUTES ---
-// Render uses /api as the API prefix.
-// Vercel's /api/index.js is already inside the /api function path.
 const apiBasePath = process.env.VERCEL ? "/" : "/api";
 
 app.use(apiBasePath, routes);
@@ -249,5 +273,4 @@ if (!process.env.VERCEL) {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
-  }
-  
+}
