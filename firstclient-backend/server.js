@@ -151,14 +151,6 @@ app.use(express.json());
 // --- UPLOADS ---
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// --- API ROUTES ---
-// Render uses /api as the API prefix.
-// Vercel's /api/index.js is already inside the /api function path,
-// so routes are mounted at / when running on Vercel.
-const apiBasePath = process.env.VERCEL ? "/" : "/api";
-
-app.use(apiBasePath, routes);
-
 // --- DATABASE INITIALIZATION ---
 let databaseInitialized = false;
 let databaseInitializationPromise = null;
@@ -176,15 +168,20 @@ async function initializeDatabase() {
     console.log("⏳ Starting database synchronization...");
 
     // --- ESTABLISH TRAINING RELATIONSHIPS ---
-    Training.hasMany(TrainingMedia, {
-      as: "trainingMedia",
-      foreignKey: "trainingId",
-      onDelete: "CASCADE",
-    });
+    // Prevent duplicate Sequelize association registration.
+    if (!Training.associations.trainingMedia) {
+      Training.hasMany(TrainingMedia, {
+        as: "trainingMedia",
+        foreignKey: "trainingId",
+        onDelete: "CASCADE",
+      });
+    }
 
-    TrainingMedia.belongsTo(Training, {
-      foreignKey: "trainingId",
-    });
+    if (!TrainingMedia.associations.Training) {
+      TrainingMedia.belongsTo(Training, {
+        foreignKey: "trainingId",
+      });
+    }
 
     // --- SYNC TABLES ---
     await Training.sync({ alter: true });
@@ -227,6 +224,13 @@ app.use(async (req, res, next) => {
   }
 });
 
+// --- API ROUTES ---
+// Render uses /api as the API prefix.
+// Vercel's /api/index.js is already inside the /api function path.
+const apiBasePath = process.env.VERCEL ? "/" : "/api";
+
+app.use(apiBasePath, routes);
+
 // --- HEALTH CHECK ---
 app.get("/", (req, res) => {
   res.json({
@@ -239,11 +243,11 @@ app.get("/", (req, res) => {
 module.exports = app;
 
 // --- RENDER / TRADITIONAL SERVER STARTUP ---
-// When running outside Vercel, continue using the normal Express server.
 if (!process.env.VERCEL) {
   const PORT = process.env.PORT || 5000;
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
-    }
+  }
+  
