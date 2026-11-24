@@ -251,8 +251,7 @@ app.use(async (req, res, next) => {
 });
 
 // --- API ROUTES ---
-const apiBasePath = process.env.VERCEL ? "/" : "/api";
-
+const apiBasePath = "/api";
 app.use(apiBasePath, routes);
 
 // --- HEALTH CHECK ---
