@@ -871,22 +871,18 @@ router.post("/admin/reset-password", async (req, res) => {
 });
 
 
+
 // ============================================================
-// TEMPORARY INITIAL ADMIN ACCOUNT CREATION
-// ============================================================
-//
-// This route is only for recreating the first admin account
-// after the database was replaced.
-//
-// It will NOT create another admin if one already exists.
-// It also requires ADMIN_SETUP_KEY.
+// ONE-TIME INITIAL ADMIN REGISTRATION
 // ============================================================
 
-router.get("/admin/create-initial-account", async (req, res) => {
+router.post("/admin/register-initial-account", async (req, res) => {
   try {
+    const { setupKey, username, email, password } = req.body || {};
+
+    // Only allow registration if no admin exists.
     const existingAdminCount = await Admin.count();
 
-    // Never create another account if an admin already exists.
     if (existingAdminCount > 0) {
       return res.status(403).json({
         success: false,
@@ -894,72 +890,67 @@ router.get("/admin/create-initial-account", async (req, res) => {
       });
     }
 
-    // Require the secret setup key.
-    const setupKey = req.query.key;
+    // Verify the private registration key.
+    const configuredKey = process.env.ADMIN_SETUP_KEY;
 
     if (
-      !setupKey ||
-      !process.env.ADMIN_SETUP_KEY ||
-      setupKey !== process.env.ADMIN_SETUP_KEY
+      typeof setupKey !== "string" ||
+      typeof configuredKey !== "string" ||
+      !configuredKey ||
+      Buffer.byteLength(setupKey) !== Buffer.byteLength(configuredKey) ||
+      !crypto.timingSafeEqual(
+        Buffer.from(setupKey, "utf8"),
+        Buffer.from(configuredKey, "utf8")
+      )
     ) {
       return res.status(403).json({
         success: false,
-        message: "Invalid setup key."
+        message: "Invalid registration authorization."
       });
     }
 
-    const username = process.env.ADMIN_USERNAME || "admin";
-    const email =
-      process.env.ADMIN_EMAIL ||
-      "nwadikeekene4@gmail.com";
-
-    const initialPassword =
-      process.env.ADMIN_INITIAL_PASSWORD;
-
-    if (!initialPassword) {
-      console.error(
-        "❌ ADMIN_INITIAL_PASSWORD is missing."
-      );
-
-      return res.status(500).json({
-        success: false,
-        message: "Initial admin password is not configured."
-      });
-    }
-
+    // Validate username.
     if (
-      typeof initialPassword !== "string" ||
-      initialPassword.length < 8
+      typeof username !== "string" ||
+      !/^[a-zA-Z0-9_.-]{3,40}$/.test(username.trim())
     ) {
       return res.status(400).json({
         success: false,
-        message: "Initial admin password must be at least 8 characters long."
+        message: "Username must be 3–40 characters."
       });
     }
 
-    // Hash the password exactly like the existing
-    // admin password-reset system.
-    const hashedPassword = await bcrypt.hash(
-      initialPassword,
-      10
-    );
+    // Validate email.
+    if (
+      typeof email !== "string" ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter a valid email address."
+      });
+    }
+
+    // Validate password.
+    if (typeof password !== "string" || password.length < 12) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least 12 characters."
+      });
+    }
+
+    // Hash password before saving.
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const admin = await Admin.create({
-      username,
+      username: username.trim(),
+      email: email.trim().toLowerCase(),
       password: hashedPassword,
-      email,
       resetToken: null,
       resetTokenExpiry: null
     });
 
-    console.log("==========================================");
-    console.log("✅ INITIAL ADMIN ACCOUNT CREATED");
-    console.log("✅ Admin ID:", admin.id);
-    console.log("✅ Admin username:", admin.username);
-    console.log("✅ Admin email:", admin.email);
-    console.log("==========================================");
-
-    return res.json({
+    return res.status(201).json({
       success: true,
       message: "Initial admin account created successfully.",
       username: admin.username,
@@ -967,17 +958,15 @@ router.get("/admin/create-initial-account", async (req, res) => {
     });
 
   } catch (err) {
-    console.error(
-      "❌ Initial admin creation failed:",
-      err
-    );
+    console.error("Initial admin registration failed:", err.message);
 
     return res.status(500).json({
       success: false,
-      message: "Unable to create initial admin account."
+      message: "Unable to create the initial admin account."
     });
   }
 });
+  
 
 
 // TEMPORARY ADMIN ACCOUNT DIAGNOSTIC
