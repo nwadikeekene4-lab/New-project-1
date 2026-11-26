@@ -870,7 +870,70 @@ router.post("/admin/reset-password", async (req, res) => {
   }
 });
 
+// Temporary initial admin registration form
+router.get("/admin/register-initial-account", (req, res) => {
+  res.type("html").send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Admin Registration</title>
+    </head>
+    <body style="font-family:Arial;max-width:450px;margin:40px auto;padding:20px">
+      <h2>Create Initial Admin Account</h2>
 
+      <form id="registrationForm">
+        <label>Setup Key</label><br>
+        <input id="setupKey" type="password" required style="width:100%;padding:12px;margin:8px 0"><br>
+
+        <label>Username</label><br>
+        <input id="username" value="admin" required style="width:100%;padding:12px;margin:8px 0"><br>
+
+        <label>Email</label><br>
+        <input id="email" type="email" value="nwadikeekene4@gmail.com" required style="width:100%;padding:12px;margin:8px 0"><br>
+
+        <label>New Password (minimum 12 characters)</label><br>
+        <input id="password" type="password" minlength="12" required style="width:100%;padding:12px;margin:8px 0"><br>
+
+        <button type="submit" style="padding:12px 20px;margin-top:12px">Create Admin Account</button>
+      </form>
+
+      <p id="result"></p>
+
+      <script>
+        document.getElementById("registrationForm").addEventListener("submit", async function(event) {
+          event.preventDefault();
+
+          const result = document.getElementById("result");
+          result.textContent = "Creating account...";
+
+          try {
+            const response = await fetch("/api/admin/register-initial-account", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                setupKey: document.getElementById("setupKey").value,
+                username: document.getElementById("username").value,
+                email: document.getElementById("email").value,
+                password: document.getElementById("password").value
+              })
+            });
+
+            const data = await response.json();
+            result.textContent = data.message || "Request completed.";
+
+            if (data.success) {
+              document.getElementById("registrationForm").reset();
+            }
+          } catch (error) {
+            result.textContent = "Connection failed. Please try again.";
+          }
+        });
+      </script>
+    </body>
+    </html>
+  `);
+});
 
 // ============================================================
 // ONE-TIME INITIAL ADMIN REGISTRATION
